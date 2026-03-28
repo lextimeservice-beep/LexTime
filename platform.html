@@ -1,0 +1,1285 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ניהול תיקים — תקנות סדר הדין האזרחי 2018</title>
+<script>
+/* ── הגנת גישה ── */
+(function(){
+  if(localStorage.getItem('lextime_access') !== 'granted'){
+    document.addEventListener('DOMContentLoaded', function(){
+      document.body.style.display='none';
+      var lock = document.createElement('div');
+      lock.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#091e40,#0f2d5a);display:flex;align-items:center;justify-content:center;font-family:Heebo,Arial,sans-serif;direction:rtl;z-index:99999';
+      lock.innerHTML = '<div style="background:#fff;border-radius:20px;padding:48px 40px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.5)">'
+        + '<div style="font-size:56px;margin-bottom:16px">🔒</div>'
+        + '<div style="font-size:22px;font-weight:900;color:#0f2d5a;margin-bottom:10px;font-family:serif">הגישה מוגבלת למנויים</div>'
+        + '<p style="font-size:14px;color:#64748b;line-height:1.7;margin-bottom:28px">פלטפורמת ניהול התיקים זמינה למנויי LexTime בלבד.<br>יש להירשם ולהשלים תשלום כדי לקבל גישה.</p>'
+        + '<a href="index.html" style="display:block;padding:14px 28px;background:#b8862a;color:#fff;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;margin-bottom:12px">← הירשם עכשיו</a>'
+        + '<a href="index.html" style="display:block;padding:12px 24px;background:#f0f4fa;color:#374151;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;border:1px solid #e2e8f0">חזרה לדף הבית</a>'
+        + '</div>';
+      document.body.appendChild(lock);
+      document.body.style.display='';
+    });
+  }
+})();
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0f2d5a;--navy-d:#091e40;--navy-l:#1a4a8a;
+  --gold:#b8862a;--gold-l:#f5e6c8;--gold-ll:#fffaf0;
+  --green:#1a6e40;--green-l:#d4eddf;--green-ll:#f0fbf5;
+  --red:#b91c1c;--red-l:#fde8e8;--red-ll:#fff5f5;
+  --amber:#92400e;--amber-ll:#fffbeb;
+  --blue:#1a4fa0;--blue-l:#dbeafe;--blue-ll:#eff6ff;
+  --teal:#0f766e;--teal-l:#ccfbf1;--teal-ll:#f0fdfa;
+  --gray:#374151;--gray-l:#9ca3af;--gray-ll:#f8fafc;
+  --border:#e2e8f0;--border-d:#cbd5e1;
+  --r:8px;--r-lg:12px;
+  --sh:0 1px 3px rgba(0,0,0,.08);--sh-lg:0 4px 16px rgba(0,0,0,.1);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;font-size:14px;padding-top:0}
+
+/* ── STICKY TOP HEADER ── */
+#stickyTop{
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 3px 12px rgba(0,0,0,.18);
+}
+.topbar{
+  background:var(--navy-d);color:#fff;
+  padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:64px;
+}
+.brand-name{font-size:16px;font-weight:700}
+.brand-sub{font-size:11px;opacity:.5;font-weight:400;margin-right:8px}
+.topbar-actions{display:flex;gap:8px;align-items:center}
+.btn{padding:7px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:600;font-family:'Heebo','Arial',sans-serif;transition:.15s;white-space:nowrap}
+.btn-ol{background:transparent;border:1.5px solid rgba(255,255,255,.35);color:#fff}
+.btn-ol:hover{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.6)}
+.btn-gold{background:var(--gold);color:#fff}
+.btn-gold:hover{background:#9a7020}
+.btn-gh{background:var(--gray-ll);color:var(--gray);border:1px solid var(--border)}
+.btn-gh:hover{background:#e9ecf0}
+.btn-red{background:var(--red);color:#fff}
+.btn-red:hover{background:#991b1b}
+.save-ind{font-size:11px;color:rgba(255,255,255,.5);display:flex;align-items:center;gap:5px}
+.save-dot{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.25);transition:.3s}
+.save-dot.saved{background:#4ade80}
+.save-dot.saving{background:#fbbf24;animation:pulse .6s infinite alternate}
+@keyframes pulse{from{opacity:.3}to{opacity:1}}
+
+.case-header{
+  background:#fff;border-bottom:2px solid var(--gold);
+  padding:10px 24px;display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:10px;
+}
+.case-title{font-size:17px;font-weight:800;color:var(--navy);letter-spacing:-.3px}
+.case-num{font-size:11px;color:var(--gray-l);margin-top:2px}
+.case-meta{display:flex;gap:18px;flex-wrap:wrap;align-items:center}
+.mi{display:flex;flex-direction:column;gap:2px}
+.ml{font-size:10px;color:var(--gray-l);text-transform:uppercase;letter-spacing:.7px;font-weight:600}
+.mv{font-size:13px;font-weight:600;color:var(--navy)}
+
+.stats-bar{
+  display:flex;gap:10px;padding:8px 24px;background:#fff;
+  border-bottom:1px solid var(--border);overflow-x:auto;
+}
+.sp{display:flex;align-items:center;gap:8px;padding:5px 13px;border-radius:20px;font-size:13px;font-weight:600;white-space:nowrap}
+.sp .n{font-weight:800;font-size:15px}
+.sp.urg{background:var(--red-l);color:var(--red)}
+.sp.pnd{background:var(--amber-ll);color:var(--amber)}
+.sp.don{background:var(--green-l);color:var(--green)}
+.sp.tot{background:var(--blue-l);color:var(--blue)}
+
+.tabs{display:flex;padding:0 24px;background:#fff;border-bottom:2px solid var(--border)}
+.tab{padding:10px 18px;cursor:pointer;font-size:13px;font-weight:600;color:var(--gray-l);border-bottom:3px solid transparent;margin-bottom:-2px;transition:.15s}
+.tab:hover{color:var(--navy)}
+.tab.active{color:var(--navy);border-bottom-color:var(--gold)}
+
+/* ── CONTENT ── */
+.content{padding:20px 24px}
+
+/* ── STAGE BLOCKS ── */
+.stage-block{background:#fff;border:1px solid var(--border);border-radius:var(--r-lg);margin-bottom:14px;overflow:visible;box-shadow:var(--sh)}
+.stage-block.collapsed .stage-body{display:none}
+.stage-block.collapsed .stog{transform:rotate(-90deg)}
+.stage-head{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;cursor:pointer;user-select:none;transition:.15s}
+.stage-head:hover{background:var(--gray-ll)}
+.sh-left{display:flex;align-items:center;gap:10px}
+.sdot{width:12px;height:12px;border-radius:3px;flex-shrink:0}
+.sname{font-size:14px;font-weight:700;color:var(--navy)}
+.scnt{font-size:12px;color:var(--gray-l);background:var(--border);padding:2px 9px;border-radius:10px;font-weight:600}
+.stog{font-size:13px;color:var(--gray-l);transition:.25s}
+.progress-bar{height:18px;background:rgba(0,0,0,.07);position:relative;overflow:clip;direction:ltr;border-radius:0 0 var(--r-lg) var(--r-lg)}
+.progress-fill{
+  position:absolute;top:0;bottom:0;right:0;
+  transition:width .5s cubic-bezier(.4,0,.2,1);
+}
+.progress-arrow{
+  position:absolute;top:50%;transform:translateY(-50%);
+  width:0;height:0;
+  border-top:13px solid transparent;
+  border-bottom:13px solid transparent;
+  border-right:18px solid #1a4fa0;
+  filter:drop-shadow(-2px 0 4px rgba(0,0,0,.35));
+  z-index:5;
+}
+.progress-pct{
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  font-size:12px;font-weight:900;
+  white-space:nowrap;
+  color:var(--navy-d);
+  text-shadow:0 1px 2px rgba(255,255,255,.6);
+  font-family:'Heebo','Arial',sans-serif;
+  pointer-events:none;line-height:1;
+  z-index:6;
+  letter-spacing:-.3px;
+}
+
+/* ── TABLE ── */
+.tt{width:100%;border-collapse:collapse}
+.tt th{
+  background:#f8fafc;padding:8px 12px;font-size:10px;font-weight:700;
+  color:var(--gray-l);text-align:right;border-bottom:1px solid var(--border);
+  text-transform:uppercase;letter-spacing:.5px;white-space:nowrap
+}
+.tt th.col-orig{color:var(--blue);background:var(--blue-ll)}
+.tt th.col-actual{color:var(--teal);background:var(--teal-ll)}
+.tt td{padding:9px 12px;border-bottom:1px solid var(--gray-ll);vertical-align:middle}
+.tt tr:last-child td{border-bottom:none}
+.tt tr.task-row:hover td{background:#fafbfc}
+.tt tr.anchor-row td{background:#f8fafc;border-top:2px solid var(--border-d)}
+
+/* ── TASK DESC ── */
+.tdesc{font-size:13px;color:#1e293b;line-height:1.5;font-weight:500}
+.treg{font-size:11px;color:var(--blue);margin-top:3px;font-weight:500}
+.tend{color:var(--gold);font-weight:700}
+
+/* ── REGULATION LINK ── */
+.reg-link{
+  color:var(--navy);font-weight:700;cursor:pointer;
+  border-bottom:2px dashed var(--gold);
+  padding-bottom:1px;transition:.12s;
+}
+.reg-link:hover{
+  color:var(--gold);background:var(--gold-ll);
+  border-radius:3px;padding:0 3px;border-bottom-style:solid;
+}
+.urgent-alert .reg-link:hover{color:#fff;background:rgba(255,255,255,.2);border-bottom-color:rgba(255,255,255,.8);}
+
+/* ── TOOLTIP ── */
+.tip-wrap{position:relative;display:inline-block;vertical-align:middle;margin-right:4px}
+.tip-icon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:16px;height:16px;border-radius:50%;
+  background:var(--blue-l);color:var(--blue);font-size:10px;font-weight:700;cursor:help;
+}
+.tip-box{
+  display:none;position:absolute;z-index:400;background:#1e293b;color:#f1f5f9;
+  font-size:12px;line-height:1.7;padding:12px 16px;border-radius:8px;
+  width:320px;right:0;top:calc(100% + 6px);
+  box-shadow:0 4px 20px rgba(0,0,0,.3);white-space:pre-wrap;
+}
+.tip-box::before{content:'';position:absolute;top:-5px;right:4px;width:10px;height:10px;background:#1e293b;transform:rotate(45deg);border-radius:2px}
+.tip-wrap:hover .tip-box{display:block}
+
+/* ── DATE INPUTS ── */
+.date-orig{font-size:12px;font-weight:600;color:var(--blue);white-space:nowrap}
+.date-actual{font-size:12px;font-weight:700;color:var(--teal);white-space:nowrap}
+.date-none{color:var(--gray-l);font-size:12px}
+.date-input{
+  padding:5px 8px;border:1.5px solid var(--border-d);border-radius:6px;
+  font-size:12px;font-family:'Heebo','Arial',sans-serif;background:#fff;width:130px;
+  color:var(--navy);font-weight:500;
+}
+.date-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,134,42,.12)}
+.inp-orig{border-color:var(--blue);color:var(--blue)}
+.inp-orig:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,79,160,.12)}
+.inp-actual{border-color:var(--teal);color:var(--teal)}
+.inp-actual:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+
+/* ── CHIPS ── */
+.dc{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
+.dc.ok{background:var(--green-l);color:var(--green)}
+.dc.warn{background:var(--amber-ll);color:var(--amber)}
+.dc.ov{background:var(--red-l);color:var(--red)}
+.dc.none{background:var(--border);color:var(--gray-l)}
+.dc.done-early{background:var(--teal-l);color:var(--teal)}
+.dc.done-ontime{background:#bbf7d0;color:#14532d}
+.dc.done-badge{background:#86efac;color:#14532d;font-weight:800}
+.dc.done-late{background:var(--red-l);color:var(--red)}
+
+/* ── STATUS SELECT ── */
+.ss{padding:5px 9px;border:1.5px solid var(--border-d);border-radius:6px;font-size:12px;background:#fff;font-family:'Heebo','Arial',sans-serif;cursor:pointer;color:var(--navy);font-weight:500;min-width:110px}
+
+/* ── ANCHOR ROW ── */
+.anchor-label{font-size:13px;font-weight:700;color:var(--navy-d);display:flex;align-items:center;gap:8px}
+.anchor-tag{font-size:11px;background:var(--navy);color:#fff;padding:2px 7px;border-radius:10px}
+
+/* ── CASE LIST ── */
+.case-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.cc{background:#fff;border:1.5px solid var(--border);border-radius:var(--r-lg);padding:16px;cursor:pointer;transition:.15s;box-shadow:var(--sh)}
+.cc:hover{border-color:var(--gold);box-shadow:var(--sh-lg);transform:translateY(-1px)}
+.cc.act{border-color:var(--navy);border-width:2px;background:var(--blue-ll)}
+.ccn{font-size:12px;font-weight:700;color:var(--gray-l);margin-bottom:3px}
+.ccp{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:5px}
+.ccm{font-size:12px;color:var(--gray-l)}
+.ccb{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.badge{display:inline-flex;align-items:center;padding:3px 9px;border-radius:10px;font-size:11px;font-weight:700}
+.bd{background:var(--green-l);color:var(--green)}
+.bu{background:var(--red-l);color:var(--red)}
+.bt{background:var(--blue-l);color:var(--blue)}
+
+/* ── MODAL ── */
+.mo{position:fixed;inset:0;background:rgba(9,30,64,.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;backdrop-filter:blur(3px)}
+.mo.hidden{display:none}
+.modal{background:#fff;border-radius:14px;width:100%;max-width:580px;max-height:92vh;overflow-y:auto;box-shadow:0 25px 60px rgba(0,0,0,.25)}
+.modal-wide{max-width:680px}
+.mh{padding:18px 24px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:#fff;z-index:10}
+.mt{font-size:16px;font-weight:800;color:var(--navy)}
+.mc{background:none;border:none;font-size:22px;cursor:pointer;color:var(--gray-l);padding:2px 6px;border-radius:5px;line-height:1}
+.mc:hover{background:var(--border)}
+.mb{padding:18px 24px}
+.mf{padding:14px 24px;border-top:1px solid var(--border);display:flex;justify-content:flex-end;gap:10px;position:sticky;bottom:0;background:#fff}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:11px;font-weight:700;color:var(--gray);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.fi{width:100%;padding:9px 12px;border:1.5px solid var(--border-d);border-radius:8px;font-size:13px;font-family:'Heebo','Arial',sans-serif;color:var(--navy);font-weight:500;transition:.15s}
+.fi:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px rgba(184,134,42,.12)}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fhint{font-size:11px;color:var(--gray-l);margin-top:4px}
+.fdiv{height:1px;background:var(--border);margin:16px 0}
+.slbl{font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.slbl::after{content:'';flex:1;height:1px;background:var(--gold-l)}
+
+/* ── REGULATION MODAL ── */
+.reg-text{
+  white-space:pre-wrap;font-family:'Heebo','Arial',sans-serif;font-size:13px;
+  line-height:1.9;color:#1e293b;background:#f8fafc;padding:18px;
+  border-radius:8px;border:1px solid var(--border);max-height:55vh;
+  overflow-y:auto;direction:rtl;text-align:right;
+}
+.reg-header{
+  font-size:14px;font-weight:800;color:var(--navy);
+  margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--gold);
+}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy-d);color:#fff;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:2000;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.toast.show{opacity:1}
+.empty-state{text-align:center;padding:60px 20px;color:var(--gray-l)}
+.empty-state .icon{font-size:48px;margin-bottom:12px}
+.empty-state h3{font-size:15px;color:var(--gray);font-weight:700}
+
+/* NEXT TASK highlight */
+.tt tr.next-task td{
+  background:linear-gradient(90deg, rgba(184,134,42,.16) 0%, rgba(184,134,42,.06) 100%);
+  border-right:4px solid var(--gold);
+}
+.tt tr.next-task .tdesc{color:var(--navy-d);font-weight:700}
+.tt tr.urgent-row td{background:#fca5a5!important;border-right:4px solid #dc2626}
+.tt tr.urgent-row .tdesc{color:#7f1d1d;font-weight:700}
+.tt tr.next-task td{background:linear-gradient(90deg,rgba(184,134,42,.18) 0%,rgba(184,134,42,.06) 100%);}
+.next-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  background:var(--gold);color:#fff;font-size:10px;font-weight:800;
+  padding:2px 7px;border-radius:10px;margin-right:8px;
+  letter-spacing:.3px;vertical-align:middle;
+}
+
+@media(max-width:720px){
+  .topbar,.case-header,.content,.stats-bar,.tabs{padding-right:14px;padding-left:14px}
+  .fgrid{grid-template-columns:1fr}
+  .case-meta{gap:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════ STICKY HEADER ══════════════ -->
+<div id="stickyTop">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:12px">
+      <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:#fff;opacity:.8;font-size:12px;font-weight:600;padding:5px 10px;border:1px solid rgba(255,255,255,.25);border-radius:6px" title="דף הבית">← בית</a>
+      <span style="font-size:20px">⚖️</span>
+      <div>
+        <div class="brand-name">ניהול תיקים <span class="brand-sub">תקנות סד״א 2018</span></div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="save-ind"><div class="save-dot" id="saveDot"></div><span id="saveLabel">שמירה אוטומטית</span></div>
+      <a href="guide.html" class="btn btn-ol" style="text-decoration:none" title="מדריך שימוש">📖 מדריך</a>
+      <button class="btn btn-ol" onclick="showTab('cases')">כל התיקים</button>
+      <button class="btn btn-gold" onclick="openNewModal()">+ פתיחת תיק חדש</button>
+      <button class="btn btn-ol" onclick="openEditModal()">✏️ עריכה</button>
+      <button class="btn btn-ol" onclick="doLogout()" title="יציאה" style="padding:7px 11px;font-size:14px">🚪</button>
+    </div>
+  </div>
+
+  <!-- PROGRESS ARROW BAR: starts RIGHT, moves LEFT as pct increases -->
+  <div id="progressWrap" style="position:relative;height:8px;background:rgba(255,255,255,.12);overflow:visible;direction:ltr">
+    <!-- Empty spacer on left = unfilled area -->
+    <!-- Fill sits on RIGHT side, shrinking as arrow moves left -->
+    <!-- We use a full-width container and move the arrow absolutely -->
+    <!-- Arrow ◄ at right=(100-pct)% of wrap, pointing LEFT -->
+    <div id="progressFill" style="
+      position:absolute;top:0;bottom:0;
+      right:0;
+      background:linear-gradient(270deg,var(--gold),var(--gold-l));
+      transition:width .6s cubic-bezier(.4,0,.2,1);
+      width:0;
+    "></div>
+    <!-- Fat arrow pointing LEFT ◄ -->
+    <div id="progressArrow" style="
+      position:absolute;
+      top:50%;
+      transform:translateY(-50%);
+      left:0;
+      display:none;
+      width:0;height:0;
+      border-top:16px solid transparent;
+      border-bottom:16px solid transparent;
+      border-right:22px solid var(--gold);
+      filter:drop-shadow(0 0 8px rgba(184,134,42,.9));
+      transition:left .6s cubic-bezier(.4,0,.2,1);
+    "></div>
+    <!-- Percent label above the arrow -->
+    <div id="progressLabel" style="
+      position:absolute;
+      bottom:14px;
+      left:0;
+      transform:translateX(-50%);
+      font-size:16px;font-weight:900;
+      color:#fff;
+      white-space:nowrap;display:none;
+      text-shadow:0 2px 6px rgba(0,0,0,.6);
+      font-family:'Heebo','Arial',sans-serif;
+      letter-spacing:-.5px;
+      transition:left .6s cubic-bezier(.4,0,.2,1);
+      pointer-events:none;
+      line-height:1;
+    "></div>
+  </div>
+
+  <div class="case-header">
+    <div>
+      <div class="case-title" id="hParties">—</div>
+      <div class="case-num">מספר תיק: <strong id="hNum">—</strong> &nbsp;|&nbsp; <span id="hCourt">—</span></div>
+    </div>
+    <div class="case-meta">
+      <div class="mi"><div class="ml">הגשת כתב תביעה</div><div class="mv" id="hFiling">—</div></div>
+      <div class="mi"><div class="ml">המצאה לנתבע</div><div class="mv" id="hService">—</div></div>
+      <div class="mi"><div class="ml">תאריך נוכחי</div><div class="mv" id="hToday">—</div></div>
+      <div class="mi"><div class="ml">סוג תיק</div><div class="mv" id="hType">—</div></div>
+      <div class="mi"><div class="ml">ימי הגנה</div><div class="mv" id="hDefDays">—</div></div>
+    </div>
+    <select id="caseSwitcher" onchange="switchCase(this.value)"
+      style="padding:7px 12px;border:1.5px solid var(--border-d);border-radius:7px;font-size:13px;background:#fff;font-family:'Heebo','Arial',sans-serif;cursor:pointer;color:var(--navy);font-weight:500">
+    </select>
+  </div>
+
+  <div class="stats-bar">
+    <div class="sp urg"><span class="n" id="sUrgent">0</span> דחוף (עד 14 יום)</div>
+    <div class="sp pnd"><span class="n" id="sPending">0</span> ממתינים</div>
+    <div class="sp don"><span class="n" id="sDone">0</span> בוצע</div>
+    <div class="sp tot"><span class="n" id="sTotal">0</span> סה"כ מטלות</div>
+  </div>
+
+  <div class="tabs">
+    <div class="tab active" id="tabTL" onclick="showTab('timeline')">📅 ציר זמנים</div>
+    <div class="tab" id="tabCS" onclick="showTab('cases')">📁 כל התיקים</div>
+  </div>
+</div><!-- end stickyTop -->
+
+<!-- ══════════════ CONTENT ══════════════ -->
+<div class="content" id="viewTL"><div id="stagesWrap"></div></div>
+<div class="content" id="viewCS" style="display:none"><div class="case-grid" id="caseGrid"></div></div>
+
+<!-- ══ REGULATION MODAL ══ -->
+<div class="mo hidden" id="modalReg">
+  <div class="modal modal-wide">
+    <div class="mh">
+      <div>
+        <div class="mt" id="regTitle">תקנה</div>
+        <div style="font-size:11px;color:var(--gray-l);margin-top:3px">תקנות סדר הדין האזרחי, התשע״ט-2018</div>
+      </div>
+      <button class="mc" onclick="closeModal('modalReg')">✕</button>
+    </div>
+    <div class="mb">
+      <div class="reg-header" id="regSubtitle"></div>
+      <pre class="reg-text" id="regText"></pre>
+    </div>
+    <div class="mf"><button class="btn btn-gh" onclick="closeModal('modalReg')">סגור</button></div>
+  </div>
+</div>
+
+<!-- ══ NEW CASE MODAL ══ -->
+<div class="mo hidden" id="modalNew">
+  <div class="modal">
+    <div class="mh"><div class="mt">פתיחת תיק חדש</div><button class="mc" onclick="closeModal('modalNew')">✕</button></div>
+    <div class="mb">
+      <div class="slbl">פרטי התיק</div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">מספר תיק *</label><input class="fi" id="nNum" type="text" placeholder="1234-25"></div>
+        <div class="fg"><label class="fl">סוג תיק</label>
+          <select class="fi" id="nType">
+            <option>אזרחי</option><option>מסחרי</option><option>נזיקין</option>
+            <option>נזק גוף</option><option>רשלנות רפואית</option>
+            <option>ביטוח לאומי</option><option>חוזים</option><option>קניין</option>
+            <option>עבודה</option><option>מינהלי</option><option>פינוי מושכר</option><option>אחר</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">שם הצדדים *</label><input class="fi" id="nParties" type="text" placeholder="ישראל ישראלי נ׳ חברה בע״מ"></div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">בית משפט</label><input class="fi" id="nCourt" type="text" placeholder="שלום תל אביב"></div>
+        <div class="fg"><label class="fl">שופט/ת</label><input class="fi" id="nJudge" type="text"></div>
+      </div>
+      <div class="fdiv"></div>
+      <div class="slbl">מועדים עיקריים</div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">הגשת כתב תביעה — תקנה 9(א) *</label><input class="fi" id="nFiling" type="date"></div>
+        <div class="fg"><label class="fl">המצאה לנתבע — תקנה 9(ב) *</label>
+          <input class="fi" id="nService" type="date">
+          <div class="fhint">⏳ ממנו מחושבים מועדי כתב ההגנה</div>
+        </div>
+      </div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">עורך הדין המטפל</label><input class="fi" id="nLawyer" type="text"></div>
+        <div class="fg"><label class="fl">תביעה שכנגד?</label>
+          <select class="fi" id="nCounter"><option value="no">לא</option><option value="yes">כן</option></select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">הערות</label><textarea class="fi" id="nNotes" rows="3"></textarea></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-gh" onclick="closeModal('modalNew')">ביטול</button>
+      <button class="btn btn-gold" onclick="createCase()">✔ פתיחת תיק</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EDIT CASE MODAL ══ -->
+<div class="mo hidden" id="modalEdit">
+  <div class="modal">
+    <div class="mh"><div class="mt">עריכת פרטי תיק</div><button class="mc" onclick="closeModal('modalEdit')">✕</button></div>
+    <div class="mb">
+      <div class="slbl">פרטי התיק</div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">מספר תיק *</label><input class="fi" id="eNum" type="text"></div>
+        <div class="fg"><label class="fl">סוג תיק</label>
+          <select class="fi" id="eType">
+            <option>אזרחי</option><option>מסחרי</option><option>נזיקין</option>
+            <option>נזק גוף</option><option>רשלנות רפואית</option>
+            <option>ביטוח לאומי</option><option>חוזים</option><option>קניין</option>
+            <option>עבודה</option><option>מינהלי</option><option>פינוי מושכר</option><option>אחר</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">שם הצדדים *</label><input class="fi" id="eParties" type="text"></div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">בית משפט</label><input class="fi" id="eCourt" type="text"></div>
+        <div class="fg"><label class="fl">שופט/ת</label><input class="fi" id="eJudge" type="text"></div>
+      </div>
+      <div class="fdiv"></div>
+      <div class="slbl">מועדים עיקריים</div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">הגשת כתב תביעה *</label><input class="fi" id="eFiling" type="date"></div>
+        <div class="fg"><label class="fl">המצאה לנתבע *</label><input class="fi" id="eService" type="date"></div>
+      </div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">עורך הדין המטפל</label><input class="fi" id="eLawyer" type="text"></div>
+        <div class="fg"><label class="fl">תביעה שכנגד?</label>
+          <select class="fi" id="eCounter"><option value="no">לא</option><option value="yes">כן</option></select>
+        </div>
+      </div>
+      <div class="fg"><label class="fl">הערות</label><textarea class="fi" id="eNotes" rows="3"></textarea></div>
+    </div>
+    <div class="mf">
+      <button class="btn btn-red" onclick="deleteCase()">🗑 מחק תיק</button>
+      <button class="btn btn-gh" onclick="closeModal('modalEdit')">ביטול</button>
+      <button class="btn btn-gold" onclick="saveEdit()">✔ שמור שינויים</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ══ STORAGE ══ */
+// FILE_UID: each downloaded copy gets its own unique storage namespace
+var FILE_UID=(function(){
+  // Try to read UID from a fixed key; if not found, use the one embedded at build time
+  try{
+    var k=localStorage.getItem('_lm_uid');
+    if(k)return k;
+    // First run: embed the build-time UID and save it
+    localStorage.setItem('_lm_uid','72c8fbcf');
+    return '72c8fbcf';
+  }catch(e){return '72c8fbcf';}
+})();
+var KEY_IDS='lm_'+FILE_UID+'_ids',KEY_CUR='lm_'+FILE_UID+'_cur',KEY_PFX='lm_'+FILE_UID+'_case_';
+function saveCurrentId(id){try{localStorage.setItem(KEY_CUR,id)}catch(e){}}
+function loadCurrentId(){try{return localStorage.getItem(KEY_CUR)}catch(e){return null}}
+function saveCaseIds(ids){try{localStorage.setItem(KEY_IDS,JSON.stringify(ids))}catch(e){}}
+function loadAllCases(){
+  try{
+    var raw=localStorage.getItem(KEY_IDS);
+    if(raw===null||raw===undefined)return null;
+    var ids=JSON.parse(raw),r=[];
+    ids.forEach(function(id){var d=localStorage.getItem(KEY_PFX+id);if(d)r.push(JSON.parse(d));});
+    return r;
+  }catch(e){return null;}
+}
+function autoSave(c){
+  setSaving();
+  try{if(c)localStorage.setItem(KEY_PFX+c.id,JSON.stringify(c));saveCaseIds(cases.map(function(x){return x.id;}));}catch(e){}
+  setTimeout(setSaved,700);
+}
+function setSaving(){var d=g('saveDot'),l=g('saveLabel');if(d){d.className='save-dot saving';l.textContent='שומר...'}}
+function setSaved(){var d=g('saveDot'),l=g('saveLabel');if(d){d.className='save-dot saved';l.textContent='נשמר'}}
+function g(id){return document.getElementById(id);}
+
+/* ══ DATES ══ */
+function addDays(s,n){if(!s)return null;var d=new Date(s);if(isNaN(d))return null;d.setDate(d.getDate()+n);return d.toISOString().slice(0,10);}
+function daysFrom(s){if(!s)return null;var d=new Date(s),t=new Date();t.setHours(0,0,0,0);d.setHours(0,0,0,0);return Math.round((d-t)/864e5);}
+function daysBetween(a,b){if(!a||!b)return null;var da=new Date(a),db=new Date(b);da.setHours(0,0,0,0);db.setHours(0,0,0,0);return Math.round((db-da)/864e5);}
+function fmtDate(s){if(!s)return '—';try{return new Date(s+'T00:00:00').toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'});}catch(e){return s;}}
+function toInput(s){if(!s)return '';return typeof s==='string'?s.slice(0,10):'';}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+
+/* ══ CASE TYPE ══ */
+function getDefenseDays(c){
+  var t=(c.type||'').trim();
+  if(t==='נזק גוף'||t==='רשלנות רפואית')return 120;
+  if(t==='פינוי מושכר'||t==='ביטוח לאומי')return 30;
+  return 60;
+}
+
+/* ══ REGULATION DATA ══ */
+var REGS = {
+  6: "6.                              הגדרות\n\n[תיקונים: התשע\"ט (מס' 3), התש\"ף (מס' 2), התשפ\"א, התשפ\"ב, התשפ\"ג,\nהתשפ\"ג (מס' 4)]\n\nבתקנות אלה -\n\n\"בוררות\" - כמשמעותה לפי חוק הבוררות;\n\n\"גישור\" - כהגדרתו בסעיף 79ג לחוק;\n\n\"דין זר\" - דין שאינו חל בישראל;\n\n\"הוצאות\" - שכר טרחת עורך דין והוצאות המשפט;\n\n\"החלטה\" - פסק דין, פסק דין חלקי וכל החלטה אחרת;\n\n\"חוק אכיפת פסקי חוץ\" - חוק אכיפת פסקי חוץ, התשי\"ח-1958;\n\n\"חוק הבוררות\" - חוק הבוררות, התשכ\"ח-1968;\n\n\"חוק הכשרות המשפטית והאפוטרופסות\" - חוק הכשרות המשפטית והאפוטרופסות,\nהתשכ\"ב-1962;\n\n\"חוק ההוצאה לפועל\" - חוק ההוצאה לפועל, התשכ\"ז-1967;\n\n\"חוק זכויות החולה\" - חוק זכויות החולה, התשנ\"ו-1996;\n\n\"חוק חסינות מדינות זרות\" - חוק חסינות מדינות זרות, התשס\"ט-2008;\n\n\"חוק מרשם האוכלוסין\" - חוק מרשם האוכלוסין, התשכ\"ה-1965;\n\n\"חוק פיצויים לנפגעי תאונות דרכים\" - חוק פיצויים לנפגעי תאונות דרכים,\nהתשל\"ה-1975;\n\n\"טענה מקדמית\" - טענה שיש בה כדי לסלק את התביעה כולה או מקצתה על הסף;\n\n\"כתב טענות\" - מסמך שמגיש בעל דין המשמש לטיעון בהליך לפי תקנות אלה;\n\n\"כתב טענות אחרון\" - כתב תשובה או המועד שחלף להגשתו, לפי המוקדם,\nובדיון מהיר - כתב הגנה.\n\n\"מומחה\" - מי שמוכר כמומחה לפי כל דין ובאין דין כאמור, בעל ניסיון וידע\nבעניין שבמדע, במחקר, באמנות או במקצוע, למעט בעניין שבמשפט שאינו דין\nזר;\n\n\"מזכיר משפטי\" - עורך דין שהסמיך נשיא בית המשפט בהסכמת מנהל בתי המשפט\nבכפוף להוראות כל דין;\n\n\"מחזיק\" - אדם, זולת המשיב בבקשה לסעד זמני, שברשותו מצויים נכסים\nשלגביהם התבקש או ניתן סעד זמני;\n\n\"מנגנון חלופי ליישוב סכסוך\" - דרך לפתרון הסכסוך בהסכמה מחוץ לכותלי\nבית המשפט שהיא, בין השאר, גישור, בוררות וכיוצא באלה;\n\n\"מסמך\" - כל כתב לפי תקנות אלה, ובכלל זה החלטה והזמנת עד;\n\n\"מסמך מהותי\" - (נמחקה);\n\n\"מספר זהות\" -\n\n(1) לגבי יחיד - אם הוא תושב ישראל, מספר זהותו במרשם האוכלוסין\nכמשמעותו בסעיף 2 לחוק מרשם האוכלוסין; אם אינו תושב ישראל, שם המדינה\nשבה הוצא הדרכון ומספרו; באין אלה - פרטי זיהוי מספיקים אחרים, אם יש\nכאלה;\n\n(2) לגבי תאגיד - מספר הרישום שלו לפי הדין החל עליו; ואם הוא תאגיד זר,\nגם שם המדינה שבה הוא רשום;\n\n\"מען\" - כתובת של אדם לפי סעיפים 2(א)(11) ו–(11א) לחוק מרשם האוכלוסין,\nובהעדר שם לרחוב או מספר לבית - סימן זיהוי אחר, ובלבד שלא יצוין מספר\nתא דואר בלבד, ואם מדובר בתאגיד, הכתובת הרשומה לפי הדין החל עליו ובלבד\nשלא יצוין מספר תא דואר בלבד;\n\n\"נכס\" - מקרקעין, מיטלטלין וזכויות, בין אם הגיע מועד מימושן ובין אם\nלאו;\n\n\"עילת תביעה\" - מסכת העובדות הנדרשות כדי לזכות את התובע בקבלת הסעד\nשהוא מבקש;\n\n\"ערובה\" - הפקדת סכום כסף בקופת בית המשפט או מתן ערבות צד שלישי לרבות\nערבות של מוסד פיננסי;\n\n\"פקודת הראיות\" - פקודת הראיות [נוסח משולב], התשל\"א-1971;\n\n\"פרטי התקשרות\" - מספר טלפון, מספר פקסימילה אם יש וכתובת דואר אלקטרוני\nשאליה ניתן להמציא מסמך לפי תקנות אלה;\n\n\"תביעה לפינוי מושכר\" - תביעה לפינוי מושכר שאין חוק הגנת הדייר [נוסח\nמשולב], התשל\"ב-1972, חל עליו;\n\n\"תביעה שעניינה רשלנות רפואית\" - תובענה לפיצויים בשל נזק גוף שנגרם\nבעקבות טיפול רפואי של מטפל או מוסד רפואי כהגדרתם בחוק זכויות החולה;\n\n\"תביעת רכב\" - תובענה לפיצויים בשל נזק שנגרם לרכוש עקב שימוש ברכב\nמנועי;\n\n\"תובענה\" - הליך המתנהל בהתאם לתקנות אלה הנפתח בהגשת כתב תביעה;\n\n\"תובענה לפיצויים בשל נזק גוף\" - לרבות תביעה חוזית לקבלת תגמולי ביטוח\nלפי פוליסת ביטוח בשל נזק גוף; ואולם תובענה שעילתה בחוק הפיצויים\nלנפגעי תאונות דרכים אינה תובענה לפיצויים בשל נזקי גוף;\n\n\"תצהיר\" - תצהיר לפי סעיף 15 לפקודת הראיות, לרבות הצהרה שניתנה מחוץ\nלישראל בכתב, בדבר אמיתות הדברים שנכתבו בה, באחת מן הדרכים האלה:\n\n(1) בפני נציג דיפלומטי או קונסולרי של ישראל;\n\n(2) לפי דין המקום שבו ניתנה ואושרה בידי נציג כאמור בפסקה (1);\n\n(3) לפי הסדר שנקבע מכוח הסכם בין מדינת ישראל לבין מדינה זרה;\n\n(4) בפני נוטריון המוסמך לפי דין המדינה הזרה שבה ניתנה ההצהרה לאמת את\nהחתימה על ההצהרה, ובלבד שצורף להצהרה אישור נוטריוני של תעודה מזהה של\nהחותם וכן תעודה מאותה מדינה לפי האמנה כהגדרתה בתקנות לביצוע אמנת האג\n(ביטול אימות מסמכי חוץ ציבוריים), התשל\"ז-1977, שמאמתת את חתימת\nהנוטריון על גבי ההצהרה ומאשרת כי הוא אכן נוטריון לפי דיני אותה מדינה;\n\n\"תעודה ציבורית\" - כהגדרתה בסעיף 29 לפקודת הראיות;\n\n\"תעודת עובד ציבור\" - כמשמעותה בסעיף 23 לפקודת הראיות;\n\n\"תקנות האגרות\" - תקנות בתי המשפט (אגרות), התשס\"ז-2007;\n\n\"תקנות המומחים\" - תקנות בתי המשפט (רשימת מומחים מטעם בית המשפט),\nהתשפ\"ג-2022.\n\nפרק ב': סמכות מקומית",
+  9: "9.             כתב תביעה וכתב הגנה - כללי\n\n[תיקונים: התשע\"ט (מס' 3), התש\"ף (מס' 2), התשפ\"א, התשפ\"ב]\n\n(א) הליך בבית משפט ייפתח בהגשת כתב תביעה, שבמענה לו יוגש כתב הגנה.\n\n(ב) כתב הגנה יוגש בתוך שישים ימים ממועד המצאת כתב התביעה לידי הנתבע\nובתביעה שעניינה רשלנות רפואית, יוגש כתב ההגנה בתוך 120 ימים ממועד\nהמצאת כתב התביעה לידי הנתבע; בית המשפט רשאי להאריך את המועדים כאמור\nאם השתכנע כי קיימים טעמים המצדיקים זאת.\n\n(ג) כתב תביעה וכתב הגנה יכללו שלושה חלקים לפי הסדר המפורט להלן:\n\n(1) כותרת;\n\n(2) תמצית הטענות;\n\n(3) פירוט הטענות.\n\n(ד) חלקו השני של כתב הטענות לא יעלה על שני עמודים וחלקו השלישי לא\nיעלה על תשעה עמודים אם הוגש לבית משפט שלום, ובהתאמה על שלושה ושנים\nעשר עמודים אם הוגש לבית משפט מחוזי; ואולם בתובענה לסעד כספי בבית משפט\nמחוזי שסכומה עולה על שניים וחצי מיליון שקלים חדשים ובתובענה לפיצויים\nבשל נזק גוף ותובענה שעילתה בחוק פיצויים לנפגעי תאונות דרכים שהוגשו\nלבית המשפט המחוזי, חלקו השני של כתב הטענות לא יעלה על חמישה עמודים\nוחלקו השלישי לא יעלה על עשרים וחמישה עמודים.\n\n(ה) (בוטלה).",
+  13: "13.            תמצית הטענות בכתב ההגנה\n\n[תיקונים: התש\"ף (מס' 2), התשפ\"א]\n\nבחלקו השני של כתב ההגנה יפרט בעל הדין את העניינים האלה בלבד ולפי הסדר\nהמפורט להלן:\n\n(1) טענות מקדמיות;\n\n(2) תמצית טענות ההגנה שיפורטו לפי סדר עילות התביעה;\n\n(3) טיעונים לעניין הסעד המבוקש.",
+  18: "18.                       כתב תשובה\n\n[תיקונים: התשע\"ט (מס' 3), התשפ\"ב]\n\n(א) תובע רשאי להגיש כתב תשובה לכתב ההגנה בתוך ארבעה עשר ימים מיום\nשהומצא לו כתב ההגנה; כתב תשובה לא יכלול נימוק תביעה חדש או כל טענה\nשאינה מתיישבת עם טענותיו הקודמות של בעל דין; לא הגיש התובע כתב תשובה\nיראו אותו כמכחיש את כל הטענות שנטענו בכתב ההגנה, ובלבד שהתובע לא הודה\nבהן במפורש.\n\n(ב) היקפו של כתב התשובה לא יעלה על שלושה עמודים לא כולל הכותרת.",
+  21: "21.       תביעה שכנגד, הגנה שכנגד וכתב תשובה שכנגד\n\nסימן ג': הודעה לצד שלישי\n\n[תיקון התש\"ף (מס' 2)]\n\n(א) נתבע רשאי להגיש תביעה שכנגד עם הגשת כתב ההגנה; תובע שכנגד שהגיש\nתביעה שכנגד נגד מי שאינו בעל דין בתביעה המקורית, ימציא לו את כל כתבי\nהטענות שהוגשו עד אותו שלב.\n\n(ב) דין תביעה שכנגד כדין כתב תביעה לכל דבר ועניין והיא אינה תלויה\nבהמשך קיומה של התביעה העיקרית; התקנות בדבר הגשת כתב תביעה, כתב הגנה\nוכתב תשובה כאמור בסימן א' בפרק ג' יחולו, בשינויים המחויבים, על כתב\nתביעה שכנגד ועל כתב תשובה שכנגד ועל כתב הגנה שכנגד.\n\n(ג) בית המשפט יורה על עיתוי שמיעת התביעה שכנגד וסדר ניהולה.\n\nסימן ג': הודעה לצד שלישי",
+  22: "22.                 הודעה לצד שלישי\n\n[תיקון התש\"ף (מס' 2)]\n\nנתבע רשאי לתת הודעה לצד שלישי לכל אדם, במקרים שבהם הוא זכאי ממנו\nלהשתתפות, לשיפוי או לביצוע פעולה בנוגע לסעד הנתבע ממנו או אם מתקיים\nקשר עובדתי או משפטי משותף בסוגיה שבינו ובין הצד השלישי, הכרוכה בנושא\nהתובענה.",
+  23: "23.                 תוכן ההודעה ודינה\n\nסימן ד': כתבי טענות ומסמכים - הוראות שונות\n\n[תיקון התש\"ף (מס' 2)]\n\n(א) התקנות בדבר הגשת כתב תביעה, כתב הגנה וכתב תשובה כאמור בסימן א'\nבפרק ג' יחולו, בשינויים המחויבים, על הודעה לצד שלישי על כתב הגנה של\nצד שלישי להודעה כלפיו, ועל כתב תשובה לכתב הגנה כאמור.\n\n(ב) להודעה לצד שלישי יצורפו העתקים מכתבי הטענות שהוגשו בתובענה, אם לא\nהומצאו קודם לכן; הודעה לצד שלישי תוגש בתוך הזמן שנקבע להגשת כתב הגנה\nלפי תקנה 9(ב).\n\n(ג) דין צד שלישי שהומצאה לו הודעה, כדין נתבע לכל דבר ועניין, ואולם\nהוא אינו רשאי להגיש תביעה שכנגד.\n\n(ד) רצה צד שלישי לחלוק על ההודעה כלפיו או על כתב התביעה שהוגש נגד בעל\nהדין שנתן את ההודעה, יגיש כתב הגנה בתוך שישים ימים מהיום שההודעה\nהומצאה לו.\n\n(ה) בית המשפט יורה על עיתוי שמיעת ההודעה לצד שלישי וסדר ניהולה.\n\nסימן ד': כתבי טענות ומסמכים - הוראות שונות",
+  25: "25.       תביעת מלוא הסעד וכל הסעדים בשל עילה אחת\n\n(תיקון התשפ\"א)\n\n(א) תובע יכלול בכתב תביעה את מלוא הסעד שלטענתו הוא זכאי לו בשל עילת\nהתביעה ולא יוכל להגיש תביעה בשל החלק שלא תבע.\n\n(ב) תובע יכלול בכתב התביעה את כל הסעדים המבוקשים בשל עילת תביעה אחת,\nאלא אם כן הרשה לו בית המשפט או הדין מתיר שלא לתבעו במסגרת אותה תביעה;\nרשות מבית המשפט לא תינתן אלא במסגרת בקשה לפיצול סעדים.\n\n(ג) בית המשפט יכריע בבקשה לפיצול סעדים עד תום קדם–המשפט.",
+  28: "28.          העלאת טענות מקדמיות בכתב הגנה\n\n[תיקון התש\"ף (מס' 2)]\n\nטענה מקדמית שלא פורטה בכתב ההגנה לא תועלה בשלב מאוחר יותר, אלא אם כן\nבית המשפט נתן רשות לכך.\n29.      טענות חוסר סמכות, תניית שיפוט זר או פורום בלתי נאות\n\n[תיקון התש\"ף (מס' 2)]\n\nבעל דין יעלה טענת חוסר סמכות, תניית שיפוט זר או פורום בלתי נאות\nבהזדמנות הראשונה לאחר הגשת כתב התביעה; לא העלה בעל דין טענות אלה\nבמועד כאמור, רשאי בית המשפט לפסוק הוצאות לטובת בעל הדין שכנגד או\nלטובת אוצר המדינה.",
+  34: "34.                מטרת הדיון המקדמי\n\nהצדדים יקיימו דיון מקדמי כמפורט בתקנה 35; מטרת הדיון המקדמי היא להביא\nלידי כך שבעלי הדין ייערכו היטב לקראת הדיון בתביעה וילבנו את יריעת\nהמחלוקת תוך גילוי הדדי ושקיפות מלאה ביניהם, באופן שיאפשר להם להיות\nמוכנים כראוי לדיון וכן לבחון את האפשרות לפתור את המחלוקת באמצעות\nמנגנון חלופי ליישוב הסכסוך.",
+  35: "35.             דיון מקדמי בין בעלי הדין\n\n[תיקון התש\"ף (מס' 2)]\n\n(א) בתוך שלושים ימים ממועד המצאת כתב הטענות האחרון ינהלו בעלי הדין,\nזולת בעל דין שאיננו מיוצג בידי עורך דין, דיון מקדמי, בין השאר יגיבו\nלעניינים האלה:\n\n(1) תיחום הפלוגתות שבין בעלי הדין, מיקודן והאפשרות לצמצמן;\n\n(2) האפשרות לפתור את המחלוקת באמצעות מנגנון חלופי ליישוב הסכסוך;\n\n(3) החליטו בעלי הדין שלא ניתן למנוע הליך שיפוטי בעניין הסכסוך\nשביניהם, יבחנו, לכל הפחות, את האפשרות להסכים על הצעדים שיש לנקוט כדי\nלצמצם ולייעל ככל האפשר את ההליך המשפטי, לרבות הקדמה של העמדת נושא\nחוות הדעת, לבדיקה בידי מומחה מטעם בעל הדין שכנגד או מינוי של מומחה\nמוסכם.\n\n(ב) במהלך הדיון המקדמי יאפשרו הצדדים עיון במסמכים הנחוצים וישיבו זה\nלזה על שאלות שהמענה להן נחוץ לצורך ליבון הפלוגתות וצמצום המחלוקות\nביניהם תוך שהם נוהגים בשקיפות מרבית.",
+  36: "36.                 דיווח לבית המשפט\n\n(תיקונים: התשפ\"א, התשפ\"ב)\n\nבתום הדיון המקדמי ולא יאוחר מעשרים ימים לפני המועד שנקבע לישיבת\nקדם–המשפט הראשונה, יגישו בעלי הדין דיווח באשר לדיון המקדמי שביצעו,\nלפי טופס 4 שבתוספת הראשונה ויצרפו אליו את המסמכים הנחוצים שהוצגו\nבמהלך הדיון המקדמי ולפי תקנה 35(ב); באין הסכמה לדיווח משותף, יגיש כל\nבעל דין את הטופס האמור מטעמו בלבד.",
+  37: "37.                     פגישת מהו\"ת\n\n[תיקונים: התש\"ף (מס' 2), התשפ\"ב]\n\n(א) בתקנה זו -\n\n\"יחידת הגישור\" - כהגדרתה בתקנות רשימת המגשרים;\n\n\"מגשר מהו\"ת\" - כמשמעותו בתקנות רשימת המגשרים;\n\n\"ממונה\" - עורך דין ביחידת הגישור, שופט או רשם, שנשיא בית המשפט הסמיך\nאותו לממונה מטעמו לנושא פגישת מהו\"ת ומנגנון חלופי ליישוב סכסוך;\n\n\"פגישת מהו\"ת\" - פגישת מידע, היכרות ותיאום לבחינת האפשרות ליישב את\nהסכסוך באמצעות מנגנון חלופי ליישוב סכסוך;\n\n\"תקנות רשימת המגשרים\" - תקנות בתי המשפט (רשימת מגשרים), התשע\"ח-2017.\n\n(ב) לא יאוחר מארבעים וחמישה ימים לאחר שהוגש כתב הטענות האחרון, ימנה\nהממונה מגשר מהו\"ת לצורך קיום פגישת מהו\"ת בתובענה שסכומה או ששווי\nנושאה עולה על 40,000 שקלים חדשים, למעט בתובענה לפיצויים בשל נזק גוף\nותובענה שעילתה בחוק פיצויים לנפגעי תאונות דרכים, בין אם בעל הדין\nבאותה תובענה מיוצג בידי עורך דין ובין אם לאו; בית המשפט יודיע לצדדים\nעל מינוי מגשר המהו\"ת ויעביר אליו את כתבי הטענות; לעניין זה דין בקשת\nרשות להתגונן כדין כתב הגנה.\n\n(ג) על מינוי מגשר מהו\"ת יחולו הוראות אלה:\n\n(1) יחידת הגישור תורה, בכל תובענה, על זהות מגשר המהו\"ת שיקיים את\nפגישת המהו\"ת בכל תובענה, מתוך רשימת המגשרים על יסוד השיקולים המפורטים\nלהלן:\n\n(א) תחומי התמחותו של מגשר המהו\"ת ותחום עיסוקו;\n\n(ב) אזורי פעילותו;\n\n(ג) השפות שהוא דובר;\n\n(ד) מאפיינים מיוחדים הנדרשים לצורך הגישור באותה תובענה;\n\n(2) החלטה בדבר זהות מגשר המהו\"ת תיעשה, ככל האפשר, באופן שוויוני,\nובכפוף לשיקולים המפורטים בפסקה (1);\n\n(3) פרטי מגשר המהו\"ת שקיים את פגישת המהו\"ת יפורסמו באתר האינטרנט של\nבתי המשפט.\n\n(ד) פגישת המהו\"ת תתקיים בלא עלות, לא יאוחר משלושים ימים ממועד המצאת\nההודעה על מינוי מגשר המהו\"ת; דינה של הזמנה לפגישת מהו\"ת כדין הזמנה\nלדיון בבית המשפט.\n\n(ה) בפגישת המהו\"ת יסביר מגשר המהו\"ת לבעלי הדין את עקרונות פגישת\nהמהו\"ת ואת היתרונות הגלומים ביישוב הסכסוך במנגנון חלופי ליישוב סכסוך,\nויבחן עמם את הנושאים העיקריים שבמחלוקת ואת האפשרות ליישב את הסכסוך.\n\n(ו) בתוך ארבעה עשר ימים מעת פגישת המהו\"ת, יודיע מגשר המהו\"ת לממונה אם\nבעלי הדין מסכימים להעביר את הסכסוך לגישור.\n\n(ז) בכל עניין הנוגע למועד פגישת המהו\"ת, מקומה, זהות מגשר המהו\"ת או\nזהות המשתתפים והתייצבותם או השתתפותם בהיוועדות חזותית, רשאי מגשר\nהמהו\"ת או אחד מבעלי הדין להביא את העניין להנחיית הממונה.\n\n(ח) הרואה את עצמו נפגע מהנחיית הממונה, שהוא עורך דין ביחידת הגישור,\nרשאי להעביר את העניין לעיונו ולהכרעתו של הממונה שהוא רשם או שופט.\n\n(ט) לפגישת מהו\"ת יתייצבו בעלי הדין, ורשאים הם להתייצב עם עורכי דינם;\nואולם על בעלי דין המפורטים להלן יחול ההסדר המיוחד שלצדם:\n\n(1) לגבי בעל דין המתגורר דרך קבע מחוץ לגבולות המדינה, ולא נמצא בארץ,\nיתייצב לפגישת מהו\"ת מיופה כוחו;\n\n(2) אם בעל הדין הוא תאגיד, יתייצב לפגישת מהו\"ת נציג מטעמו שהוא בעל\nתפקיד הבקיא בפרטי הסכסוך עם עמדה מוסמכת בעניין העברת התובענה לגישור,\nורשאי הוא להתייצב עם עורך דין מטעם בעל הדין;\n\n(3) אם בעל הדין הוא המדינה, רשות מקומית או חברת ביטוח - יגיע הפרקליט\nאו עורך הדין המטפל בתיק עם עמדה מוסמכת בעניין העברת התובענה לגישור,\nורשאי הוא להתייצב עם נציג מטעם בעל הדין שהוא בעל תפקיד הבקיא בפרטי\nהסכסוך.\n\n(י) לא התייצב מי מבעלי הדין לפגישת מהו\"ת, יחייבו הממונה בהוצאות מגשר\nהמהו\"ת ובהוצאות בעלי הדין שהתייצבו לפגישה, זאת בלי לגרוע מסמכויות בית\nהמשפט לגבי אי–מילוי הוראות פרק זה, זולת אם מצא הממונה כי קיימים טעמים\nשלא לחייב בהוצאות כאמור.\n\n(יא) פגישת מהו\"ת תתקיים בבתי המשפט המפורטים בתוספת השנייה.\n\n(יב) הוראות החלות על גישור לפי סעיף 79ג(ג) ו–(ד) לחוק וכן תקנות\nלעניינן, יחולו על פגישת מהו\"ת.",
+  40: "40.                איחוד דיון בתובענות\n\n(א) בית המשפט רשאי להורות על איחוד הדיון בתובענה הנדונה לפניו עם\nתובענה התלויה ועומדת באותו בית משפט, אם סבר שיש בדבר כדי לייעל ולפשט\nאת ההליכים או למניעת תוצאות סותרות; החל שופט אחר לדון בתובענה שמבקשים\nלאחדה, ניתן לאחדה רק בהסכמתו.\n\n(ב) הוגשו תובענות בנושא אחד לבתי משפט אחדים של אותה דרגה במחוזות\nשיפוט שונים, יחליט נשיא בית המשפט העליון, או שופט אחר של בית המשפט\nהעליון שהוא הסמיך לכך, למי מבתי משפט אלה יהיה שיפוט ייחודי והתובענות\nשבשאר בתי המשפט יועברו לבית המשפט האמור ויידונו בו במאוחד.\n\nפרק ו': סילוק כתבי טענות",
+  49: "49.                              בקשות\n\n[תיקונים: התשע\"ט (מס' 3), התש\"ף (מס' 2), התשפ\"א, התשפ\"ב, התשפ\"ג]\n\n(א) לא יוגשו בקשות כלשהן במועד שלאחר הגשת כתב הטענות האחרון, עד מועד\nישיבת קדם–המשפט הראשונה, זולת אם הבקשה היא אחת מאלה:\n\n(1) בקשה לסעד זמני לפי פרק ט\"ו;\n\n(2) בקשה לגביית עדות מוקדמת לפי תקנה 73;\n\n(3) בקשה לעיכוב הליכים לפי סעיפים 5 או 6 לחוק הבוררות או על יסוד\nתניית שיפוט זר;\n\n(4) בקשה לבדיקה על ידי מומחה מטעם הנתבע וכל הקשור אליה לפי תקנה 87;\n\n(5) בקשה לצירוף צד להליך;\n\n(6) בקשה לאיחוד הדיון בתובענות לפי תקנה 40;\n\n(7) בקשה לתקן כתבי טענות לפי פרק ז';\n\n(8) בקשה לפסלות שופט לפי תקנה 173;\n\n(9) בקשה לפטור מהתייצבות בעל דין או נציג, שניתנה החלטה על התייצבותו\nלפי תקנה 61(ב);\n\n(10) בקשה לאישור הסדר פשרה, הסדר גישור או אישור הסדר דיוני;\n\n(11) בקשה להתלות או לבטל מינוי מומחה בשל חשש לניגוד עניינים לפי תקנה\n16(ו)(2) לתקנות המומחים.\n\n(ב) בקשות המנויות בפסקאות (3) עד (7) בתקנת משנה (א), יוגשו לא יאוחר\nמשישים ימים ממועד הגשת כתב הטענות האחרון.\n\n(ג) בעל דין יגיש רשימה שבה יציין את הבקשות שבהן הוא מבקש שבית המשפט\nידון, וזאת לא יאוחר מעשרים ימים לפני המועד שנקבע לישיבת קדם–המשפט\nהראשונה.\n\n(ד) בעל דין אינו רשאי להגיש בקשה לבית המשפט או לציינה ברשימה, אלא אם\nכן פנה לבעל הדין שכנגד שבעה ימים מראש לפחות והודיעו על הכוונה להגיש\nבקשה בעניין; האמור לא יחול על בקשה לסעד זמני ארעי כמשמעותו בתקנה 97.\n\n(ה) ברשימת הבקשות יציין בעל הדין את סוג הבקשה ויפרט בתמצית את עניינה\nשל כל בקשה, לרבות את הטענות שהוא מבקש לטעון במסגרתה ואת הראיות שהוא\nמבקש להביא בתמיכה לה, אם אלה קיימות, ויבהיר מתי ובאיזו מתכונת הוא\nמבקש לדון בה; הפירוט לא יעלה על עמוד אחד לכל בקשה; בעל הדין שכנגד\nרשאי להשיב בכתב לרשימת הבקשות בתוך ארבעה עשר ימים מיום שהומצאה לו\nוהיקף התשובה לא יעלה על עמוד אחד לכל בקשה.\n\n(ו) במועד ישיבת קדם–המשפט יקבע בית המשפט את דרכי הדיון בבקשות המנויות\nברשימת הבקשות; בית המשפט רשאי, בין השאר, להורות כי בקשות מסוימות\nיידונו בעל פה בישיבת קדם–משפט או במועד מאוחר יותר שיורה, או שיידונו\nעל דרך של בקשה בכתב ורשאי הוא לתת כל הוראה אחרת בנוגע לסדרי הדיון\nבבקשה, לרבות לעניין היקף הטיעון, בכתב או בעל פה.\n\n(ז) בקשה שלא נכללה ברשימת הבקשות, לא יהיה ניתן להגישה במועד מאוחר\nיותר אלא ברשות בית המשפט, למעט בקשות המנויות בפסקאות (1), (2) ו–(8)\nעד (11) בתקנת משנה (א) ובקשות המוגשות לאחר מתן פסק דין; רשות כאמור לא\nתינתן, אלא אם כן שוכנע בית המשפט כי לא היה ניתן לציין את הבקשה ברשימת\nהבקשות או כי לבעל הדין הצדק סביר למחדלו; אישר בית המשפט הגשת בקשה\nבמועד מאוחר יותר, רשאי הוא להורות על דרך הדיון בה.\n\n(ח) בקשה שבית המשפט לא הורה על הדרך להגשתה, תוגש בכתב.\n\n(ט) מועד שנקבע לדיון בבקשה לא ייחשב כמועד ישיבת קדם–משפט לעניין תקנות\nאלה, זולת אם בית המשפט הורה אחרת.",
+  56: "56.                           שאלונים\n\n[תיקונים: התש\"ף (מס' 2), התשפ\"א]\n\n(א) לא יאוחר משלושים ימים לאחר שהוגש כתב הטענות האחרון, או בתוך מועד\nאחר שיורה בית המשפט, בעל דין רשאי לשלוח לבעל דין אחר שאלון שיכלול\nשאלות ובלבד שהן נוגעות לעניין הנדון ולא די שיהיו קבילות בחקירה שכנגד\nשל עד בעל פה ורשאי בעל דין להציג מסמך הנוגע לדברים הנדונים חלף מענה\nלשאלון; התשובה לשאלון תינתן בתצהיר בתוך שלושים ימים מיום מסירת השאלון\nאו בתוך מועד אחר שיורה בית המשפט.\n\n(ב) השאלון לא יכלול יותר מ-25 שאלות כולל שאלות משנה, ואולם בתובענה\nלסעד כספי בבית משפט מחוזי שסכומה עולה על שניים וחצי מיליון שקלים\nובתובענה לפיצויים בשל נזק גוף ותובענה שעילתה בחוק פיצויים לנפגעי\nתאונות דרכים שהוגשו לבית המשפט המחוזי - השאלון לא יכלול יותר מ-50\nשאלות כולל שאלות משנה.\n\n(ג) (בוטלה).\n\n(ד) בשעת הדיון רשאי בעל דין להשתמש לראיה במקצת מתשובותיו של בעל הדין\nשכנגד, ולא להגיש לבית המשפט את שאר תשובותיו; אך אם היה בית המשפט סבור\nשיש קשר בין תשובות אחרות לבין התשובות שהוגשו כראיה עד שאין להשתמש\nבאלה בלעדי אלה, רשאי הוא להורות שיוגשו לבית המשפט גם התשובות האחרות.",
+  57: "57.                     גילוי מסמכים\n\n[תיקונים: התש\"ף (מס' 2), התשפ\"א]\n\nלא יאוחר משלושים ימים לאחר שהוגש כתב הטענות האחרון, או במועד אחר\nשיורה בית המשפט, יחליפו בעלי הדין תצהירי גילוי מסמכים המאמתים את\nרשימת כל המסמכים הנוגעים לעניינים השנויים במחלוקת, המצויים או שהיו\nמצויים ברשותו או בשליטתו של בעל הדין ושאיתר בעל הדין לאחר חקירה\nודרישה; אם המסמך אינו מצוי עוד ברשותו או בשליטתו, יפרט את הנסיבות\nהקשורות לכך.",
+  58: "58.                     עיון במסמכים\n\n[תיקון התש\"ף (מס' 2)]\n\nעד שלושים ימים לאחר שהחליפו בעלי הדין תצהירי גילוי מסמכים לפי תקנה\n57, או במועד אחר שיורה בית המשפט, ישלימו בעלי הדין את הליכי העיון\nבמסמכים ויאפשרו האחד לבעל הדין השני לצלם את המסמכים או לסרוק אותם על\nחשבון בעל הדין שביקש את העיון.",
+  60: "60.              אי–מילוי הוראות הפרק\n\n[תיקונים: התשע\"ט (מס' 3), התש\"ף (מס' 2), התשפ\"א]\n\n(א) הליכי גילוי ועיון נאותים מהווים תנאי בסיסי לקיומו של הליך שיפוטי\nראוי והוגן; סבר בית המשפט שבעל דין לא קיים כראוי את חובתו לפי פרק זה,\nרשאי הוא לחייבו באופן מיידי בהוצאות ובמקרים מיוחדים אף למחוק את כתב\nטענותיו.\n\n(ב) (בוטלה).\n\n(ג) בלי לגרוע מהאמור בתקנת משנה (א), בעל דין שאינו מגלה מסמך שיש\nלגלותו או שאינו נענה לדרישה לעיין במסמך שגילה, לא יהיה רשאי להגיש את\nהמסמך כראיה מטעמו באותה תובענה, אלא ברשות בית המשפט לאחר שנוכח לדעת\nכי היה לבעל הדין הצדק סביר למחדלו ואם מדובר במסמך המזיק לעניינו של\nבעל הדין רשאי בית המשפט להורות על מחיקת כתב התביעה או כתב ההגנה, לפי\nהעניין, ואם לא הורה כן, יורה על חיובו בהוצאות זולת אם מצא טעמים\nמיוחדים שלא לעשות כן.\n\nפרק י': קדם–משפט",
+  62: "62.         הגשת רשימת עדים לקראת קדם–המשפט\n\n[תיקון התש\"ף (מס' 2)]\n\nהתובע יגיש עד עשרים ימים לפני ישיבת קדם–המשפט הראשונה והנתבע יגיש עד\nארבעה עשר ימים לאחר מכן, את רשימת העדים שבכוונתו להזמין למתן עדות,\nלשם הצגת מסמכים או למתן תעודת עובד ציבור או תעודה ציבורית; הרשימה\nתכלול בצד כל עד פירוט תמציתי של הצורך והמטרה של העדתו; קיים חשש ממשי\nלהשפעה על עד או אם קיים טעם מספיק אחר, רשאי בעל הדין לציין זאת ברשימה\nבלי לציין את שמו והפירוט הנדרש ובישיבת קדם–המשפט יבורר העניין.",
+  63: "63.      ישיבת קדם–המשפט וסמכות בית המשפט בקדם–משפט\n\n[תיקון התש\"ף (מס' 2)]\n\n(א) ככלל, ראוי שבית המשפט ישאף כי שלב קדם–המשפט לא יעלה על שתי ישיבות\nבבית משפט השלום ועל שלוש ישיבות בבית המשפט המחוזי.\n\n(ב) בישיבת קדם–המשפט יורה בית המשפט על דרכי הדיון בתובענה במטרה\nלייעלו, לפשטו ולהחישו; בכלל זה רשאי הוא מיוזמתו או לבקשת בעל דין -\n\n(1) להורות על שלבי הדיון בתובענה ועל המועדים לקיומם;\n\n(2) להורות על דרך ועיתוי שמיעת הודעות לצד שלישי ותביעות שכנגד;\n\n(3) להורות אם העדויות הראשיות יישמעו בעל פה או בכתב כאמור בתקנה 67;\n\n(4) להורות על אופן ההגשה ועל דרכי הדיון בבקשות המנויות ברשימת הבקשות;\n\n(5) לפצל את הדיון ולתת כל הוראה דיונית בנוגע לדרך ליבון המחלוקות;\n\n(6) להורות על מתכונת ניהול ההליך, משך זמן הוכחת הטענות וכשרותן של\nהראיות;\n\n(7) להורות על סדר העדים שיתייצבו לדיון או יציגו מסמכים ואת משך זמן\nהחקירות וכן לקבוע שחקירת עד מסוים היא מיותרת ואינה נדרשת;\n\n(8) להורות על שמיעת עדות מוקדמת, עדות מחוץ לכותלי בית המשפט או\nבהיוועדות חזותית וכן על הפקדת ערובה להבטחת הוצאות העדים;\n\n(9) למנות מומחה לשם בירור מחלוקת שבין בעלי הדין;\n\n(10) להורות לבעלי הדין להגיש תיק מוצגים מאוחד או נפרד שיכלול את\nהמוצגים של כל בעלי הדין;\n\n(11) להורות על צירוף בעלי דין ומחיקתם;\n\n(12) להורות על תיקון כתבי הטענות, מחיקת כל דבר שאינו דרוש לעניין\nובירור רשימת השאלות השנויות במחלוקת ועריכת הפלוגתות;\n\n(13) לתת סעד זמני;\n\n(14) לשמוע על אתר עדות של כל הנוכח באולם בית המשפט, על עובדה שבמחלוקת\nולקבל מענה לשאלות בעניינים הנוגעים לסכסוך נושא התובענה;\n\n(15) להורות לבעל הדין להשיב בתצהיר על שאלות שונות או על עניינים\nשונים;\n\n(16) למחוק את כתב התביעה או לדחות את התובענה או לתת פסק דין אם מצא\nשכתב ההגנה אינו מגלה הגנה כלל;\n\n(17) להציע לבעלי הדין הצעת פשרה או להציע להם לפסוק על דרך הפשרה או\nמנגנון חלופי ליישוב הסכסוך.\n\n(ג) אין באמור בתקנות משנה (א) או (ב) כדי לגרוע מסמכות בית המשפט לתת\nהחלטות הנוגעות לניהול ההליך גם לפני ישיבת קדם–המשפט.\n\n(ד) בישיבת קדם–המשפט המסכמת יורה בית המשפט על סדרי הדיון בתובענה\nובכלל זה, יורה על מועדי שמיעת העדים והסיכומים ויקצוב את משך העדות,\nזמני החקירות ומשך הסיכומים של כל אחד מהם.\n\nפרק י\"א: הדיון",
+  83: "83.                       הזמנת עדים\n\n[תיקון התש\"ף (מס' 2)]\n\n(א) בעל דין יודיע לעד המופיע ברשימת העדים שהגיש או ברשימת העדים\nשתוקנה ברשות בית המשפט, על כוונתו להזמינו לעדות או לשם הצגת מסמכים;\nהודעה כאמור תימסר לעד זמן מספיק לפני מועד מתן העדות והיא תכלול את\nהמקום והמועד שבו הוא נדרש להתייצב; לא התייצב העד לעדות לפי הודעת בעל\nהדין, לא תשמש אי–היענותו עילה לדחיית הדיון אלא מטעמים מיוחדים.\n\n(ב) על אף האמור בתקנת משנה (א) או נוסף על האמור בה, בעל דין רשאי\nלהגיש לבית המשפט בקשה להזמנת עד בתוך שלושים ימים מעת קביעת מועד הדיון\nובכל מקרה לא פחות מארבעה עשר ימים לפני מועד הדיון.\n\n(ג) הוגשה בקשה להזמנת עד לפי תקנת משנה (ב), רשאי בית המשפט להמציא לעד\nהזמנה למתן עדות לפי הפרטים שמסר בעל הדין ורשאי הוא להורות לבעל הדין\nלבצע את ההמצאה באמצעות בא כוחו או מי מטעמו, שאינו בעל הדין; התבקש בעל\nהדין להשלים פרטים הדרושים להמצאה ולא עשה כן, יראוהו כמי שמוותר על\nההזמנה באמצעות בית המשפט.\n\n(ד) עובד ציבור לא יידרש לתת עדות בעל פה, אם ניתן לגבות את עדותו\nבאמצעות תעודת עובד ציבור או תעודה ציבורית, זולת אם בית המשפט הורה\nאחרת.",
+  87: "87.              מומחים מטעם בעלי הדין\n\n[תיקונים: התשע\"ט (מס' 3), התשפ\"א]\n\n(א) רצה בעל דין להוכיח עניין שברפואה, יצרף לכתב טענותיו חוות דעת של\nמומחה בתחום מומחיותו.\n\n(ב) הגיש תובע חוות דעת בעניין שברפואה, רשאי נתבע לשלוח לו דרישה בכתב\nלהעמיד את נושא חוות הדעת לבדיקה בידי מומחה מטעמו; נדרש תובע כאמור,\nייעתר לדרישה בלא דיחוי, זולת אם קיימת הצדקה לסירוב; חוות הדעת תומצא\nלתובע גם אם לא הוגשה לבית המשפט.\n\n(ג) רצה תובע לחלוק על חוות דעת מומחה בעניין שברפואה שצורפה לכתב\nההגנה, יגיש חוות דעת נגדית בתוך שישים ימים מהיום שהומצאה לו חוות הדעת\nאו בתוך זמן אחר שהורה עליו בית המשפט.\n\n(ד) בית המשפט רשאי, אם מצא הצדקה לכך, לפטור בעל דין מצירוף חוות דעת\nבעניין שברפואה לכתב הטענות או לדחות את מועד הגשתה; התובע והנתבע יבקשו\nאת הפטור או את הדחייה כאמור לכל המאוחר עם הגשת כתב התביעה וכתב ההגנה\nבהתאמה.\n\n(ה) רצה בעל דין להוכיח עניין שבמומחיות, שאינו עניין שברפואה, יגיש\nלבית המשפט חוות דעת של מומחה לאותו עניין לא יאוחר מתשעים ימים לפני\nהמועד שנקבע לשמיעת ראיות או במועד אחר שהורה עליו בית המשפט.\n\n(ו) רצה בעל דין שנמסרה לו חוות דעת כאמור בתקנת משנה (ה), להגיש חוות\nדעת מטעמו כראיה במשפט באותו עניין, יגיש אותה לבית המשפט לא יאוחר\nמשלושים ימים לפני המועד שנקבע לשמיעת ראיות או במועד אחר שהורה עליו\nבית המשפט.\n\n(ז) חוות דעת המוגשת לבית המשפט לפי תקנה זו תיערך לפי סעיף 24 לפקודת\nהראיות ותצורף רשימת האסמכתאות שהמומחה מסתמך עליהן; אסמכתאות שלא ניתן\nלאתרן בנקיטת אמצעים סבירים, יצורפו לחוות הדעת.\n\n(ח) בעל דין המגיש חוות דעת של מומחה מטעמו ידאג להתייצבותו לחקירה בבית\nהמשפט, זולת אם בעל הדין שכנגד הודיע שהוא מוותר על חקירתו.\n\n(ט) לא יוגשו מטעם בעלי הדין חוות דעת נוספות מעבר לחוות הדעת שניתן\nלהגיש לפי תקנה זו, אלא באישור בית המשפט.",
+  91: "91.          חוות דעת מומחה מטעם בית המשפט\n\n[תיקון התש\"ף (מס' 2)]\n\n(א) מומחה מטעם בית המשפט יגיש את חוות דעתו בתוך שישים ימים מיום שנודע\nלו על המינוי או במועד אחר שיורה בית המשפט.\n\n(ב) חוות דעת מומחה מטעם בית המשפט תוגש בצירוף רשימת האסמכתאות שהוא\nהסתמך עליהן בחוות דעתו; אסמכתאות שלא ניתן לאתרן בנקיטת אמצעים סבירים,\nיצורפו לחוות הדעת.\n\n(ג) בעל דין רשאי לבקש מבית המשפט רשות לשלוח למומחה שאלות הבהרה בנוגע\nלחוות דעתו, לא יאוחר מארבעה עשר ימים ממועד קבלת חוות הדעת; המומחה\nישיב על שאלות ההבהרה בתוך שלושים ימים ממועד קבלת החלטת בית המשפט\nויראו את תשובותיו כחלק בלתי נפרד מחוות דעתו.\n\n(ד) בעל דין רשאי לחקור מומחה מטעם בית המשפט ובלבד שהודיע על כך לבית\nהמשפט ולבעלי הדין וביקש את הזימון לא יאוחר מישיבת קדם–המשפט המסכמת;\nניתנה חוות דעת המומחה לאחר סיום קדם–המשפט, יודיע בעל הדין על רצונו\nלחקור את המומחה ארבעים וחמישה ימים לפחות לפני המועד הקבוע לשמיעת\nהראיות או בתוך שבעה ימים ממועד קבלת חוות הדעת, לפי המאוחר.",
+  129: "129              פסק דין או החלטה אחרת\n\n[תיקונים: התש\"ף (מס' 2), התשפ\"א]\n\n. (א) בתום הדיון בכל הליך ייתן בית המשפט את החלטתו בהקדם האפשרי\nבהתחשב, בין השאר, בהיקף הראיות בכתב ובעל פה ובמורכבותו של ההליך.\n\n(ב) ההחלטה תכלול פירוט קצר של המחלוקות, ממצאי בית המשפט לגבי העובדות,\nהשאלות המשפטיות הטעונות הכרעה, ההכרעה ונימוקיה באופן תמציתי; אם כללה\nההחלטה חידוש משמעותי או שיש להחלטה חשיבות מיוחדת, רשאי בית המשפט לתת\nהנמקה מפורטת.\n\n(ג) בלי לגרוע מתקנת משנה (א), בית משפט הדן בערכאה ראשונה ייתן את\nהחלטתו לא יאוחר מתשעים ימים לאחר תום הדיון בהליך; לא נתן את החלטתו\nבמועד האמור, ייתן על כך הודעה מנומקת בכתב לנשיא בית המשפט.",
+  131: "131            ביטול החלטה לפי צד אחד?\n\n[תיקון התש\"ף (מס' 2)]\n\n. נתן בית המשפט החלטה לפי צד אחד והגיש בעל הדין שנגדו ניתנה ההחלטה\nבקשת ביטול בתוך שלושים ימים מיום שהומצאה לו ההחלטה, רשאי בית המשפט\nלבטלה, בתנאים שייראו לו; הוראה זו לא תחול על פנייה לבית המשפט לפי\nתקנה 33(ד).",
+  135: "135              הבטחת הוצאות המשיב\n\n. (א) עם הגשת הערעור יפקיד המערער ערובה להבטחת הוצאות המשיבים בסכום\nהנקוב בתוספת השלישית וימציא הודעה על כך למשיב.\n\n(ב) על אף האמור בתקנת משנה (א), בית המשפט רשאי להורות על פטור ממתן\nערובה או על שינוי סכומה.\n\n(ג) לא קיים המערער הוראה בדבר הערובה, רשאי בית המשפט להורות על מחיקת\nהערעור או על דחיית המועד להפקדתה.",
+  137: "137                             מועדים\n\n[תיקון התש\"ף (מס' 2)]\n\n. (א) המועד להגשת ערעור על החלטה הוא שישים ימים מיום שהומצאה.\n\n(ב) על אף האמור בתקנת משנה (א), משיב בערעור רשאי להגיש ערעור בתוך\nשישים ימים מהיום שבו הומצא לו הערעור, או מהיום שבו הומצאה לו הודעה על\nהפקדת ערובה לפי תקנה 135, או מהיום שבו הומצאה לו החלטה על פטור מהפקדת\nערובה, לפי המאוחר.\n\n(ג) המועד להגשת ערעור על החלטה שניתנה במעמד צד אחד שהוגשה לגביה בקשת\nביטול לפי תקנה 131, יימנה מיום ההמצאה של ההחלטה בבקשת הביטול.",
+  140: "140         תשובה בכתב והשלמה לסיכומים בכתב\n\n[תיקונים: התש\"ף (מס' 2), התשפ\"ב]\n\n. (א) הורה בית המשפט על הגשת תשובה בכתב לערעור, יחולו הוראות אלה:\n\n(1) התשובה תוגש בתוך שישים ימים מעת המצאת ההחלטה או במועד אחר שהורה\nעליו בית המשפט והיא לא תעלה על שישה עמודים, אם הוגשה לבית משפט השלום,\nעל תשעה עמודים, אם הוגשה לבית המשפט המחוזי, ועל שנים עשר עמודים, אם\nהוגשה לבית המשפט העליון והכול לא כולל הכותרת;\n\n(2) לתשובה יצורפו העתקי המסמכים שהמשיב מבקש להסתמך עליהם שהוגשו\nוהתקבלו כדין בערכאה הקודמת, זולת המסמכים שצורפו לערעור;\n\n(3) הורה בית המשפט על הגשת תשובה בעניין מסוים, התשובה תינתן בעניין זה\nבלבד;\n\n(ב) הורה בית המשפט על השלמה לסיכומים בכתב, רשאי הוא לתת כל הוראה,\nלרבות בעניין הגשת סיכומי המערער והמשיב ומתן זכות תשובה למערער, המועד\nלהגשה והיקף המסמך.\n\n(ג) דין אי–הגשת תשובה בכתב או השלמה לסיכומים בכתב במועד - כדין\nאי–התייצבות לדיון בערעור.",
+};
+
+/* ══ REGULATION LINK FUNCTION ══
+   Matches: תקנה / תקנות + number + optional sub-clause + optional range
+   Examples: תקנה 9(ב), תקנות 23-21, תקנה 37(ד), תקנות 35-34, 57, 56(א)
+*/
+function linkRegs(str){
+  if(!str) return '';
+  // (?:תקנה|תקנות) correctly matches singular (ה ending) and plural (ות ending)
+  return str.replace(/(?:תקנה|תקנות)\s*\d+(?:\([א-ת\d]+\))*(?:\s*[-\u2013,ו]\s*\d+(?:\([א-ת\d]+\))*)*/g, function(match){
+    var numM = match.match(/\d+/);
+    if(!numM) return match;
+    var num = parseInt(numM[0]);
+    if(!REGS[num]) return match;
+    // Extract sub-clause like (ב) (ו) etc from the matched text
+    var subM=match.match(/\(([א-ת]+)\)/);
+    var subArg=subM?',\'('+subM[1]+')\'':'';
+    return '<span class="reg-link" onclick="showRegModal('+num+subArg+')">'+match+'</span>';
+  });
+}
+
+function showReg49d(){showRegModal(49,'(ד)');}
+function showRegModal(num,sub){
+  var txt=REGS[num]||'לא נמצא טקסט לתקנה זו';
+  var lines=txt.split('\n');
+  var firstLine=lines[0].replace(/^\d+\.\s*/,'').trim();
+  document.getElementById('regTitle').textContent='תקנה '+num+(sub?' '+sub:'')+' — '+firstLine;
+  document.getElementById('regSubtitle').textContent='תקנות סדר הדין האזרחי, התשע"ט-2018';
+  var body=lines.slice(1).join('\n').trim();
+  var el=document.getElementById('regText');
+  el.textContent=body;
+  document.getElementById('modalReg').classList.remove('hidden');
+  // If sub-clause specified, scroll to and highlight it
+  if(sub){
+    setTimeout(function(){
+      var fullText=el.textContent;
+      // Find the sub-clause marker like (ו) or (ב) etc.
+      var subClean=sub.replace(/[()]/g,'');
+      var marker='('+subClean+')';
+      var idx=fullText.indexOf(marker);
+      if(idx>=0){
+        // Rebuild with HTML highlight
+        var before=fullText.slice(0,idx);
+        var afterIdx=fullText.indexOf('\n',idx+marker.length);
+        // Find end of this sub-clause (next sub-clause marker or end)
+        var rest=fullText.slice(idx);
+        // next sub-clause starts with a letter in parens on new line
+        var nextSub=rest.slice(1).search(/\n\([א-ת]+\)/);
+        var subText=nextSub>=0?rest.slice(0,nextSub+1):rest;
+        var after=nextSub>=0?rest.slice(nextSub+1):'';
+        el.innerHTML='<span style="color:var(--gray-l)">'+escHtml(before)+'</span>'+
+          '<span style="background:var(--gold-ll);border:2px solid var(--gold);border-radius:6px;padding:6px 8px;display:block;margin:4px 0;font-weight:600">'+escHtml(subText)+'</span>'+
+          '<span style="color:var(--gray-l)">'+escHtml(after)+'</span>';
+        // scroll the highlighted part into view
+        var hl=el.querySelector('span[style*="background"]');
+        if(hl) hl.scrollIntoView({block:'start',behavior:'smooth'});
+      }
+    },80);
+  }
+}
+function escHtml(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+/* ══ COMMENTS (tooltips) ══ */
+var COMMENTS={
+  t1:'בהזדמנות הראשונה לאחר הגשת כתב התביעה ניתן לטעון:\n• טענת חוסר סמכות\n• תניית שיפוט זר\n• טענת פורום לא נאות — תקנה 29\n• התיישנות\n\nבכתב ההגנה ניתן לטעון "טענות מקדמיות" — תקנות 13(1) + 28\n\n⚠ רשום ב"מועד ביצוע בפועל" את התאריך שכתב ההגנה הוגש בפועל. זה ישפיע על כל המועדים הבאים.',
+  t3:'בתיק מסוג בית הדין לעבודה — לא מונה מגשר מהו"ת בדרך כלל.',
+  t4:'תקנה 57: לא יאוחר מ-30 ימים לאחר כתב הטענות האחרון.\n\nפסיקה מנחה:\n• הלכת סוויסה — דחיית העיון במסמכים\n• הלכת מחסני ערובה — היקף חובת הגילוי\n• הלכת ג׳מבו — הפרת צו גילוי (תקנה 60)\n\nמגבלות שאלונים:\n• עד 25 שאלות — שלום\n• עד 50 שאלות — מחוזי (נזק גוף, מעל 2.5M ₪)',
+  t6:'בקשות שניתן להגיש:\n1. עיכוב הליכים — חוק הבוררות סעיפים 5-6 / תניית שיפוט זר\n2. בדיקה ע"י מומחה נתבע — תקנה 87\n3. צירוף צד, איחוד תובענות — תקנה 40\n4. תיקון כתבי טענות — פרק ז׳ תקנה 49(ב)',
+  t7:'תשובה לשאלון — בתצהיר בתוך 30 ימים מיום מסירתו.\n\nתקנה 58: עד 30 ימים לאחר חילוף תצהירי גילוי מסמכים.',
+  pretrial_hdr:'ייעוד קדם המשפט הראשון:\n1. קביעת דרכי הדיון בתובענה\n2. קביעת דרכי הדיון בבקשות ברשימת הבקשות — תקנה 49(ו)',
+  pretrial_final_hdr:'ייעוד ישיבת קדם המשפט המסכמת:\n1. מועד אחרון לבקש לחקור מומחה — תקנה 91(ד)\n2. הכרעה בבקשה לפיצול סעדים — תקנה 25(ג)\n3. קביעת מועדי שמיעת עדים וסיכומים — תקנה 63(ד)',
+  t27:'הסבר:\nמשהוגש ערעור "עיקרי" יוארך למשיבים שלא הגישו ערעור המועד להגיש ערעור משלהם. אין מדובר ב"ערעור שכנגד" אלא בערעור נוסף על אותה החלטה.',
+  appeal_hdr:'שתי החלטות אפשריות מטעם בית המשפט:\n1. דחיית הערעור בלא תשובה.\nאו\n2. הוראה על הגשת תשובה — בכלל, או לגבי עניין מסוים.'
+};
+
+/* ══ STAGE / TASK DEFINITIONS ══ */
+var STAGES=[
+  {id:'preliminary',name:'דיון מקדמי',color:'#1a4fa0',tasks:[
+    {id:'t1',desc:"הגשת כתב הגנה — 60 יום (נזק גוף/רשלנות רפואית: 120 יום | ביטוח לאומי/פינוי מושכר: 30 יום) — תקנה 9(ב) — הגשת תביעה שכנגד והודעת צד ג׳ — תקנות 23-21",reg:'תקנה 9(ב)',isRoot:true},
+    {id:'t2',desc:'הגשת כתב הטענות האחרון / כתב תשובה לכתב ההגנה — תקנה 6 ו/או תקנה 18',reg:'תקנות 6, 18'},
+    {id:'t4',desc:'דיון מקדמי — תקנות 35-34 — החלפת תצהירי גילוי מסמכים — תקנה 57 — שליחת שאלונים — תקנה 56(א)',reg:'תקנות 35-34, 57, 56(א)'},
+    {id:'t3',desc:'מינוי מגשר מהו"ת — 45 ימים לאחר כתב הטענות האחרון / כתב התשובה — תקנה 37(ב)',reg:'תקנה 37(ב)'},
+    {id:'t5',desc:'פגישת מהו"ת — תקנה 37(ד)',reg:'תקנה 37(ד)'},
+    {id:'t6',desc:'בקשות שניתן להגיש — תקנות 49, 40, 87',reg:'תקנות 40, 49, 87'},
+    {id:'t7',desc:'השלמת העיון במסמכים — תקנה 58 — מענה על השאלונים — תקנה 56(א)',reg:'תקנות 58, 56(א)'},
+    {id:'t8',desc:'דיווח האם ההליך מועבר לגישור — תקנה 37(ו)',reg:'תקנה 37(ו)'}
+  ]},
+  {id:'pretrial',name:'קדם משפט',color:'#0f6e56',
+   anchors:[{key:'pretrial',actualKey:'pretrialActual',label:'קדם משפט ראשון',commentKey:'pretrial_hdr'}],
+   tasks:[
+    {id:'t10',desc:'פנייה לבעל הדין שכנגד — הודעה על כוונה להגיש בקשות על פי הרשימה — תקנה 49(ד)',reg:'תקנה 49(ד)'},
+    {id:'t11',desc:'הגשת רשימת עדים על ידי התובע — תקנה 62',reg:'תקנה 62'},
+    {id:'t12',desc:'הגשת רשימת הבקשות לבית המשפט — תקנה 49(ג)',reg:'תקנה 49(ג)'},
+    {id:'t13',desc:'דיווח באשר לתוצאות הדיון המקדמי — תקנה 36',reg:'תקנה 36'},
+    {id:'t14',desc:'הגשת רשימת עדים על ידי הנתבע — תקנה 62',reg:'תקנה 62'},
+    {id:'t15',desc:'תגובת בעל הדין שכנגד לרשימת הבקשות — תקנה 49(ה)',reg:'תקנה 49(ה)'}
+   ],
+   postAnchors:[{key:'pretrialFinal',actualKey:'pretrialFinalActual',label:'ישיבת קדם משפט מסכמת',commentKey:'pretrial_final_hdr'}]
+  },
+  {id:'trial',name:'דיון הוכחות',color:'#854f0b',
+   anchors:[{key:'trial',actualKey:'trialActual',label:'דיון הוכחות',commentKey:null}],
+   tasks:[
+    {id:'t17',desc:'בקשה להזמנת עדים — תקנה 83(ב) — לא יאוחר מ-30 יום לפני',reg:'תקנה 83(ב)'},
+    {id:'t18',desc:'בקשה להזמנת עדים — תקנה 83(ב) — ולא יאוחר מ-14 יום לפני',reg:'תקנה 83(ב)'},
+    {id:'t19',desc:'בקשה להציג ראיה במדיה אלקטרונית / דיגיטלית — תקנה 71',reg:'תקנה 71'},
+    {id:'t20',desc:'ישיבת הוכחות ראשונה',reg:'—'},
+    {id:'t21',desc:'המשך הדיון',reg:'ברצף',noDate:true},
+    {id:'t22',desc:'סיכומים',reg:'בהקדם האפשרי',noDate:true}
+   ]
+  },
+  {id:'judgment',name:'החלטה שיפוטית',color:'#7c2d8a',
+   preTaskNote:{id:'t23',desc:'פסק הדין יינתן לאחר הסיכומים בהקדם האפשרי ולא יאוחר מ-90 יום — תקנה 129',reg:'תקנה 129'},
+   anchors:[{key:'decision',actualKey:'decisionActual',label:'מועד ההחלטה השיפוטית',commentKey:null}],
+   tasks:[
+    {id:'t25',desc:'בקשה לביטול החלטה במעמד צד אחד — תקנה 131',reg:'תקנה 131'},
+    {id:'t26',desc:'הגשת ערעור / בר"ע — תקנה 137(א) — והפקדת ערובה — תקנה 135(א)',reg:'תקנות 137(א), 135(א)'},
+    {id:'t27',desc:'משיב לערעור — תקנה 137(ב)',reg:'תקנה 137(ב)'}
+   ]
+  },
+  {id:'appeal',name:'תשובה לערעור — תקנה 140',color:'#5b21b6',
+   anchors:[{key:'appealDec',actualKey:'appealDecActual',label:'החלטה על הגשת תשובה לערעור',commentKey:'appeal_hdr'}],
+   tasks:[{id:'t29',desc:'תשובה לערעור — תקנה 140(א)(1)',reg:'תקנה 140(א)(1)'}]
+  },
+  {id:'hearing',name:'דיון בערעור',color:'#065f46',
+   anchors:[{key:'appealHr',actualKey:'appealHrActual',label:'דיון בערעור',commentKey:null}],
+   tasks:[]
+  }
+];
+
+var STATUS_OPTS=[
+  {v:'pending',l:'עדיין לא בוצע'},
+  {v:'done',l:'בוצע ✓'},
+  {v:'urgent',l:'⚡ לטיפול מיידי'},
+  {v:'no_response',l:'⚠ חוסר מענה'}
+];
+/* STATUS_OPTS for t7 only (adds חוסר מענה) */
+var STATUS_OPTS_T7=[
+  {v:'pending',l:'עדיין לא בוצע'},
+  {v:'done',l:'בוצע ✓'},
+  {v:'urgent',l:'⚡ לטיפול מיידי'},
+  {v:'no_response',l:'⚠ חוסר מענה'}
+];
+
+/* ══ STATE ══ */
+function defaultStatuses(){
+  var s={};
+  STAGES.forEach(function(st){
+    if(st.preTaskNote)s[st.preTaskNote.id]='pending';
+    st.tasks.forEach(function(t){s[t.id]='pending';});
+  });
+  return s;
+}
+
+var stored=loadAllCases();
+var cases=(stored!==null)?stored:[{
+  id:'case-1',casenum:'2235-23',parties:"פלוני נ׳ אלמוני",
+  type:'אזרחי',court:'שלום תל אביב',judge:'',lawyer:'',notes:'',counter:'no',
+  filing:'2025-09-01',service:'2025-09-21',
+  pretrial:'',pretrialActual:'',pretrialFinal:'',pretrialFinalActual:'',
+  trial:'',trialActual:'',decision:'',decisionActual:'',
+  appealDec:'',appealDecActual:'',appealHr:'',appealHrActual:'',verdict:'',
+  statuses:defaultStatuses(),actualDates:{}
+}];
+
+var savedCurId=loadCurrentId();
+var curId=(savedCurId&&cases.some(function(c){return c.id===savedCurId;}))?savedCurId:cases[0].id;
+function cur(){return cases.filter(function(c){return c.id===curId;})[0]||cases[0];}
+
+/* ══ DATE ENGINE ══
+   getOriginalDate: computed purely from service + fixed offsets (never cascades)
+   getEffectiveDate: uses actualDates to cascade — if t1 actual set, t2+ cascade from it
+*/
+function getOriginalDate(id,c){
+  var s=c.service,dd=getDefenseDays(c);
+  var def=addDays(s,dd),rpl=addDays(def,14),med=addDays(rpl,45),
+      disc=addDays(rpl,30),meet=addDays(med,30),req=addDays(rpl,60),
+      discComp=addDays(disc,30),medRep=addDays(meet,14);
+  switch(id){
+    case 't1':return def; case 't2':return rpl; case 't3':return med; case 't4':return disc;
+    case 't5':return meet; case 't6':return req; case 't7':return discComp; case 't8':return medRep;
+    case 't10':return c.pretrial?addDays(c.pretrial,-30):null;
+    case 't11':return c.pretrial?addDays(c.pretrial,-20):null;
+    case 't12':return c.pretrial?addDays(c.pretrial,-20):null;
+    case 't13':return c.pretrial?addDays(c.pretrial,-14):null;
+    case 't14':return c.pretrial?addDays(addDays(c.pretrial,-20),14):null;
+    case 't15':return c.pretrial?addDays(addDays(c.pretrial,-20),14):null;
+    case 't17':return c.trial?addDays(c.trial,-30):null;
+    case 't18':return c.trial?addDays(c.trial,-14):null;
+    case 't19':return c.trial?addDays(c.trial,-3):null;
+    case 't20':return c.trial||null;
+    case 't23':return c.trial?addDays(c.trial,90):null;
+    case 't25':return c.decision?addDays(c.decision,30):null;
+    case 't26':return c.decision?addDays(c.decision,60):null;
+    case 't27':return c.decision?addDays(addDays(c.decision,60),60):null;
+    case 't29':return c.appealDec?addDays(c.appealDec,60):null;
+  }
+  return null;
+}
+
+/* Cascade: each task's effective = actualDates[id] if set,
+   else computed from predecessor's effective date */
+function getCascadedChain(c){
+  var a=c.actualDates||{},dd=getDefenseDays(c),s=c.service;
+  var def  = a.t1 || addDays(s,dd);
+  var rpl  = a.t2 || addDays(def,14);
+  var med  = a.t3 || addDays(rpl,45);
+  var disc = a.t4 || addDays(rpl,30);
+  var meet = a.t5 || addDays(med,30);
+  var req  = a.t6 || addDays(rpl,60);
+  var dComp= a.t7 || addDays(disc,30);
+  var mRep = a.t8 || addDays(meet,14);
+  // pretrial chain
+  var pt   = c.pretrialActual||c.pretrial||null;
+  var t10  = a.t10|| (pt?addDays(pt,-30):null);
+  var t11  = a.t11|| (pt?addDays(pt,-20):null);
+  var t12  = a.t12|| (pt?addDays(pt,-20):null);
+  var t13  = a.t13|| (pt?addDays(pt,-14):null);
+  var t14  = a.t14|| (t11?addDays(t11,14):null);
+  var t15  = a.t15|| (t12?addDays(t12,14):null);
+  // trial chain
+  var tr   = c.trialActual||c.trial||null;
+  var t17  = a.t17|| (tr?addDays(tr,-30):null);
+  var t18  = a.t18|| (tr?addDays(tr,-14):null);
+  var t19  = a.t19|| (tr?addDays(tr,-3):null);
+  var t20  = a.t20|| tr;
+  var t23  = a.t23|| (tr?addDays(tr,90):null);
+  // decision chain
+  var dc   = c.decisionActual||c.decision||null;
+  var t25  = a.t25|| (dc?addDays(dc,30):null);
+  var t26  = a.t26|| (dc?addDays(dc,60):null);
+  var t27  = a.t27|| (dc?addDays(addDays(dc,60),60):null);
+  // appeal chain
+  var ad   = c.appealDecActual||c.appealDec||null;
+  var t29  = a.t29|| (ad?addDays(ad,60):null);
+  return {t1:def,t2:rpl,t3:med,t4:disc,t5:meet,t6:req,t7:dComp,t8:mRep,
+          t10:t10,t11:t11,t12:t12,t13:t13,t14:t14,t15:t15,
+          t17:t17,t18:t18,t19:t19,t20:t20,t23:t23,
+          t25:t25,t26:t26,t27:t27,t29:t29};
+}
+
+/* ══ UI HELPERS ══ */
+function daysChip(rem){
+  if(rem===null)return '<span class="dc none">—</span>';
+  if(rem<0)return '<span class="dc ov">איחור '+Math.abs(rem)+' ימים</span>';
+  if(rem===0)return '<span class="dc ov">היום!</span>';
+  if(rem<=7)return '<span class="dc ov">'+rem+' ימים</span>';
+  if(rem<=14)return '<span class="dc warn">'+rem+' ימים</span>';
+  return '<span class="dc ok">'+rem+' ימים</span>';
+}
+
+function comparisonChip(actualDate, origDate){
+  if(!actualDate||!origDate) return '';
+  var diff=daysBetween(actualDate,origDate); // positive = submitted before deadline
+  var d=Math.abs(diff);
+  var dStr=d===1?'יום אחד':(d+' ימים');
+  if(diff>0) return '<span class="dc done-early">הוגש '+dStr+' לפני המועד ✓</span>';
+  if(diff===0) return '<span class="dc done-ontime">הוגש במועד בדיוק ✓</span>';
+  return '<span class="dc done-late">איחור של '+dStr+' ✗</span>';
+}
+
+function tipHtml(key){
+  var txt=COMMENTS[key];if(!txt)return '';
+  var esc=txt.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return '<span class="tip-wrap"><span class="tip-icon">ℹ</span><span class="tip-box">'+esc+'</span></span>';
+}
+
+function getOffsetLabel(id,c){
+  var dd=getDefenseDays(c);
+  var m={t1:'+'+dd+' ימים',t2:'+14 לאחר הגנה',t3:'+45 לאחר תשובה',t4:'+30 לאחר תשובה',
+    t5:'+30 לאחר מגשר',t6:'+60 לאחר תשובה',t7:'+30 לאחר גילוי',t8:'+14 לאחר פגישה',
+    t10:'−30 לפני קד"מ',t11:'−20 לפני קד"מ',t12:'−20 לפני קד"מ',t13:'−14 לפני קד"מ',
+    t14:'−6 לפני קד"מ',t15:'−6 לפני קד"מ',
+    t17:'−30 לפני דיון',t18:'−14 לפני דיון',t19:'−3 לפני דיון',t20:'מועד הדיון',
+    t23:'+90 מדיון',t25:'+30 מהחלטה',t26:'+60 מהחלטה',t27:'+60 מערעור',t29:'+60 מהחלטה'};
+  return m[id]||'';
+}
+
+/* ══ ANCHOR ROW ══ */
+function anchorRowHtml(a,c,isNext){
+  var origVal=toInput(c[a.key]),actualVal=toInput(c[a.actualKey]||'');
+  var tip=a.commentKey?tipHtml(a.commentKey):'';
+  var nextBadge=isNext?'<span class="next-badge">▶ מטלה הבאה</span>':'';
+  var rowCls='anchor-row'+(isNext?' next-task':'');
+  var compChip=actualVal&&origVal?comparisonChip(actualVal,origVal):'';
+  return '<tr class="'+rowCls+'">'+
+    '<td colspan="6"><div class="anchor-label" style="flex-wrap:wrap;gap:10px">'+
+      nextBadge+
+      '<span class="anchor-tag">מועד</span>'+
+      '<span style="font-size:13px;font-weight:700;color:var(--navy-d)">'+a.label+'</span>'+
+      tip+
+      '<span style="font-size:11px;color:var(--gray-l)">— מועד הדיון:</span>'+
+      '<input type="date" class="date-input inp-orig" value="'+origVal+'" '+
+      'onchange="updateAnchor(\''+a.key+'\',this.value)" title="מועד מקורי" style="width:140px">'+
+      (compChip?'<span style="margin-right:6px">'+compChip+'</span>':'')+
+    '</div></td>'+
+    '</tr>';
+}
+
+/* ══ TASK ROW ══ */
+function taskRowHtml(t,c,chain,isNext){
+  if(t.noDate){
+    return '<tr class="task-row"><td colspan="6">'+
+      '<div class="tdesc">'+linkRegs(t.desc)+' — <span class="treg" style="display:inline">'+t.reg+'</span></div>'+
+      '</td></tr>';
+  }
+  var tip=COMMENTS[t.id]?tipHtml(t.id):'';
+  var status=(c.statuses||{})[t.id]||'pending';
+  var origDate=getOriginalDate(t.id,c);
+  var effDate=chain[t.id]||origDate; // cascaded effective date
+  var actualDate=(c.actualDates||{})[t.id]||'';
+  // "ימים נותרו" based on effective (cascaded) date vs today
+  var rem=status==='done'?null:daysFrom(effDate);
+  var rowBg=status==='done'?'background:#dcfce7':status==='urgent'?'background:#fee2e2':((rem!==null&&rem<0)?'background:#fff1f1':'');
+  var selOpts='';
+  var optsArr=(t.id==='t7')?STATUS_OPTS_T7:STATUS_OPTS;
+  optsArr.forEach(function(o){selOpts+='<option value="'+o.v+'"'+(status===o.v?' selected':'')+'>'+o.l+'</option>';});
+
+  // Description: reg-links on text, "עד:" at the very end
+  var descHtml=linkRegs(t.desc)+tip+'<span class="tend"> — עד:</span>';
+  var regHtml=linkRegs(t.reg);
+  // Special urgent alert for t7
+  var urgentAlert='';
+  if(t.id==='t7'&&(status==='urgent'||status==='no_response')){
+    urgentAlert='<div class="urgent-alert" style="margin-top:7px;padding:7px 12px;background:rgba(185,28,28,.85);border-radius:6px;font-size:13px;font-weight:700;color:#fff;border-right:3px solid #fff">'+
+      '<span style="color:#fff">⚡ יש לפנות לבעל הדין שכנגד ולהודיעו על כוונה להגיש בקשות על פי הרשימה — <span class=\"reg-link\" style=\"color:#fff;border-bottom-color:rgba(255,255,255,.6)\" onclick=\"showReg49d()\">תקנה 49(ד)</span></span>'+
+      '</div>';
+  }
+
+  // Effective date display: if cascaded differs from original, show cascaded in teal
+  var origCell=origDate?'<span class="date-orig">'+fmtDate(origDate)+'</span>':'<span class="date-none">—</span>';
+  // Cascaded (effective) date cell — editable only for t1 (root), computed for others
+  var effCell;
+  if(t.isRoot){
+    // t1: show editable input so user can override the cascade root
+    effCell='<input type="date" class="date-input inp-actual" value="'+toInput(actualDate)+'" '+
+      'onchange="setActual(\''+t.id+'\',this.value)" placeholder="מועד בפועל" title="הזן תאריך הגשה בפועל">';
+  } else {
+    // show cascade note if effective differs from original
+    var showEff=(effDate&&effDate!==origDate)?'<div style="font-size:11px;color:var(--teal);margin-top:3px">⟳ מחושב: '+fmtDate(effDate)+'</div>':'';
+    effCell='<input type="date" class="date-input inp-actual" value="'+toInput(actualDate)+'" '+
+      'onchange="setActual(\''+t.id+'\',this.value)" placeholder="מועד בפועל">'+showEff;
+  }
+
+  var rowClass='task-row'+(isNext?' next-task':'')+((status==='urgent'||status==='no_response')?' urgent-row':'');
+  var nextBadge=isNext?'<span class="next-badge">▶ מטלה הבאה</span>':'';
+  var trStyle=(status==='urgent'||status==='no_response')?'background:#fca5a5;border-right:4px solid #dc2626':(!isNext&&rowBg?rowBg:'');
+  return '<tr class="'+rowClass+'"'+(trStyle?' style="'+trStyle+'"':'')+'>'+
+    '<td style="min-width:220px"><div class="tdesc">'+nextBadge+descHtml+'</div><div class="treg">'+regHtml+'</div>'+urgentAlert+'</td>'+
+    '<td style="white-space:nowrap;font-size:11px;color:var(--gray-l)">'+getOffsetLabel(t.id,c)+'</td>'+
+    '<td>'+origCell+'</td>'+
+    '<td style="min-width:150px">'+effCell+'</td>'+
+    '<td>'+(status==='done'?'<span class="dc done-badge">✓ בוצע</span>':(actualDate?comparisonChip(actualDate,origDate):daysChip(rem)))+'</td>'+
+    '<td><select class="ss" onchange="setStatus(\''+t.id+'\',this.value)">'+selOpts+'</select></td>'+
+    '</tr>';
+}
+
+/* ══ RENDER STAGES ══ */
+function renderStages(){
+  var c=cur(),chain=getCascadedChain(c);
+  var html='';
+  // Compute the single "next task/anchor" - the closest undone item in the timeline.
+  // We track two separate "next" items:
+  //   nextTaskId  - the next regular task row
+  //   nextAnchorKey - the next anchor (קדם משפט, דיון הוכחות, etc.) whose date is not yet set
+  var nextTaskId=null, bestTaskRem=null;
+  var nextAnchorKey=null;
+
+  // Find next anchor: first anchor (in stage order) where origVal is empty
+  // Anchors are relevant once all predecessor tasks have been completed or have actual dates
+  var anchorFound=false;
+  STAGES.forEach(function(stage){
+    if(anchorFound)return;
+    var anchorsToCheck=[];
+    if(stage.anchors)anchorsToCheck=anchorsToCheck.concat(stage.anchors);
+    if(stage.postAnchors)anchorsToCheck=anchorsToCheck.concat(stage.postAnchors);
+    anchorsToCheck.forEach(function(a){
+      if(anchorFound)return;
+      // anchor is "next" if its date is not yet entered
+      if(!c[a.key]&&!c[a.actualKey]){
+        nextAnchorKey=a.key;
+        anchorFound=true;
+      }
+    });
+  });
+
+  // Find next task: closest (soonest/most-overdue) undone task without actual date
+  STAGES.forEach(function(stage){
+    var all=stage.tasks.slice();
+    if(stage.preTaskNote)all.push(stage.preTaskNote);
+    all.forEach(function(t){
+      if(t.noDate)return;
+      var st=(c.statuses||{})[t.id]||'pending';
+      if(st==='done')return;
+      var actual=(c.actualDates||{})[t.id]||'';
+      if(actual)return;
+      var eff=chain[t.id];
+      if(!eff)return;
+      var rem=daysFrom(eff);
+      if(rem===null)return;
+      if(bestTaskRem===null||rem<bestTaskRem){bestTaskRem=rem;nextTaskId=t.id;}
+    });
+  });
+
+  STAGES.forEach(function(stage){
+    var rows='';
+    // Per-stage: find the first undone task (no actual date, not done) in THIS stage
+    var stageNextId=null;
+    var stageAllT=stage.tasks.slice();
+    if(stage.preTaskNote)stageAllT.push(stage.preTaskNote);
+    for(var si=0;si<stageAllT.length;si++){
+      var st2=stageAllT[si];
+      if(st2.noDate)continue;
+      var stStatus=(c.statuses||{})[st2.id]||'pending';
+      if(stStatus==='done')continue;
+      var stActual=(c.actualDates||{})[st2.id]||'';
+      if(stActual)continue; // has actual, treat as complete for ordering
+      stageNextId=st2.id;
+      break; // take the FIRST undone one in the list order
+    }
+    if(stage.anchors) stage.anchors.forEach(function(a){rows+=anchorRowHtml(a,c,a.key===nextAnchorKey);});
+    if(stage.preTaskNote) rows+=taskRowHtml(stage.preTaskNote,c,chain,stage.preTaskNote.id===stageNextId);
+    stage.tasks.forEach(function(t){rows+=taskRowHtml(t,c,chain,t.id===stageNextId);});
+    if(stage.postAnchors) stage.postAnchors.forEach(function(a){rows+=anchorRowHtml(a,c,a.key===nextAnchorKey);});
+
+    var allT=stage.tasks.slice();
+    if(stage.preTaskNote)allT.push(stage.preTaskNote);
+    var done=0,tot=0;
+    allT.forEach(function(t){if(t.noDate)return;tot++;if((c.statuses||{})[t.id]==='done')done++;});
+    var pct=tot?Math.round(done/tot*100):0;
+
+    html+='<div class="stage-block" id="sg-'+stage.id+'">'+
+      '<div class="stage-head" onclick="toggleStage(\''+stage.id+'\')">'+
+      '<div class="sh-left">'+
+      '<div class="sdot" style="background:'+stage.color+'"></div>'+
+      '<span class="sname">'+stage.name+'</span>'+
+      '<span class="scnt">'+done+'/'+tot+' בוצע</span></div>'+
+      '<span class="stog">▼</span></div>'+
+      (function(){
+        var arrowLeft=pct>0&&pct<100?'calc('+(100-pct)+'% - 8px)':'0';
+        var pctLeft=pct>0&&pct<100?'calc('+(100-pct)+'% + 22px)':'4px';
+        var showArrow=pct>0&&pct<100?'':'display:none';
+        var showPct='';
+        return '<div class="progress-bar" style="--stage-color:'+stage.color+'">'+
+          '<div class="progress-fill" style="width:'+pct+'%;background:linear-gradient(270deg,'+stage.color+' 0%,rgba(255,255,255,.25) 100%)"></div>'+
+          '<div class="progress-arrow" style="left:'+arrowLeft+';border-right-color:'+stage.color+';'+showArrow+'"></div>'+
+          '<div class="progress-pct" style="left:'+pctLeft+';'+showPct+'">'+pct+'%</div>'+
+          '</div>';
+      })()+
+      '<div class="stage-body"><table class="tt"><thead><tr>'+
+      '<th style="min-width:220px">מטלות לביצוע על פי ציר הזמנים</th>'+
+      '<th>ימים</th>'+
+      '<th class="col-orig">מועד מקורי להגשה</th>'+
+      '<th class="col-actual">מועד ביצוע בפועל</th>'+
+      '<th>ימים נותרו</th>'+
+      '<th>סטטוס</th>'+
+      '</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
+  });
+
+  // Verdict block
+  html+='<div class="stage-block" id="sg-verdict">'+
+    '<div class="stage-head" onclick="toggleStage(\'verdict\')">'+
+    '<div class="sh-left"><div class="sdot" style="background:#1e293b"></div>'+
+    '<span class="sname">פסק דין — סיום ההליך</span></div>'+
+    '<span class="stog">▼</span></div>'+
+    '<div class="stage-body"><table class="tt"><thead><tr>'+
+    '<th colspan="2">מועד פסק הדין הסופי</th>'+
+    '<th class="col-orig">מועד מקורי</th><th class="col-actual">מועד בפועל</th>'+
+    '<th></th><th></th></tr></thead><tbody>'+
+    '<tr class="anchor-row"><td colspan="2"><div class="anchor-label"><span class="anchor-tag">סיום</span>פסק דין סופי</div></td>'+
+    '<td><input type="date" class="date-input inp-orig" value="'+toInput(c.verdict)+'" onchange="updateAnchor(\'verdict\',this.value)"></td>'+
+    '<td><input type="date" class="date-input inp-actual" value="'+toInput(c.verdictActual||'')+'" onchange="updateAnchor(\'verdictActual\',this.value)" placeholder="מועד בפועל"></td>'+
+    '<td></td><td></td></tr></tbody></table></div></div>';
+
+  g('stagesWrap').innerHTML=html;
+}
+
+/* ══ RENDER HEADER & STATS ══ */
+function renderHeader(){
+  var c=cur();
+  g('hParties').textContent=c.parties||'—';
+  g('hNum').textContent=c.casenum||'—';
+  g('hCourt').textContent=c.court||'—';
+  g('hFiling').textContent=fmtDate(c.filing);
+  g('hService').textContent=fmtDate(c.service);
+  g('hToday').textContent=fmtDate(todayStr());
+  g('hType').textContent=c.type;
+  g('hDefDays').textContent=getDefenseDays(c)+' יום';
+  var opts='';
+  cases.forEach(function(x){opts+='<option value="'+x.id+'"'+(x.id===curId?' selected':'')+'>'+x.casenum+' — '+x.parties+'</option>';});
+  g('caseSwitcher').innerHTML=opts;
+}
+
+function renderStats(){
+  var c=cur(),chain=getCascadedChain(c),ur=0,pn=0,dn=0,tot=0;
+  STAGES.forEach(function(st){
+    var all=st.tasks.slice();if(st.preTaskNote)all.push(st.preTaskNote);
+    all.forEach(function(t){
+      if(t.noDate)return;tot++;
+      var st2=(c.statuses||{})[t.id]||'pending';
+      if(st2==='done'){dn++;return;}
+      var rem=daysFrom(chain[t.id]);
+      if(rem!==null&&rem<=14)ur++;else pn++;
+    });
+  });
+  g('sUrgent').textContent=ur; g('sPending').textContent=pn;
+  g('sDone').textContent=dn; g('sTotal').textContent=tot;
+  // Progress bar: arrow starts at RIGHT (0%) and moves LEFT (100%)
+  // At pct=0: arrow at right edge. At pct=100: arrow at left edge.
+  var pct=tot>0?Math.round(dn/tot*100):0;
+  var wrap=g('progressWrap');
+  var fill=g('progressFill');
+  var arrow=g('progressArrow');
+  var lbl=g('progressLabel');
+  if(fill){
+    // Fill occupies right side, width=pct%
+    fill.style.width=pct+'%';
+    var wrapW=wrap?wrap.offsetWidth:0;
+    // Arrow left position: (100-pct)% of wrap minus arrow width (22px)
+    var arrowLeft=Math.round(wrapW*(100-pct)/100)-22;
+    if(arrowLeft<0)arrowLeft=0;
+    if(arrow){
+      if(pct>0&&pct<100){
+        arrow.style.display='block';
+        arrow.style.left=arrowLeft+'px';
+      } else {
+        arrow.style.display='none';
+      }
+    }
+    if(lbl){
+      if(pct>=3){
+        lbl.style.display='block';
+        lbl.textContent=pct+'%';
+        lbl.style.left=(arrowLeft+11)+'px';
+      } else {
+        lbl.style.display='none';
+      }
+    }
+  }
+}
+
+function renderCaseList(){
+  var grid=g('caseGrid');
+  if(!cases.length){grid.innerHTML='<div class="empty-state"><div class="icon">📁</div><h3>אין תיקים פתוחים</h3></div>';return;}
+  var html='';
+  cases.forEach(function(c){
+    var chain=getCascadedChain(c),ur=0,dn=0,tot=0;
+    STAGES.forEach(function(st){
+      var all=st.tasks.slice();if(st.preTaskNote)all.push(st.preTaskNote);
+      all.forEach(function(t){
+        if(t.noDate)return;tot++;
+        if((c.statuses||{})[t.id]==='done'){dn++;return;}
+        var r=daysFrom(chain[t.id]);if(r!==null&&r<=14)ur++;
+      });
+    });
+    html+='<div class="cc'+(c.id===curId?' act':'')+'" onclick="goCase(\''+c.id+'\')">'+
+      '<div class="ccn">'+c.casenum+'</div><div class="ccp">'+c.parties+'</div>'+
+      '<div class="ccm">'+c.type+'</div>'+
+      '<div class="ccm">'+(c.court||'—')+(c.judge?' · '+c.judge:'')+'</div>'+
+      '<div class="ccm">המצאה: '+fmtDate(c.service)+'</div>'+
+      '<div class="ccb">'+
+      (ur>0?'<span class="badge bu">'+ur+' דחוף</span>':'')+
+      '<span class="badge bd">'+dn+'/'+tot+'</span>'+
+      (c.id===curId?'<span class="badge bt">פעיל</span>':'')+
+      '</div>'+
+      '<button class="btn btn-gold" style="margin-top:10px;width:100%;font-size:12px" onclick="event.stopPropagation();goCase(\''+c.id+'\')">עבור לתיק</button>'+
+      '<button class="btn btn-gh" style="margin-top:6px;width:100%;font-size:12px" onclick="event.stopPropagation();goEdit(\''+c.id+'\')">✏️ עריכה</button>'+
+      '</div>';
+  });
+  grid.innerHTML=html;
+}
+
+function renderAll(){renderHeader();renderStages();renderStats();}
+
+/* ══ ACTIONS ══ */
+function toggleStage(id){var el=g('sg-'+id);if(el)el.classList.toggle('collapsed');}
+
+function setStatus(tid,v){var c=cur();if(!c.statuses)c.statuses={};c.statuses[tid]=v;autoSave(c);renderStages();renderStats();}
+
+function setActual(tid,v){
+  var c=cur();if(!c.actualDates)c.actualDates={};
+  c.actualDates[tid]=v||'';
+  // When t7 actual date is set/cleared → sync t10 (פנייה לצד שכנגד)
+  if(tid==='t7'){
+    if(!c.statuses)c.statuses={};
+    if(v){
+      c.actualDates['t10']=v;
+      c.statuses['t10']='done';
+    } else {
+      c.actualDates['t10']='';
+      c.statuses['t10']='pending';
+    }
+  }
+  autoSave(c);renderStages();renderStats();
+}
+
+function updateAnchor(key,v){var c=cur();c[key]=v||'';autoSave(c);renderStages();renderStats();}
+
+function switchCase(id){curId=id;saveCurrentId(curId);renderAll();}
+function goCase(id){curId=id;saveCurrentId(curId);showTab('timeline');renderAll();}
+function goEdit(id){curId=id;saveCurrentId(curId);renderAll();openEditModal();}
+
+function showTab(t){
+  g('viewTL').style.display=t==='timeline'?'':'none';
+  g('viewCS').style.display=t==='cases'?'':'none';
+  g('tabTL').className='tab'+(t==='timeline'?' active':'');
+  g('tabCS').className='tab'+(t==='cases'?' active':'');
+  if(t==='cases')renderCaseList();
+}
+
+function openNewModal(){g('modalNew').classList.remove('hidden');}
+function openEditModal(){
+  var c=cur();
+  g('eNum').value=c.casenum||''; g('eParties').value=c.parties||'';
+  g('eType').value=c.type||'אזרחי'; g('eCourt').value=c.court||'';
+  g('eJudge').value=c.judge||''; g('eLawyer').value=c.lawyer||'';
+  g('eNotes').value=c.notes||''; g('eCounter').value=c.counter||'no';
+  g('eFiling').value=toInput(c.filing); g('eService').value=toInput(c.service);
+  g('modalEdit').classList.remove('hidden');
+}
+function closeModal(id){g(id).classList.add('hidden');}
+
+function createCase(){
+  var num=g('nNum').value.trim(),parties=g('nParties').value.trim(),
+      filing=g('nFiling').value,service=g('nService').value;
+  if(!num||!parties||!filing||!service){showToast('נא למלא שדות חובה (*)');return;}
+  var nc={
+    id:'case-'+Date.now(),casenum:num,parties:parties,
+    type:g('nType').value,court:g('nCourt').value,
+    judge:g('nJudge').value,lawyer:g('nLawyer').value,
+    notes:g('nNotes').value,counter:g('nCounter').value,
+    filing:filing,service:service,
+    pretrial:'',pretrialActual:'',pretrialFinal:'',pretrialFinalActual:'',
+    trial:'',trialActual:'',decision:'',decisionActual:'',
+    appealDec:'',appealDecActual:'',appealHr:'',appealHrActual:'',
+    verdict:'',verdictActual:'',
+    statuses:defaultStatuses(),actualDates:{}
+  };
+  cases.push(nc);curId=nc.id;
+  autoSave(nc);saveCurrentId(curId);closeModal('modalNew');
+  ['nNum','nParties','nFiling','nService','nCourt','nJudge','nLawyer','nNotes'].forEach(function(id){var el=g(id);if(el)el.value='';});
+  renderAll();showToast('✅ התיק נפתח ונשמר');
+}
+
+function saveEdit(){
+  var num=g('eNum').value.trim(),parties=g('eParties').value.trim(),
+      filing=g('eFiling').value,service=g('eService').value;
+  if(!num||!parties||!filing||!service){showToast('נא למלא שדות חובה');return;}
+  var c=cur();
+  c.casenum=num;c.parties=parties;c.type=g('eType').value;c.court=g('eCourt').value;
+  c.judge=g('eJudge').value;c.lawyer=g('eLawyer').value;c.notes=g('eNotes').value;
+  c.counter=g('eCounter').value;c.filing=filing;c.service=service;
+  autoSave(c);closeModal('modalEdit');renderAll();showToast('✅ פרטי התיק עודכנו');
+}
+
+function deleteCase(){
+  if(!confirm('למחוק את התיק? פעולה זו אינה הפיכה.'))return;
+  try{localStorage.removeItem(KEY_PFX+curId);}catch(e){}
+  cases=cases.filter(function(c){return c.id!==curId;});
+  saveCaseIds(cases.map(function(c){return c.id;}));
+  closeModal('modalEdit');
+  if(!cases.length){
+    curId=null;
+    try{localStorage.removeItem(KEY_CUR);}catch(ex){}
+    var sw=g('stagesWrap');
+    if(sw)sw.innerHTML='<div class="empty-state"><div class="icon">📁</div><h3>אין תיקים פתוחים — לחץ על "+ פתיחת תיק חדש"</h3></div>';
+  }
+  else{curId=cases[0].id;saveCurrentId(curId);renderAll();}
+  showToast('🗑 התיק נמחק');
+}
+
+function doLogout(){
+  if(confirm('לצאת מהמערכת?')){
+    localStorage.removeItem('lextime_access');
+    localStorage.removeItem('lextime_user');
+    window.location.href='index.html';
+  }
+}
+function showToast(msg){var t=g('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3000);}
+
+/* functions are global */
+document.addEventListener('DOMContentLoaded', function(){
+  try{
+    if(!stored) autoSave(null);
+    renderAll();
+  } catch(err){
+    console.error('TimeBar init error:', err);
+    var sw = g('stagesWrap');
+    if(sw) sw.innerHTML = '<div style="padding:40px;text-align:center;direction:rtl;color:#b91c1c;font-family:Arial,sans-serif;font-size:16px">&#x26A0; שגיאת טעינה<br><small>' + err.message + '</small></div>';
+  }
+});
+</script>
+</body>
+</html>

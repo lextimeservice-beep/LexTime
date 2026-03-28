@@ -1,0 +1,1615 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>מדריך מקיף — ניהול תיקים תקנות סד״א 2018 | LexTime</title>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700;900&family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0f2d5a; --navy-d:#091e40; --navy-l:#1a4a8a;
+  --gold:#b8862a; --gold-l:#f5e6c8; --gold-ll:#fffaf0;
+  --green:#1a6e40; --green-l:#d4eddf;
+  --red:#b91c1c; --red-l:#fde8e8;
+  --blue:#1a4fa0; --blue-l:#dbeafe; --blue-ll:#eff6ff;
+  --teal:#0f766e; --teal-l:#ccfbf1;
+  --purple:#5b21b6; --purple-l:#ede9fe;
+  --amber:#92400e; --amber-l:#fef3c7;
+  --gray:#374151; --gray-l:#9ca3af; --gray-ll:#f8fafc;
+  --border:#e2e8f0;
+  --radius:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Heebo',sans-serif;
+  background:#f0f4fa;
+  color:#1e293b;
+  font-size:15px;
+  line-height:1.7;
+}
+
+/* ── PRINT ── */
+@media print{
+  body{background:#fff;font-size:12px}
+  .no-print{display:none!important}
+  .page-break{page-break-before:always}
+  .stage-card,.info-box,.warn-box,.reg-box{break-inside:avoid}
+  .toc-section{position:static!important;box-shadow:none!important;border-bottom:2px solid var(--gold)}
+}
+
+/* ── COVER ── */
+.cover{
+  background:linear-gradient(145deg, var(--navy-d) 0%, #0f2244 40%, #162d50 100%);
+  color:#fff;
+  padding:80px 60px 60px;
+  position:relative;
+  overflow:hidden;
+}
+.cover::before{
+  content:'';
+  position:absolute;inset:0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 60%, rgba(184,134,42,.12) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 60% at 80% 20%, rgba(26,74,138,.25) 0%, transparent 70%);
+}
+.cover-inner{position:relative;z-index:1;max-width:900px;margin:0 auto}
+.cover-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:rgba(184,134,42,.2);border:1px solid rgba(184,134,42,.4);
+  color:var(--gold-l);font-size:12px;font-weight:700;letter-spacing:.8px;
+  text-transform:uppercase;padding:6px 16px;border-radius:20px;margin-bottom:28px;
+}
+.cover-title{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:clamp(36px,5vw,58px);font-weight:900;
+  line-height:1.1;margin-bottom:18px;
+  color:#fff;
+}
+.cover-title span{color:var(--gold-l)}
+.cover-subtitle{font-size:18px;color:rgba(255,255,255,.65);margin-bottom:40px;max-width:600px;line-height:1.6}
+.cover-meta{
+  display:flex;gap:32px;flex-wrap:wrap;
+  padding-top:28px;border-top:1px solid rgba(255,255,255,.15);
+}
+.cover-meta-item{font-size:13px;color:rgba(255,255,255,.5)}
+.cover-meta-item strong{color:rgba(255,255,255,.85);display:block;font-size:15px;margin-bottom:2px}
+
+/* ── NAV / STICKY TOC ── */
+.toc-section{
+  background:#fff;
+  border-bottom:3px solid var(--gold);
+  padding:14px 0 16px;
+  position:sticky;
+  top:52px;
+  z-index:200;
+  box-shadow:0 4px 24px rgba(9,30,64,.13);
+}
+.container{max-width:960px;margin:0 auto;padding:0 32px}
+
+/* Brand bar inside sticky header */
+.toc-brand-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;padding-bottom:10px;
+  border-bottom:1px solid var(--border);
+}
+.toc-brand-logo{
+  display:flex;align-items:center;gap:9px;
+  font-family:'Frank Ruhl Libre',serif;font-size:17px;font-weight:900;color:var(--navy);
+}
+.toc-brand-logo span{font-size:20px}
+.toc-brand-meta{
+  display:flex;gap:16px;
+}
+.toc-brand-tag{
+  font-size:11px;color:var(--gray-l);font-weight:500;
+  display:flex;align-items:center;gap:4px;
+}
+.toc-brand-tag strong{color:var(--navy);font-weight:700}
+
+/* TOC label row */
+.toc-header-row{
+  display:flex;align-items:center;gap:8px;margin-bottom:8px;
+}
+.toc-title{
+  font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+  color:var(--gray-l);
+}
+
+/* Pairs grid */
+.toc-grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:6px;
+}
+.toc-item{
+  display:flex;align-items:center;gap:9px;
+  padding:7px 12px;border-radius:7px;
+  border:1px solid var(--border);background:var(--gray-ll);
+  text-decoration:none;color:var(--navy);font-weight:600;font-size:13px;
+  transition:.15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.toc-item:hover{border-color:var(--gold);background:var(--gold-ll);color:var(--gold)}
+.toc-item.active{border-color:var(--gold);background:var(--gold-ll);color:var(--gold)}
+.toc-num{
+  width:22px;height:22px;border-radius:50%;
+  background:var(--navy);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:800;flex-shrink:0;
+}
+.toc-item.active .toc-num{background:var(--gold);}
+
+/* Offset sections so sticky header doesn't cover headings — value set dynamically by JS */
+section[id]{scroll-margin-top:280px}
+
+/* ── SECTIONS ── */
+.section{padding:56px 0}
+.section:nth-child(even){background:#fff}
+.section:nth-child(odd){background:#f7f9fc}
+.section-header{margin-bottom:40px}
+.section-eyebrow{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:800;letter-spacing:1px;text-transform:uppercase;
+  color:var(--gold);background:var(--gold-ll);border:1px solid var(--gold-l);
+  padding:4px 14px;border-radius:20px;margin-bottom:14px;
+}
+.section-title{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:clamp(24px,4vw,36px);font-weight:900;
+  color:var(--navy);line-height:1.2;margin-bottom:14px;
+}
+.section-desc{font-size:15px;color:var(--gray);max-width:680px;line-height:1.75}
+
+/* ── INFO BOXES ── */
+.info-box,.warn-box,.reg-box,.tip-box,.success-box{
+  border-radius:var(--radius);padding:18px 22px;margin:20px 0;
+}
+.info-box{background:var(--blue-ll);border:1px solid var(--blue-l);border-right:4px solid var(--blue)}
+.info-box .box-title{color:var(--blue);font-weight:800;font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.warn-box{background:var(--red-l);border:1px solid #fca5a5;border-right:4px solid var(--red)}
+.warn-box .box-title{color:var(--red);font-weight:800;font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.reg-box{background:var(--gold-ll);border:1px solid var(--gold-l);border-right:4px solid var(--gold)}
+.reg-box .box-title{color:var(--gold);font-weight:800;font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.tip-box{background:var(--teal-l);border:1px solid #99f6e4;border-right:4px solid var(--teal)}
+.tip-box .box-title{color:var(--teal);font-weight:800;font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.success-box{background:var(--green-l);border:1px solid #a7f3c9;border-right:4px solid var(--green)}
+.success-box .box-title{color:var(--green);font-weight:800;font-size:13px;margin-bottom:6px;display:flex;align-items:center;gap:7px}
+.box-body{font-size:14px;color:#1e293b;line-height:1.75}
+.box-body ul{padding-right:20px;margin-top:6px}
+.box-body li{margin-bottom:5px}
+
+/* ── STAGE CARDS ── */
+.stage-card{
+  background:#fff;border-radius:14px;
+  border:1px solid var(--border);
+  margin-bottom:20px;
+  overflow:hidden;
+  box-shadow:0 2px 8px rgba(0,0,0,.06);
+}
+.stage-head{
+  display:flex;align-items:center;gap:14px;
+  padding:18px 24px;
+}
+.stage-color-bar{width:6px;height:100%;border-radius:3px;flex-shrink:0}
+.stage-icon{font-size:26px}
+.stage-info{flex:1}
+.stage-name{font-family:'Frank Ruhl Libre',serif;font-size:20px;font-weight:900;color:var(--navy)}
+.stage-desc{font-size:13px;color:var(--gray-l);margin-top:2px}
+.stage-badge{
+  font-size:11px;font-weight:800;padding:4px 12px;border-radius:20px;
+  white-space:nowrap;
+}
+.stage-body{padding:0 24px 24px}
+.stage-divider{height:1px;background:var(--border);margin-bottom:20px}
+
+/* ── TASK TABLE ── */
+.task-table{width:100%;border-collapse:collapse}
+.task-table th{
+  background:var(--gray-ll);padding:9px 12px;
+  font-size:10px;font-weight:800;color:var(--gray-l);
+  text-align:right;border-bottom:2px solid var(--border);
+  text-transform:uppercase;letter-spacing:.6px;white-space:nowrap;
+}
+.task-table td{
+  padding:12px;border-bottom:1px solid var(--gray-ll);
+  vertical-align:top;font-size:13px;
+}
+.task-table tr:last-child td{border-bottom:none}
+.task-table tr:hover td{background:#fafbfc}
+.task-num{
+  font-weight:900;font-size:13px;
+  width:32px;height:32px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.task-desc{font-weight:600;color:#1e293b;line-height:1.5}
+.task-reg{font-size:11px;color:var(--blue);margin-top:4px;font-weight:600}
+.task-timing{font-size:12px;font-weight:700;color:var(--teal);white-space:nowrap}
+.task-note{
+  font-size:12px;color:var(--gray);
+  background:var(--gray-ll);border-radius:6px;padding:6px 10px;
+  margin-top:6px;line-height:1.6;border-right:3px solid var(--border);
+}
+.anchor-row td{background:#f8fafc;border-top:2px solid var(--border);font-weight:700;color:var(--navy)}
+
+/* ── TIMELINE FLOW ── */
+.timeline{position:relative;padding-right:40px;margin:10px 0}
+.timeline::before{
+  content:'';position:absolute;top:0;bottom:0;right:19px;
+  width:2px;background:linear-gradient(to bottom,var(--gold),var(--gold-l));
+}
+.tl-item{position:relative;margin-bottom:24px;padding-right:24px}
+.tl-dot{
+  position:absolute;top:10px;right:-11px;
+  width:22px;height:22px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:10px;font-weight:900;color:#fff;
+  border:2px solid #fff;
+  box-shadow:0 0 0 3px rgba(184,134,42,.25);
+}
+.tl-content{
+  background:#fff;border:1px solid var(--border);border-radius:10px;
+  padding:14px 16px;
+  box-shadow:0 1px 4px rgba(0,0,0,.06);
+}
+.tl-stage-name{font-size:13px;font-weight:800;margin-bottom:3px}
+.tl-stage-desc{font-size:12px;color:var(--gray)}
+
+/* ── FEATURE GRID ── */
+.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-top:28px}
+.feature-card{
+  background:#fff;border:1px solid var(--border);border-radius:12px;
+  padding:22px;text-align:center;
+  transition:.15s;
+}
+.feature-card:hover{border-color:var(--gold);box-shadow:0 6px 24px rgba(0,0,0,.08)}
+.feature-icon{font-size:32px;margin-bottom:12px}
+.feature-title{font-weight:800;color:var(--navy);font-size:14px;margin-bottom:6px}
+.feature-text{font-size:13px;color:var(--gray);line-height:1.6}
+
+/* ── STATUS PILLS ── */
+.status-row{display:flex;flex-wrap:wrap;gap:12px;margin:16px 0}
+.status-pill{
+  display:flex;align-items:center;gap:8px;
+  border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;
+  border:1px solid;
+}
+.sp-pending{background:var(--gray-ll);color:var(--gray);border-color:var(--border)}
+.sp-done{background:var(--green-l);color:var(--green);border-color:#a7f3c9}
+.sp-urgent{background:var(--red-l);color:var(--red);border-color:#fca5a5}
+.sp-no-response{background:var(--amber-l);color:var(--amber);border-color:#fde68a}
+
+/* ── COLOR CHIP ── */
+.chip{display:inline-block;padding:2px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.chip-green{background:var(--green-l);color:var(--green)}
+.chip-amber{background:var(--amber-l);color:var(--amber)}
+.chip-red{background:var(--red-l);color:var(--red)}
+.chip-blue{background:var(--blue-l);color:var(--blue)}
+.chip-teal{background:var(--teal-l);color:var(--teal)}
+
+/* ── DATE TABLE ── */
+.date-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:12px}
+.date-table th{
+  background:var(--navy);color:#fff;
+  padding:9px 14px;text-align:right;font-size:11px;font-weight:700;letter-spacing:.4px
+}
+.date-table td{padding:10px 14px;border-bottom:1px solid var(--border);vertical-align:middle}
+.date-table tr:nth-child(even) td{background:var(--gray-ll)}
+.date-table .type-cell{font-weight:800;color:var(--navy)}
+.date-table .days-cell{font-weight:900;font-size:15px;text-align:center}
+.date-table .days-cell.red{color:var(--red)}
+.date-table .days-cell.green{color:var(--green)}
+.date-table .days-cell.amber{color:var(--amber)}
+
+/* ── TWO-COL ── */
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:20px}
+
+/* ── QUICK REF TABLE ── */
+.qref{width:100%;border-collapse:collapse;font-size:13px}
+.qref th{background:var(--navy-d);color:#fff;padding:10px 14px;text-align:right;font-size:11px;letter-spacing:.5px;font-weight:700}
+.qref td{padding:10px 14px;border-bottom:1px solid var(--border)}
+.qref tr:nth-child(even) td{background:var(--gray-ll)}
+.qref .reg-num{font-weight:900;color:var(--blue);font-size:14px}
+.qref .reg-name{font-weight:600;color:var(--navy)}
+.qref .reg-days{font-weight:900;color:var(--gold);font-size:14px;text-align:center;white-space:nowrap}
+
+/* ── FAQ ── */
+.faq-item{
+  background:#fff;border:1px solid var(--border);border-radius:var(--radius);
+  margin-bottom:10px;overflow:hidden;
+}
+.faq-q{
+  padding:16px 20px;font-size:14px;font-weight:700;color:var(--navy);
+  display:flex;align-items:center;justify-content:space-between;
+  cursor:pointer;gap:12px;
+}
+.faq-q:hover{background:var(--gray-ll)}
+.faq-q .arrow{font-size:18px;color:var(--gold);transition:.2s}
+.faq-a{
+  display:none;padding:0 20px 18px;
+  font-size:14px;color:var(--gray);line-height:1.75;
+  border-top:1px solid var(--border);padding-top:14px;
+}
+.faq-item.open .faq-a{display:block}
+.faq-item.open .arrow{transform:rotate(45deg)}
+
+/* ── STEPS ── */
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:24px}
+.step-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:22px;text-align:center;position:relative}
+.step-circle{
+  width:52px;height:52px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Frank Ruhl Libre',serif;font-size:22px;font-weight:900;
+  color:#fff;background:var(--navy);margin:0 auto 14px;
+  box-shadow:0 0 0 6px var(--gold-l);
+}
+.step-title{font-weight:800;color:var(--navy);font-size:14px;margin-bottom:6px}
+.step-text{font-size:13px;color:var(--gray);line-height:1.6}
+
+/* ── FOOTER ── */
+.guide-footer{
+  background:var(--navy-d);color:rgba(255,255,255,.5);
+  text-align:center;padding:36px;font-size:13px;
+}
+.guide-footer strong{color:rgba(255,255,255,.8)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:768px){
+  .feature-grid,.steps,.toc-grid,.two-col{grid-template-columns:1fr}
+  .cover{padding:50px 24px 40px}
+  .container{padding:0 18px}
+  .section{padding:40px 0}
+}
+
+/* ── SCROLL-TO ── */
+section[id]{scroll-margin-top:20px}
+
+/* ── PRINT BUTTON ── */
+.print-btn{
+  position:fixed;bottom:24px;left:24px;
+  background:var(--navy);color:#fff;border:none;border-radius:50%;
+  width:52px;height:52px;font-size:20px;cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,0,0,.3);z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  transition:.2s;
+}
+.print-btn:hover{background:var(--navy-l);transform:scale(1.05)}
+</style>
+</head>
+<body>
+
+<!-- ══ COVER ══ -->
+<!-- ══ TOP NAV ══ -->
+<div id="guideTopNav" style="background:#091e40;height:52px;padding:0 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:300;box-shadow:0 2px 12px rgba(0,0,0,.35);flex-shrink:0">
+  <a href="index.html" style="display:flex;align-items:center;gap:8px;text-decoration:none;color:#fff">
+    <span style="width:30px;height:30px;background:#b8862a;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0">⚖️</span>
+    <span style="font-family:'Heebo',sans-serif;font-size:14px;font-weight:700">LexTime</span>
+    <span style="font-size:12px;color:rgba(255,255,255,.45);font-family:'Heebo',sans-serif"> — מדריך שימוש</span>
+  </a>
+  <div style="display:flex;gap:8px;align-items:center">
+    <a href="platform.html" style="padding:7px 16px;background:#b8862a;color:#fff;border-radius:6px;text-decoration:none;font-size:13px;font-weight:700;font-family:'Heebo',sans-serif">🚀 פתח פלטפורמה</a>
+    <a href="index.html" style="padding:7px 14px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.85);border-radius:6px;text-decoration:none;font-size:13px;font-weight:600;font-family:'Heebo',sans-serif;border:1px solid rgba(255,255,255,.2)">← דף הבית</a>
+  </div>
+</div>
+
+<div class="cover">
+  <div class="cover-inner">
+    <div class="cover-badge">⚖️ &nbsp;מדריך מקיף · LexTime</div>
+    <h1 class="cover-title">
+      ניהול תיקים משפטיים<br>
+      <span>תקנות סדר הדין האזרחי 2018</span>
+    </h1>
+    <p class="cover-subtitle">
+      מדריך שלם לשימוש בפלטפורמה — פתיחת תיקים, חישוב מועדים, שלבי הליך, ניתוח תקנות סד"א, ניהול סטטוסים ושרשור אוטומטי.
+    </p>
+    <div class="cover-meta">
+      <div class="cover-meta-item"><strong>תקנות בסיס</strong>תקנות סד"א, התשע"ט-2018</div>
+      <div class="cover-meta-item"><strong>תיקונים כלולים</strong>התשפ"א, התשפ"ב, התשפ"ג</div>
+      <div class="cover-meta-item"><strong>שלבי הליך</strong>6 שלבים — מהגשה ועד ערעור</div>
+      <div class="cover-meta-item"><strong>תקנות מוטמעות</strong>140+ תקנות בלחיצה אחת</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ STICKY TOC ══ -->
+<div class="toc-section" id="stickyToc">
+  <div class="container">
+
+    <!-- Brand / title bar -->
+    <div class="toc-brand-bar">
+      <div class="toc-brand-logo">
+        <span>⚖️</span>
+        ניהול תיקים משפטיים
+        <span style="font-size:13px;color:var(--gray-l);font-weight:400;font-family:'Heebo',sans-serif">— תקנות סד״א 2018</span>
+      </div>
+      <div class="toc-brand-meta">
+        <div class="toc-brand-tag"><strong>6</strong> שלבי הליך</div>
+        <div class="toc-brand-tag"><strong>140+</strong> תקנות</div>
+        <div class="toc-brand-tag" style="color:var(--gold)"><strong>מדריך מקיף · LexTime</strong></div>
+      </div>
+    </div>
+
+    <!-- TOC label -->
+    <div class="toc-header-row">
+      <span style="font-size:13px">📋</span>
+      <span class="toc-title">תוכן עניינים — בחר פרק:</span>
+    </div>
+
+    <!-- Pairs grid — 2 per row -->
+    <div class="toc-grid">
+      <a href="#sec-overview"     class="toc-item" data-sec="sec-overview">    <div class="toc-num">1</div>סקירת המערכת</a>
+      <a href="#sec-start"        class="toc-item" data-sec="sec-start">        <div class="toc-num">2</div>פתיחת תיק ראשון</a>
+      <a href="#sec-interface"    class="toc-item" data-sec="sec-interface">    <div class="toc-num">3</div>ממשק הפלטפורמה</a>
+      <a href="#sec-stages"       class="toc-item" data-sec="sec-stages">       <div class="toc-num">4</div>שלבי ההליך המלאים</a>
+      <a href="#sec-dates"        class="toc-item" data-sec="sec-dates">        <div class="toc-num">5</div>מנגנון חישוב התאריכים</a>
+      <a href="#sec-statuses"     class="toc-item" data-sec="sec-statuses">     <div class="toc-num">6</div>ניהול סטטוסים ומטלות</a>
+      <a href="#sec-regulations"  class="toc-item" data-sec="sec-regulations">  <div class="toc-num">7</div>טבלת תקנות — עזר מהיר</a>
+      <a href="#sec-tips"         class="toc-item" data-sec="sec-tips">         <div class="toc-num">8</div>טיפים ואזהרות</a>
+      <a href="#sec-faq"          class="toc-item" data-sec="sec-faq">          <div class="toc-num">9</div>שאלות נפוצות</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ 1. OVERVIEW ══════════ -->
+<section id="sec-overview" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">01 · סקירה</div>
+      <h2 class="section-title">מה עושה הפלטפורמה?</h2>
+      <p class="section-desc">
+        פלטפורמת ניהול התיקים מחשבת אוטומטית את <strong>כל המועדים הדיוניים</strong> בהליך אזרחי לפי תקנות סדר הדין האזרחי, התשע"ט-2018. היא עוקבת אחרי שישה שלבי הליך — מהגשת כתב ההגנה ועד ישיבת ערעור — ומציגה בכל עת מהי המטלה הדחופה הבאה.
+      </p>
+    </div>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div class="feature-icon">📅</div>
+        <div class="feature-title">חישוב מועדים אוטומטי</div>
+        <div class="feature-text">הזן מועד המצאה אחד — המערכת מחשבת את כל המועדים הנגזרים לפי התקנות, לפי סוג התיק.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🔗</div>
+        <div class="feature-title">שרשור אוטומטי מלא</div>
+        <div class="feature-text">עדכן תאריך הגשה בפועל אחד — כל המועדים הבאים ייחשבו מחדש ממנו אוטומטית.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📖</div>
+        <div class="feature-title">לחיצה על תקנה = טקסט מלא</div>
+        <div class="feature-text">כל תקנה מקושרת לטקסט החוקי. לחץ — ראה מיד את הסעיף הרלוונטי מודגש.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">📁</div>
+        <div class="feature-title">תיקים מרובים</div>
+        <div class="feature-text">נהל עשרות תיקים במקביל עם מעבר מהיר בין תיקים ושמירה אוטומטית.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">🎯</div>
+        <div class="feature-title">מטלה הבאה תמיד בולטת</div>
+        <div class="feature-text">המטלה הדחופה מסומנת אוטומטית עם ספירה לאחור בצבע — ירוק / ענבר / אדום.</div>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">💾</div>
+        <div class="feature-title">שמירה מקומית מאובטחת</div>
+        <div class="feature-text">כל הנתונים נשמרים ב-localStorage בדפדפן שלך. אין העלאה לשרת ללא הסכמה.</div>
+      </div>
+    </div>
+
+    <div class="warn-box" style="margin-top:28px">
+      <div class="box-title">⚠️ אחריות משפטית — חשוב לקרוא</div>
+      <div class="box-body">
+        הפלטפורמה היא <strong>כלי עזר טכנולוגי בלבד</strong> ואינה מהווה ייעוץ משפטי. האחריות הבלעדית לאימות נכונות כל מועד דיוני, לפני הסתמכות עליו בהליך משפטי, מוטלת על עורך הדין המטפל בתיק. שגיאות בהזנת נתונים יובילו לחישוב מועדים שגוי.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 2. GETTING STARTED ══════════ -->
+<section id="sec-start" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">02 · התחלה</div>
+      <h2 class="section-title">פתיחת תיק ראשון — שלב אחר שלב</h2>
+      <p class="section-desc">פתיחת תיק חדש לוקחת פחות מדקה. כל מה שצריך הם 4 פרטים חובה.</p>
+    </div>
+
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-circle">1</div>
+        <div class="step-title">לחץ "פתיחת תיק חדש"</div>
+        <div class="step-text">בפס הכלים העליון לחץ על הכפתור הזהוב. יפתח חלון פתיחת תיק.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-circle">2</div>
+        <div class="step-title">מלא פרטי חובה</div>
+        <div class="step-text">מספר תיק, שמות הצדדים, תאריך הגשת כתב תביעה, תאריך המצאה לנתבע.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-circle">3</div>
+        <div class="step-title">בחר סוג תיק</div>
+        <div class="step-text">הבחירה קובעת את מספר ימי ההגנה: 60 / 120 / 30 יום. ראה פירוט בסעיף 5.</div>
+      </div>
+    </div>
+
+    <div class="two-col" style="margin-top:32px">
+      <div class="info-box">
+        <div class="box-title">📋 שדות חובה בפתיחת תיק</div>
+        <div class="box-body">
+          <ul>
+            <li><strong>מספר תיק</strong> — מספר התיק בבית המשפט</li>
+            <li><strong>שם הצדדים</strong> — לדוגמה: "פלוני נ׳ אלמוני"</li>
+            <li><strong>תאריך הגשת כתב תביעה</strong> — יום הגשת התביעה לבית המשפט</li>
+            <li><strong>תאריך המצאה לנתבע</strong> — ממנו יחושב כתב ההגנה ושאר המועדים</li>
+          </ul>
+        </div>
+      </div>
+      <div class="info-box">
+        <div class="box-title">📋 שדות רשות בפתיחת תיק</div>
+        <div class="box-body">
+          <ul>
+            <li><strong>סוג תיק</strong> — אזרחי, נזק גוף, רשלנות רפואית, ביטוח לאומי, פינוי מושכר ועוד</li>
+            <li><strong>בית משפט ושופט</strong> — לתצוגה בלבד</li>
+            <li><strong>עורך הדין המטפל</strong> — לתצוגה בלבד</li>
+            <li><strong>תביעה שכנגד</strong> — כן / לא</li>
+            <li><strong>הערות</strong> — כל מידע נוסף</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="tip-box" style="margin-top:16px">
+      <div class="box-title">💡 טיפ: עריכת תיק קיים</div>
+      <div class="box-body">
+        לעריכת פרטי תיק שכבר נפתח: לחץ על כפתור <strong>"✏️ עריכה"</strong> בפס הכלים העליון. ניתן לשנות את כל הפרטים, כולל סוג התיק ותאריך ההמצאה. <strong>שים לב:</strong> שינוי תאריך ההמצאה יחשב מחדש את כל ציר הזמנים מאפס.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 3. INTERFACE ══════════ -->
+<section id="sec-interface" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">03 · ממשק</div>
+      <h2 class="section-title">מדריך הממשק</h2>
+      <p class="section-desc">כל אזורי הפלטפורמה ותפקידם.</p>
+    </div>
+
+    <div class="stage-card">
+      <div class="stage-head" style="background:var(--navy-d);color:#fff;padding:16px 24px">
+        <div class="stage-icon">🔝</div>
+        <div class="stage-info">
+          <div class="stage-name" style="color:#fff">פס הכלים העליון (Topbar)</div>
+          <div class="stage-desc" style="color:rgba(255,255,255,.55)">קבוע בראש המסך בכל עת</div>
+        </div>
+      </div>
+      <div class="stage-body" style="padding-top:20px">
+        <table class="task-table">
+          <thead><tr>
+            <th>אלמנט</th><th>מיקום</th><th>תפקיד</th>
+          </tr></thead>
+          <tbody>
+            <tr><td class="task-desc"><strong>כל התיקים</strong></td><td><span class="chip chip-blue">שמאל</span></td><td>מציג רשת כרטיסי כל התיקים הפתוחים</td></tr>
+            <tr><td class="task-desc"><strong>+ פתיחת תיק חדש</strong></td><td><span class="chip chip-amber">שמאל-זהב</span></td><td>פותח חלון יצירת תיק חדש</td></tr>
+            <tr><td class="task-desc"><strong>✏️ עריכה</strong></td><td><span class="chip chip-blue">שמאל</span></td><td>עורך פרטי התיק הפעיל</td></tr>
+            <tr><td class="task-desc"><strong>🟡 שמירה אוטומטית</strong></td><td><span class="chip chip-teal">ימין</span></td><td>נקודה ירוקה = נשמר. צהובה מהבהבת = שומר...</td></tr>
+            <tr><td class="task-desc"><strong>סרגל ההתקדמות הזהוב</strong></td><td><span class="chip chip-amber">מתחת לפס</span></td><td>חץ נע שמאלה ככל שמשימות מסומנות "בוצע". מציג אחוז השלמה של התיק.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stage-card">
+      <div class="stage-head" style="background:#fff3cd;padding:16px 24px">
+        <div class="stage-icon">📊</div>
+        <div class="stage-info">
+          <div class="stage-name">כותרת התיק ופס הסטטיסטיקות</div>
+          <div class="stage-desc" style="color:var(--gray-l)">מידע מהיר על התיק הפעיל</div>
+        </div>
+      </div>
+      <div class="stage-body" style="padding-top:20px">
+        <table class="task-table">
+          <thead><tr><th>אלמנט</th><th>הסבר</th></tr></thead>
+          <tbody>
+            <tr><td><span class="chip chip-red">⚡ דחוף</span></td><td>מטלות שמועדן בעוד 14 ימים או פחות (ולא בוצעו)</td></tr>
+            <tr><td><span class="chip chip-amber">ממתין</span></td><td>מטלות שמועדן בעוד 15 ימים ומעלה (ולא בוצעו)</td></tr>
+            <tr><td><span class="chip chip-green">בוצע</span></td><td>מטלות שסומנו כ-"בוצע ✓"</td></tr>
+            <tr><td><span class="chip chip-blue">סה"כ</span></td><td>מספר כלל המטלות בתיק (שיש להן תאריך)</td></tr>
+            <tr><td><strong>בורר תיקים</strong></td><td>תפריט נפתח שמאל — מאפשר מעבר מהיר בין תיקים</td></tr>
+            <tr><td><strong>ימי הגנה</strong></td><td>מציג את מספר הימים הקבוע לפי סוג התיק: 30 / 60 / 120</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stage-card">
+      <div class="stage-head" style="background:#f0fdf4;padding:16px 24px">
+        <div class="stage-icon">📋</div>
+        <div class="stage-info">
+          <div class="stage-name">שתי לשוניות התצוגה</div>
+        </div>
+      </div>
+      <div class="stage-body" style="padding-top:20px">
+        <div class="two-col">
+          <div class="tip-box">
+            <div class="box-title">📋 לשונית "ציר זמנים"</div>
+            <div class="box-body">מציגה את כל שלבי ההליך של התיק הפעיל — זהו המסך המרכזי. מכאן מעדכנים מועדים, סטטוסים, ורואים אלו מטלות דחופות.</div>
+          </div>
+          <div class="tip-box">
+            <div class="box-title">📁 לשונית "כל התיקים"</div>
+            <div class="box-body">רשת כרטיסי כל התיקים הפתוחים. כל כרטיס מציג: מספר תיק, שמות הצדדים, כמה דחופים ובוצעו, וכפתורי מעבר ועריכה מהירים.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:8px">
+      <div class="box-title">ℹ️ עמודות בטבלת ציר הזמנים</div>
+      <div class="box-body">
+        <ul>
+          <li><strong>מטלה / פעולה</strong> — תיאור המטלה עם קישורים לתקנות הרלוונטיות</li>
+          <li><strong>מועד מקורי (כחול)</strong> — המועד החוקי הנגזר מתאריך ההמצאה בלבד (ללא שינויים בפועל)</li>
+          <li><strong>מועד בפועל (טורקיז)</strong> — השדה שבו מזינים את התאריך שבו הוגש המסמך בפועל. שינוי ערך זה מפעיל את השרשור האוטומטי</li>
+          <li><strong>ימים נותרים</strong> — <span class="chip chip-green">ירוק</span> = מעל 14 יום | <span class="chip chip-amber">ענבר</span> = 8–14 יום | <span class="chip chip-red">אדום</span> = 0–7 יום | <span class="chip chip-red">איחור</span> = עבר</li>
+          <li><strong>סטטוס</strong> — תפריט נפתח לסימון מצב המטלה</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 4. STAGES ══════════ -->
+<section id="sec-stages" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">04 · שלבי ההליך</div>
+      <h2 class="section-title">ששת שלבי ההליך המשפטי</h2>
+      <p class="section-desc">כל שלב פורט להלן עם מטלותיו, תקנותיו, ומועדיו המחושבים.</p>
+    </div>
+
+    <!-- STAGE 1: PRELIMINARY -->
+    <div class="stage-card">
+      <div class="stage-head" style="background:linear-gradient(135deg,var(--blue-ll),#e0eaff);border-bottom:3px solid var(--blue)">
+        <div style="width:6px;height:54px;background:var(--blue);border-radius:3px;flex-shrink:0"></div>
+        <div class="stage-icon">⚖️</div>
+        <div class="stage-info">
+          <div class="stage-name">שלב א׳ — דיון מקדמי</div>
+          <div class="stage-desc">מהמצאת כתב התביעה ועד ישיבת קדם המשפט הראשונה</div>
+        </div>
+        <div class="stage-badge" style="background:var(--blue);color:#fff">8 מטלות</div>
+      </div>
+      <div class="stage-body">
+        <div class="stage-divider"></div>
+        <table class="task-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>מטלה / פעולה</th>
+              <th>תקנה</th>
+              <th>מועד הגשה</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><div class="task-num" style="background:var(--blue);color:#fff">1</div></td>
+              <td>
+                <div class="task-desc">הגשת כתב הגנה — תביעה שכנגד — הודעת צד ג׳</div>
+                <div class="task-reg">תקנה 9(ב) · תקנות 21–23</div>
+                <div class="task-note">🔑 <strong>עוגן ראשי:</strong> כתב ההגנה הוא נקודת ההתחלה של כל ציר הזמנים. הזנת "מועד בפועל" כאן ישנה את כל המועדים הבאים.</div>
+              </td>
+              <td><span class="chip chip-blue">9(ב)</span></td>
+              <td class="task-timing">+ 30 / 60 / 120 יום מהמצאה</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--blue);color:#fff">2</div></td>
+              <td>
+                <div class="task-desc">הגשת כתב הטענות האחרון — כתב תשובה לכתב ההגנה</div>
+                <div class="task-reg">תקנה 6 (הגדרה: "כתב הטענות האחרון") · תקנה 18</div>
+                <div class="task-note">📌 תובע רשאי להגיש כתב תשובה לכתב ההגנה. היקף: עד 3 עמודים (לא כולל כותרת). אם לא הוגש — רואים אותו כמכחיש הכל.</div>
+              </td>
+              <td><span class="chip chip-blue">18</span></td>
+              <td class="task-timing">+ 14 יום מהגנה</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--blue);color:#fff">3</div></td>
+              <td>
+                <div class="task-desc">דיון מקדמי בין בעלי הדין — גילוי מסמכים — שאלונים</div>
+                <div class="task-reg">תקנות 34–35 · תקנה 57 · תקנה 56(א)</div>
+                <div class="task-note">📋 תוך 30 יום מכתב הטענות האחרון. החלפת תצהירי גילוי מסמכים (תקנה 57). שאלונים: עד 25 שאלות בשלום, 50 שאלות במחוזי (נזק גוף / מעל 2.5 מיליון ₪).</div>
+              </td>
+              <td><span class="chip chip-blue">35, 57, 56</span></td>
+              <td class="task-timing">+ 30 יום מתשובה</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--blue);color:#fff">4</div></td>
+              <td>
+                <div class="task-desc">מינוי מגשר מהו"ת על ידי הממונה</div>
+                <div class="task-reg">תקנה 37(ב)</div>
+                <div class="task-note">🔔 ימונה אם סכום התביעה מעל 40,000 ₪ (למעט נזק גוף ותאונות דרכים). הממונה הוא עורך דין ביחידת הגישור / שופט / רשם. אין מינוי בבתי דין לעבודה.</div>
+              </td>
+              <td><span class="chip chip-blue">37(ב)</span></td>
+              <td class="task-timing">+ 45 יום מתשובה</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--blue);color:#fff">5</div></td>
+              <td>
+                <div class="task-desc">קיום פגישת מהו"ת (מידע, היכרות ותיאום)</div>
+                <div class="task-reg">תקנה 37(ד)</div>
+                <div class="task-note">📍 תתקיים ללא עלות לא יאוחר מ-30 ימים ממועד ההמצאה על מינוי המגשר. דין ההזמנה כדין הזמנה לדיון. אי-התייצבות — חיוב בהוצאות.</div>
+              </td>
+              <td><span class="chip chip-blue">37(ד)</span></td>
+              <td class="task-timing">+ 30 יום ממגשר</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--blue);color:#fff">6</div></td>
+              <td>
+                <div class="task-desc">בקשות שניתן להגיש (חלון הזדמנות)</div>
+                <div class="task-reg">תקנות 40, 49, 87</div>
+                <div class="task-note">
+                  <strong>בקשות הניתנות להגשה עד 60 יום מכתב הטענות האחרון:</strong><br>
+                  1. עיכוב הליכים (חוק הבוררות סע׳ 5–6 / תניית שיפוט זר)<br>
+                  2. בדיקה ע"י מומחה מטעם נתבע — תקנה 87<br>
+                  3. צירוף צד / איחוד תובענות — תקנה 40<br>
+                  4. תיקון כתבי טענות — פרק ז׳
+                </div>
+              </td>
+              <td><span class="chip chip-blue">49(ב)</span></td>
+              <td class="task-timing">+ 60 יום מתשובה</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--blue);color:#fff">7</div></td>
+              <td>
+                <div class="task-desc">השלמת העיון במסמכים — מענה על השאלונים</div>
+                <div class="task-reg">תקנה 58 · תקנה 56(א)</div>
+                <div class="task-note">🔁 <strong>השפעה קריטית:</strong> הזנת "מועד בפועל" כאן מסנכרנת אוטומטית גם את מטלה 8 (פנייה לצד שכנגד ברשימת הבקשות). תשובות לשאלון — בתצהיר בתוך 30 ימים ממסירת השאלון.</div>
+              </td>
+              <td><span class="chip chip-blue">58, 56</span></td>
+              <td class="task-timing">+ 30 יום מגילוי</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--blue);color:#fff">8</div></td>
+              <td>
+                <div class="task-desc">דיווח האם ההליך מועבר לגישור</div>
+                <div class="task-reg">תקנה 37(ו)</div>
+                <div class="task-note">📨 מגשר המהו"ת מדווח לממונה תוך 14 ימים מפגישת המהו"ת — האם הצדדים מסכימים להעביר לגישור.</div>
+              </td>
+              <td><span class="chip chip-blue">37(ו)</span></td>
+              <td class="task-timing">+ 14 יום מפגישה</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STAGE 2: PRETRIAL -->
+    <div class="stage-card">
+      <div class="stage-head" style="background:linear-gradient(135deg,var(--green-l),#e0fef0);border-bottom:3px solid var(--green)">
+        <div style="width:6px;height:54px;background:var(--green);border-radius:3px;flex-shrink:0"></div>
+        <div class="stage-icon">🏛️</div>
+        <div class="stage-info">
+          <div class="stage-name">שלב ב׳ — קדם משפט</div>
+          <div class="stage-desc">הכנה לקדם משפט ראשון, ומסכם</div>
+        </div>
+        <div class="stage-badge" style="background:var(--green);color:#fff">6 מטלות + 2 עוגנים</div>
+      </div>
+      <div class="stage-body">
+        <div class="stage-divider"></div>
+        <div class="reg-box" style="margin-bottom:16px">
+          <div class="box-title">📌 ייעוד קדם המשפט הראשון — תקנה 63(ב)</div>
+          <div class="box-body">קביעת דרכי הדיון בתובענה; קביעת דרכי הדיון בבקשות ברשימת הבקשות — תקנה 49(ו). בית המשפט יורה על שלבי הדיון ועל המועדים לקיומם.</div>
+        </div>
+        <table class="task-table">
+          <thead>
+            <tr><th>#</th><th>מטלה / פעולה</th><th>תקנה</th><th>מועד</th></tr>
+          </thead>
+          <tbody>
+            <tr class="anchor-row">
+              <td colspan="4"><strong>⏱ עוגן: ישיבת קדם משפט ראשונה</strong> — הזן את תאריך הישיבה. כל מטלות השלב מחושבות ממנו אחורה.</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--green);color:#fff">א</div></td>
+              <td>
+                <div class="task-desc">פנייה לבעל הדין שכנגד — הודעה על כוונה להגיש בקשות</div>
+                <div class="task-reg">תקנה 49(ד)</div>
+                <div class="task-note">⚡ חובה לפנות לצד שכנגד <strong>7 ימים לפחות</strong> לפני הגשת בקשה לבית המשפט (למעט סעד זמני ארעי). מטלה זו מסונכרנת אוטומטית עם מועד העיון במסמכים.</div>
+              </td>
+              <td><span class="chip chip-green">49(ד)</span></td>
+              <td class="task-timing">− 30 לפני קד"מ</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--green);color:#fff">ב</div></td>
+              <td>
+                <div class="task-desc">הגשת רשימת עדים — התובע</div>
+                <div class="task-reg">תקנה 62</div>
+                <div class="task-note">📋 עד 20 ימים לפני קדם המשפט הראשון. הרשימה תכלול פירוט תמציתי של הצורך והמטרה לכל עד.</div>
+              </td>
+              <td><span class="chip chip-green">62</span></td>
+              <td class="task-timing">− 20 לפני קד"מ</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--green);color:#fff">ג</div></td>
+              <td>
+                <div class="task-desc">הגשת רשימת הבקשות לבית המשפט</div>
+                <div class="task-reg">תקנה 49(ג)</div>
+                <div class="task-note">📋 לא יאוחר מ-20 ימים לפני קדם המשפט. על בעל הדין לציין אם פנה לצד שכנגד לפי תקנה 49(ד). בקשה שלא נכללה — לא ניתן להגישה מאוחר יותר (למעט יוצאי דופן).</div>
+              </td>
+              <td><span class="chip chip-green">49(ג)</span></td>
+              <td class="task-timing">− 20 לפני קד"מ</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--green);color:#fff">ד</div></td>
+              <td>
+                <div class="task-desc">דיווח תוצאות הדיון המקדמי לבית המשפט</div>
+                <div class="task-reg">תקנה 36</div>
+                <div class="task-note">📄 לא יאוחר מ-14 ימים לפני קדם המשפט. לפי טופס 4 שבתוספת הראשונה. ללא הסכמה — כל צד מגיש בנפרד.</div>
+              </td>
+              <td><span class="chip chip-green">36</span></td>
+              <td class="task-timing">− 14 לפני קד"מ</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--green);color:#fff">ה</div></td>
+              <td>
+                <div class="task-desc">הגשת רשימת עדים — הנתבע</div>
+                <div class="task-reg">תקנה 62</div>
+                <div class="task-note">📋 הנתבע מגיש את רשימת עדיו בתוך 14 ימים לאחר שהגיש התובע את רשימתו.</div>
+              </td>
+              <td><span class="chip chip-green">62</span></td>
+              <td class="task-timing">− 6 לפני קד"מ</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--green);color:#fff">ו</div></td>
+              <td>
+                <div class="task-desc">תגובת הצד שכנגד לרשימת הבקשות</div>
+                <div class="task-reg">תקנה 49(ה)</div>
+                <div class="task-note">📩 בתוך 14 ימים מיום שהומצאה רשימת הבקשות. היקף: עד עמוד אחד לכל בקשה.</div>
+              </td>
+              <td><span class="chip chip-green">49(ה)</span></td>
+              <td class="task-timing">− 6 לפני קד"מ</td>
+            </tr>
+            <tr class="anchor-row">
+              <td colspan="4"><strong>⏱ עוגן: ישיבת קדם משפט מסכמת</strong> — ייעוד: (1) מועד אחרון לבקש לחקור מומחה — תקנה 91(ד); (2) הכרעה בפיצול סעדים — תקנה 25(ג); (3) קביעת מועדי עדים וסיכומים — תקנה 63(ד).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STAGE 3: TRIAL -->
+    <div class="stage-card">
+      <div class="stage-head" style="background:linear-gradient(135deg,#fef3c7,#fff8e7);border-bottom:3px solid var(--amber)">
+        <div style="width:6px;height:54px;background:var(--amber);border-radius:3px;flex-shrink:0"></div>
+        <div class="stage-icon">🎭</div>
+        <div class="stage-info">
+          <div class="stage-name">שלב ג׳ — דיון הוכחות</div>
+          <div class="stage-desc">מדיון הוכחות עד סיכומים</div>
+        </div>
+        <div class="stage-badge" style="background:var(--amber);color:#fff">6 מטלות</div>
+      </div>
+      <div class="stage-body">
+        <div class="stage-divider"></div>
+        <table class="task-table">
+          <thead><tr><th>#</th><th>מטלה / פעולה</th><th>תקנה</th><th>מועד</th></tr></thead>
+          <tbody>
+            <tr class="anchor-row">
+              <td colspan="4"><strong>⏱ עוגן: מועד דיון הוכחות</strong> — הזן את מועד הדיון הראשון.</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--amber);color:#fff">1</div></td>
+              <td>
+                <div class="task-desc">בקשה להזמנת עדים (הגשה ראשונה)</div>
+                <div class="task-reg">תקנה 83(ב)</div>
+                <div class="task-note">תוך 30 יום מקביעת מועד הדיון.</div>
+              </td>
+              <td><span class="chip chip-amber">83(ב)</span></td>
+              <td class="task-timing">− 30 לפני דיון</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--amber);color:#fff">2</div></td>
+              <td>
+                <div class="task-desc">בקשה להזמנת עדים (מועד אחרון)</div>
+                <div class="task-reg">תקנה 83(ב)</div>
+                <div class="task-note">⚠️ בכל מקרה לא פחות מ-14 ימים לפני מועד הדיון.</div>
+              </td>
+              <td><span class="chip chip-amber">83(ב)</span></td>
+              <td class="task-timing">− 14 לפני דיון</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--amber);color:#fff">3</div></td>
+              <td>
+                <div class="task-desc">בקשה להצגת ראיה במדיה אלקטרונית / דיגיטלית</div>
+                <div class="task-reg">תקנה 71</div>
+                <div class="task-note">לא יאוחר מ-3 ימים לפני הדיון.</div>
+              </td>
+              <td><span class="chip chip-amber">71</span></td>
+              <td class="task-timing">− 3 לפני דיון</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--amber);color:#fff">4</div></td>
+              <td><div class="task-desc">ישיבת הוכחות ראשונה</div></td>
+              <td><span class="chip chip-amber">—</span></td>
+              <td class="task-timing">מועד הדיון</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--amber);color:#fff">5</div></td>
+              <td><div class="task-desc">המשך הדיון (אם נדרש)</div></td>
+              <td><span class="chip chip-amber">ברצף</span></td>
+              <td class="task-timing">אין תאריך קבוע</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--amber);color:#fff">6</div></td>
+              <td><div class="task-desc">סיכומים</div></td>
+              <td><span class="chip chip-amber">בהקדם</span></td>
+              <td class="task-timing">לפי הוראת בית המשפט</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STAGE 4: JUDGMENT -->
+    <div class="stage-card">
+      <div class="stage-head" style="background:linear-gradient(135deg,#f3e8ff,#f8f0ff);border-bottom:3px solid var(--purple)">
+        <div style="width:6px;height:54px;background:var(--purple);border-radius:3px;flex-shrink:0"></div>
+        <div class="stage-icon">⚡</div>
+        <div class="stage-info">
+          <div class="stage-name">שלב ד׳ — החלטה שיפוטית</div>
+          <div class="stage-desc">מתום הדיון עד ערעור</div>
+        </div>
+        <div class="stage-badge" style="background:var(--purple);color:#fff">3 מטלות</div>
+      </div>
+      <div class="stage-body">
+        <div class="stage-divider"></div>
+        <div class="reg-box" style="margin-bottom:16px">
+          <div class="box-title">📖 תקנה 129 — פסק הדין</div>
+          <div class="box-body">בית המשפט ייתן את החלטתו <strong>לא יאוחר מ-90 יום</strong> לאחר תום הדיון. ההחלטה תכלול: תמצית מחלוקות, ממצאים עובדתיים, שאלות משפטיות, הכרעה ונימוקים תמציתיים.</div>
+        </div>
+        <table class="task-table">
+          <thead><tr><th>#</th><th>מטלה / פעולה</th><th>תקנה</th><th>מועד</th></tr></thead>
+          <tbody>
+            <tr class="anchor-row">
+              <td colspan="4"><strong>⏱ עוגן: מועד ההחלטה השיפוטית</strong> — הזן את תאריך פסק הדין.</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--purple);color:#fff">1</div></td>
+              <td>
+                <div class="task-desc">בקשה לביטול החלטה שניתנה במעמד צד אחד</div>
+                <div class="task-reg">תקנה 131</div>
+                <div class="task-note">בתוך 30 ימים מיום שהומצאה ההחלטה. בית המשפט רשאי לבטל ולהתנות בתנאים.</div>
+              </td>
+              <td><span class="chip chip-amber">131</span></td>
+              <td class="task-timing">+ 30 יום מהחלטה</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--purple);color:#fff">2</div></td>
+              <td>
+                <div class="task-desc">הגשת ערעור / בקשת רשות ערעור + הפקדת ערובה</div>
+                <div class="task-reg">תקנה 137(א) · תקנה 135(א)</div>
+                <div class="task-note">🔑 60 ימים מיום ההמצאה. יש להפקיד ערובה להבטחת הוצאות המשיב (לפי תוספת השלישית). אי-הפקדה עלולה להוביל למחיקת הערעור.</div>
+              </td>
+              <td><span class="chip chip-amber">137(א)</span></td>
+              <td class="task-timing">+ 60 יום מהחלטה</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:var(--purple);color:#fff">3</div></td>
+              <td>
+                <div class="task-desc">משיב בערעור — הגשת ערעור נוסף (על אותה החלטה)</div>
+                <div class="task-reg">תקנה 137(ב)</div>
+                <div class="task-note">📌 המשיב רשאי להגיש ערעור נוסף בתוך 60 ימים מיום שהומצא לו הערעור (לא "ערעור שכנגד" אלא ערעור עצמאי על אותה החלטה).</div>
+              </td>
+              <td><span class="chip chip-amber">137(ב)</span></td>
+              <td class="task-timing">+ 60 יום מערעור</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STAGE 5: APPEAL RESPONSE -->
+    <div class="stage-card">
+      <div class="stage-head" style="background:linear-gradient(135deg,var(--purple-l),#f5f0ff);border-bottom:3px solid #7c3aed">
+        <div style="width:6px;height:54px;background:#7c3aed;border-radius:3px;flex-shrink:0"></div>
+        <div class="stage-icon">📝</div>
+        <div class="stage-info">
+          <div class="stage-name">שלב ה׳ — תשובה לערעור</div>
+          <div class="stage-desc">לאחר החלטת בית המשפט לקבל תשובה</div>
+        </div>
+        <div class="stage-badge" style="background:#7c3aed;color:#fff">1 מטלה</div>
+      </div>
+      <div class="stage-body">
+        <div class="stage-divider"></div>
+        <div class="info-box" style="margin-bottom:16px">
+          <div class="box-title">ℹ️ שתי אפשרויות לבית המשפט</div>
+          <div class="box-body">
+            1. <strong>דחיית הערעור בלא תשובה</strong> — בית המשפט מחליט ישירות.<br>
+            2. <strong>הוראה על הגשת תשובה</strong> — כלל, או לגבי עניין ספציפי בלבד. במקרה זה מסמנים עוגן ומחשבים מחדש.
+          </div>
+        </div>
+        <table class="task-table">
+          <thead><tr><th>#</th><th>מטלה / פעולה</th><th>תקנה</th><th>מועד</th></tr></thead>
+          <tbody>
+            <tr class="anchor-row">
+              <td colspan="4"><strong>⏱ עוגן: החלטה על הגשת תשובה לערעור</strong> — הזן את תאריך ההחלטה.</td>
+            </tr>
+            <tr>
+              <td><div class="task-num" style="background:#7c3aed;color:#fff">1</div></td>
+              <td>
+                <div class="task-desc">הגשת תשובה לערעור</div>
+                <div class="task-reg">תקנה 140(א)(1)</div>
+                <div class="task-note">
+                  בתוך 60 ימים ממועד המצאת ההחלטה. מגבלות עמודים:<br>
+                  • שלום: עד 6 עמודים | • מחוזי: עד 9 עמודים | • עליון: עד 12 עמודים<br>
+                  (לא כולל כותרת)
+                </div>
+              </td>
+              <td><span class="chip chip-amber">140(א)(1)</span></td>
+              <td class="task-timing">+ 60 יום מהחלטה</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- STAGE 6: APPEAL HEARING -->
+    <div class="stage-card">
+      <div class="stage-head" style="background:linear-gradient(135deg,var(--teal-l),#f0fff8);border-bottom:3px solid var(--teal)">
+        <div style="width:6px;height:54px;background:var(--teal);border-radius:3px;flex-shrink:0"></div>
+        <div class="stage-icon">🏛️</div>
+        <div class="stage-info">
+          <div class="stage-name">שלב ו׳ — דיון בערעור</div>
+          <div class="stage-desc">ישיבת הערעור בפני הערכאה הגבוהה</div>
+        </div>
+        <div class="stage-badge" style="background:var(--teal);color:#fff">עוגן</div>
+      </div>
+      <div class="stage-body" style="padding-top:18px">
+        <div class="tip-box">
+          <div class="box-title">💡 שלב הדיון בערעור</div>
+          <div class="box-body">שלב זה כולל רק עוגן: הזן את מועד ישיבת הערעור. אין מטלות מחושבות בשלב זה — כל לוח הזמנים נקבע על ידי בית המשפט.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 5. DATES ENGINE ══════════ -->
+<section id="sec-dates" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">05 · חישוב תאריכים</div>
+      <h2 class="section-title">מנגנון חישוב התאריכים</h2>
+      <p class="section-desc">כיצד הפלטפורמה מחשבת מועדים — ומה קורה כשמזינים תאריך בפועל.</p>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <h3 style="color:var(--navy);font-size:17px;margin-bottom:12px">📘 ימי הגנה לפי סוג תיק</h3>
+        <table class="date-table">
+          <thead>
+            <tr>
+              <th>סוג תיק</th>
+              <th>ימי הגנה</th>
+              <th>תקנה</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="type-cell">אזרחי / מסחרי / נזיקין / חוזים / קניין / עבודה / מינהלי / אחר</td>
+              <td class="days-cell amber">60 יום</td>
+              <td><span class="chip chip-blue">9(ב)</span></td>
+            </tr>
+            <tr>
+              <td class="type-cell">נזק גוף / רשלנות רפואית</td>
+              <td class="days-cell red">120 יום</td>
+              <td><span class="chip chip-blue">9(ב)</span></td>
+            </tr>
+            <tr>
+              <td class="type-cell">ביטוח לאומי / פינוי מושכר</td>
+              <td class="days-cell green">30 יום</td>
+              <td><span class="chip chip-blue">9(ב)</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3 style="color:var(--navy);font-size:17px;margin-bottom:12px">🔗 שרשרת המועדים — שלב א׳</h3>
+        <table class="date-table">
+          <thead>
+            <tr><th>מטלה</th><th>בסיס החישוב</th><th>הפרש</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>כתב הגנה (t1)</td><td>המצאה לנתבע</td><td class="days-cell amber">+ 30/60/120</td></tr>
+            <tr><td>כתב תשובה (t2)</td><td>הגנה (t1)</td><td class="days-cell amber">+ 14</td></tr>
+            <tr><td>גילוי מסמכים (t4)</td><td>תשובה (t2)</td><td class="days-cell amber">+ 30</td></tr>
+            <tr><td>מינוי מגשר (t3)</td><td>תשובה (t2)</td><td class="days-cell amber">+ 45</td></tr>
+            <tr><td>בקשות (t6)</td><td>תשובה (t2)</td><td class="days-cell amber">+ 60</td></tr>
+            <tr><td>פגישת מהו"ת (t5)</td><td>מגשר (t3)</td><td class="days-cell amber">+ 30</td></tr>
+            <tr><td>השלמת עיון (t7)</td><td>גילוי (t4)</td><td class="days-cell amber">+ 30</td></tr>
+            <tr><td>דיווח גישור (t8)</td><td>פגישה (t5)</td><td class="days-cell amber">+ 14</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="warn-box" style="margin-top:24px">
+      <div class="box-title">🔁 כיצד עובד השרשור האוטומטי</div>
+      <div class="box-body">
+        <strong>מועד מקורי</strong> — מחושב תמיד מתאריך ההמצאה הבסיסי, ללא תלות בפועל.<br><br>
+        <strong>מועד בפועל (cascaded)</strong> — אם הזנת תאריך הגשה בפועל למטלה X, כל המטלות שמחושבות ממנה יחושבו מהתאריך שהזנת ולא מהמועד המקורי. לדוגמה: אם הגשת כתב הגנה ב-70 יום (ולא 60) — כתב התשובה יחושב 14 יום לאחר אותם 70 יום.<br><br>
+        <strong>צביעת תוצאה:</strong> <span class="chip chip-teal">הוגש X ימים לפני המועד</span> · <span class="chip chip-green">הוגש במועד בדיוק</span> · <span class="chip chip-red">איחור של X ימים</span>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:16px">
+      <div class="box-title">ℹ️ "מועד מקורי" לעומת "מועד בפועל" — מה ההבדל?</div>
+      <div class="box-body">
+        <strong>עמודת המועד המקורי (כחולה)</strong> — המועד החוקי הנגזר מלוח הזמנים הרשמי. שדה זה לא עובר שינוי ישיר; הוא משתנה רק כשמשנים עוגן (תאריך ישיבה) או פרטי תיק.<br><br>
+        <strong>עמודת המועד בפועל (טורקיז)</strong> — כאן מזינים את התאריך שבו בוצעה ההגשה בפועל. ערך זה מפעיל שרשור אוטומטי לכל המטלות שמחושבות ממנו.
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 6. STATUSES ══════════ -->
+<section id="sec-statuses" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">06 · סטטוסים</div>
+      <h2 class="section-title">ניהול סטטוסים ומטלות</h2>
+      <p class="section-desc">לכל מטלה ניתן להגדיר סטטוס המשפיע על ספירת הסטטיסטיקות ועל הדגשות.</p>
+    </div>
+
+    <div class="status-row">
+      <div class="status-pill sp-pending">⬜ <strong>עדיין לא בוצע</strong> — ברירת מחדל. המועד ממשיך להיספר.</div>
+      <div class="status-pill sp-done">✅ <strong>בוצע ✓</strong> — מסיר מספירת "ימים נותרים" ומוסיף לספירת "בוצע".</div>
+      <div class="status-pill sp-urgent">⚡ <strong>לטיפול מיידי</strong> — מדגיש את השורה באדום גלוי.</div>
+      <div class="status-pill sp-no-response">⚠️ <strong>חוסר מענה</strong> — מיועד לתרחיש שהצד שכנגד לא השיב.</div>
+    </div>
+
+    <div class="two-col" style="margin-top:24px">
+      <div class="warn-box">
+        <div class="box-title">⚡ התנהגות מיוחדת — מטלה 7 (השלמת עיון)</div>
+        <div class="box-body">
+          כשמטלה 7 מסומנת כ"לטיפול מיידי" או "חוסר מענה" — מופיע כרזת אזהרה אדומה:<br><br>
+          <em>"יש לפנות לבעל הדין שכנגד ולהודיעו על כוונה להגיש בקשות על פי הרשימה — תקנה 49(ד)"</em><br><br>
+          זוהי תזכורת לחובת ההודעה לפי תקנה 49(ד) לפני הגשת בקשות לבית המשפט.
+        </div>
+      </div>
+      <div class="tip-box">
+        <div class="box-title">💡 סנכרון מטלות 7 ו-8</div>
+        <div class="box-body">
+          הזנת "מועד בפועל" לשדה "השלמת עיון במסמכים" (מטלה 7) — מסנכרן אוטומטית גם את "פנייה לצד שכנגד ברשימת הבקשות" (מטלה 8) לאותו תאריך ומסמנה כ"בוצע".<br><br>
+          ניקוי השדה — מאפס גם את מטלה 8 לסטטוס "ממתין".
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:16px">
+      <div class="box-title">📊 ספירת סטטיסטיקות — כיצד מחושבת</div>
+      <div class="box-body">
+        <ul>
+          <li><strong>דחוף</strong> — מטלות שאינן "בוצע" וזמן המועד שלהן ≤ 14 ימים</li>
+          <li><strong>ממתין</strong> — מטלות שאינן "בוצע" וזמן המועד שלהן &gt; 14 ימים</li>
+          <li><strong>בוצע</strong> — מטלות שסומנו "בוצע ✓"</li>
+          <li><strong>סה"כ</strong> — כלל המטלות שיש להן תאריך (מטלות ללא תאריך כגון "סיכומים" לא נכללות)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 7. QUICK REF ══════════ -->
+<section id="sec-regulations" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">07 · תקנות</div>
+      <h2 class="section-title">מדריך תקנות — טבלת עזר מהירה</h2>
+      <p class="section-desc">לחיצה על מספר תקנה בפלטפורמה — פותחת את הטקסט המלא עם הדגשת הסעיף הרלוונטי.</p>
+    </div>
+
+    <table class="qref">
+      <thead>
+        <tr>
+          <th>תקנה</th>
+          <th>נושא</th>
+          <th>מועד / מגבלה עיקרית</th>
+          <th>הערות</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><span class="reg-num">6</span></td>
+          <td class="reg-name">הגדרות — "כתב הטענות האחרון"</td>
+          <td class="reg-days">—</td>
+          <td>כתב תשובה, או המועד שחלף להגשתו (המוקדם). בדיון מהיר — כתב הגנה.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">9(ב)</span></td>
+          <td class="reg-name">כתב הגנה</td>
+          <td class="reg-days">30 / 60 / 120 יום</td>
+          <td>מיום המצאה. רשלנות רפואית: 120 יום. ביטוח לאומי / פינוי מושכר: 30 יום.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">13</span></td>
+          <td class="reg-name">תמצית הטענות בכתב הגנה</td>
+          <td class="reg-days">—</td>
+          <td>סדר: טענות מקדמיות, תמצית הגנה, טיעוני סעד.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">18</span></td>
+          <td class="reg-name">כתב תשובה</td>
+          <td class="reg-days">14 יום מהגנה</td>
+          <td>עד 3 עמודים. לא הוגש — רואים כמכחיש. אינו כולל נימוק תביעה חדש.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">21–23</span></td>
+          <td class="reg-name">תביעה שכנגד, הודעת צד ג׳</td>
+          <td class="reg-days">עם הגנה / 60 יום</td>
+          <td>תביעה שכנגד — עם כתב הגנה. הודעת צד ג׳ — תוך הזמן להגשת כתב הגנה.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">25(ג)</span></td>
+          <td class="reg-name">פיצול סעדים</td>
+          <td class="reg-days">עד תום קדם המשפט</td>
+          <td>בית המשפט מכריע בבקשה לפיצול סעדים בישיבת קדם המשפט המסכמת.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">28–29</span></td>
+          <td class="reg-name">טענות מקדמיות</td>
+          <td class="reg-days">בהזדמנות ראשונה</td>
+          <td>חוסר סמכות, תניית שיפוט זר, פורום לא נאות — בכתב ההגנה. לא הועלה — רשאי בית המשפט לפסוק הוצאות.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">34–35</span></td>
+          <td class="reg-name">דיון מקדמי בין בעלי הדין</td>
+          <td class="reg-days">30 יום מכתב אחרון</td>
+          <td>בין בעלי הדין (לא בבית המשפט). תיחום פלוגתות, בחינת פתרון חלופי, ייעול.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">36</span></td>
+          <td class="reg-name">דיווח לבית המשפט</td>
+          <td class="reg-days">20 יום לפני קד"מ ראשון</td>
+          <td>טופס 4. אין הסכמה — כל צד מגיש בנפרד.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">37(ב)</span></td>
+          <td class="reg-name">מינוי מגשר מהו"ת</td>
+          <td class="reg-days">45 יום מכתב אחרון</td>
+          <td>מעל 40,000 ₪. לא חל בנזק גוף / תאונות דרכים. לא מחויב בבתי דין לעבודה.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">37(ד)</span></td>
+          <td class="reg-name">פגישת מהו"ת</td>
+          <td class="reg-days">30 יום ממינוי</td>
+          <td>ללא עלות. דין הזמנה כדין הזמנה לדיון. אי-התייצבות — חיוב בהוצאות.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">37(ו)</span></td>
+          <td class="reg-name">דיווח גישור</td>
+          <td class="reg-days">14 יום מהפגישה</td>
+          <td>המגשר מדווח לממונה אם הצדדים מסכימים להעביר לגישור.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">49(ב)</span></td>
+          <td class="reg-name">בקשות — חלון הזדמנות</td>
+          <td class="reg-days">60 יום מכתב אחרון</td>
+          <td>בקשות לפי פסקאות (3)–(7) — לא יאוחר מ-60 יום מכתב הטענות האחרון.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">49(ג)</span></td>
+          <td class="reg-name">רשימת בקשות לבית המשפט</td>
+          <td class="reg-days">20 יום לפני קד"מ</td>
+          <td>בקשה שלא נכללה — לא ניתן להגישה אחר כך (למעט חריגים).</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">49(ד)</span></td>
+          <td class="reg-name">הודעה מוקדמת לצד שכנגד</td>
+          <td class="reg-days">7 ימים לפחות</td>
+          <td>לפני כל בקשה לבית המשפט (פרט לסעד זמני ארעי) — חובה לפנות 7 ימים מראש.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">49(ה)</span></td>
+          <td class="reg-name">תגובה לרשימת בקשות</td>
+          <td class="reg-days">14 יום ממסירה</td>
+          <td>עמוד אחד לכל בקשה.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">56(א)</span></td>
+          <td class="reg-name">שאלונים</td>
+          <td class="reg-days">30 יום מכתב אחרון</td>
+          <td>תשובה — בתצהיר בתוך 30 ימים. מגבלה: עד 25 שאלות (שלום) / 50 שאלות (מחוזי, תנאים מסוימים).</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">57</span></td>
+          <td class="reg-name">גילוי מסמכים</td>
+          <td class="reg-days">30 יום מכתב אחרון</td>
+          <td>החלפת תצהירי גילוי מסמכים. כולל מסמכים שאינם ברשות — פירוט הנסיבות.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">58</span></td>
+          <td class="reg-name">עיון במסמכים</td>
+          <td class="reg-days">30 יום מגילוי</td>
+          <td>לאחר חילוף תצהירי גילוי. אפשרות לצלם / לסרוק על חשבון מבקש העיון.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">60</span></td>
+          <td class="reg-name">אי-מילוי הוראות גילוי</td>
+          <td class="reg-days">—</td>
+          <td>בית המשפט רשאי: לחייב בהוצאות מיידי, למחוק כתב טענות, לפסול הצגת מסמך.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">62</span></td>
+          <td class="reg-name">רשימת עדים</td>
+          <td class="reg-days">20 / 14 יום לפני קד"מ</td>
+          <td>תובע: 20 יום לפני קדם המשפט הראשון. נתבע: 14 יום לאחר שהגיש התובע.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">63</span></td>
+          <td class="reg-name">ישיבת קדם המשפט</td>
+          <td class="reg-days">—</td>
+          <td>שלום: עד 2 ישיבות. מחוזי: עד 3. ישיבה מסכמת — קביעת עדים, סיכומים, פלוגתות.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">83(ב)</span></td>
+          <td class="reg-name">בקשה להזמנת עד</td>
+          <td class="reg-days">30 / 14 יום לפני דיון</td>
+          <td>תוך 30 יום מקביעת מועד ובכל מקרה לא פחות מ-14 יום לפני.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">87</span></td>
+          <td class="reg-name">חוות דעת מומחה</td>
+          <td class="reg-days">90 / 30 יום לפני ראיות</td>
+          <td>חוות דעת ראשית: לא יאוחר מ-90 יום לפני שמיעת ראיות. נגדית: 30 יום לפני.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">91(ד)</span></td>
+          <td class="reg-name">חקירת מומחה בית משפט</td>
+          <td class="reg-days">עד קדם משפט מסכם</td>
+          <td>יש להודיע על רצון לחקור את המומחה לא יאוחר מישיבת קדם המשפט המסכמת.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">129</span></td>
+          <td class="reg-name">פסק דין</td>
+          <td class="reg-days">90 יום מתום דיון</td>
+          <td>לא ניתן במועד — הודעה מנומקת לנשיא בית המשפט. כולל ממצאים, שאלות משפטיות, הכרעה.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">131</span></td>
+          <td class="reg-name">ביטול החלטה במעמד צד אחד</td>
+          <td class="reg-days">30 יום מהמצאה</td>
+          <td>בית המשפט רשאי לבטל, בתנאים שייראו לו.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">135</span></td>
+          <td class="reg-name">ערובה להבטחת הוצאות</td>
+          <td class="reg-days">עם הגשת ערעור</td>
+          <td>לפי תוספת השלישית. אי-הפקדה — בית המשפט רשאי למחוק ערעור.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">137</span></td>
+          <td class="reg-name">מועד הגשת ערעור</td>
+          <td class="reg-days">60 יום מהמצאה</td>
+          <td>137(ב): משיב בערעור — 60 יום מיום שהומצא לו הערעור, לפי המאוחר.</td>
+        </tr>
+        <tr>
+          <td><span class="reg-num">140</span></td>
+          <td class="reg-name">תשובה בכתב לערעור</td>
+          <td class="reg-days">60 יום מהחלטה</td>
+          <td>שלום: 6 עמודים | מחוזי: 9 עמודים | עליון: 12 עמודים (לא כולל כותרת).</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════ 8. TIPS ══════════ -->
+<section id="sec-tips" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">08 · טיפים</div>
+      <h2 class="section-title">טיפים ואזהרות חשובות</h2>
+    </div>
+
+    <div class="two-col">
+      <div>
+        <div class="success-box">
+          <div class="box-title">✅ עקרונות השימוש הנכון</div>
+          <div class="box-body">
+            <ul>
+              <li>הזן תמיד את תאריך ה<strong>המצאה לנתבע</strong> — ולא תאריך הגשת התביעה לבית המשפט. מהמצאה יתחיל ציר הזמנים.</li>
+              <li>בחר <strong>סוג תיק נכון</strong> — הוא קובע 30/60/120 ימים לכתב הגנה ומשפיע על כל ציר הזמנים.</li>
+              <li>הזן <strong>מועדים בפועל</strong> מיד לאחר כל הגשה — השרשור יישמר נכון.</li>
+              <li>בדוק <strong>את התקנה המלאה</strong> בלחיצה לפני הסתמכות על הכותרת בלבד.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="warn-box" style="margin-top:16px">
+          <div class="box-title">⚠️ שגיאות נפוצות — הימנע!</div>
+          <div class="box-body">
+            <ul>
+              <li>הזנת תאריך <strong>הגשת תביעה</strong> במקום <strong>המצאה לנתבע</strong> — יפזל את כל ציר הזמנים.</li>
+              <li>שינוי סוג תיק אחרי שהוזנו מועדים בפועל — יחשב מחדש את כל המועדים.</li>
+              <li>הסתמכות על המועד המוצג ללא בדיקה עצמאית של התקנה המלאה.</li>
+              <li>אי-עדכון "מועד בפועל" לאחר הגשה — יגרום לשרשור שגוי של מטלות עתידיות.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="reg-box">
+          <div class="box-title">📌 3 נקודות ביקורת קריטיות</div>
+          <div class="box-body">
+            <ul>
+              <li><strong>תקנה 49(ד)</strong> — לפני כל בקשה — חובה לפנות לצד שכנגד 7 ימים מראש. המערכת מתריעה כשמטלה 7 מסומנת "דחוף".</li>
+              <li><strong>תקנה 9(ב)</strong> — ודא שסוג התיק נבחר נכון, אחרת מועד ההגנה יהיה שגוי.</li>
+              <li><strong>תקנה 37(ב)</strong> — מינוי מגשר מהו"ת אינו חל בנזק גוף ותאונות דרכים. אם בחרת "נזק גוף" — שלב זה לא רלוונטי.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="tip-box" style="margin-top:16px">
+          <div class="box-title">💡 שימוש ב"כל התיקים"</div>
+          <div class="box-body">
+            <ul>
+              <li>לחץ על <strong>"כל התיקים"</strong> לסקירה מהירה של כלל התיקים.</li>
+              <li>כרטיסים עם <span class="chip chip-red">X דחוף</span> מראים תיקים שדורשים טיפול מיידי.</li>
+              <li>לחץ <strong>"עבור לתיק"</strong> לפתיחת ציר הזמנים, או <strong>"✏️ עריכה"</strong> לעריכת פרטים.</li>
+              <li>בורר התיקים בכותרת — מאפשר החלפה מהירה בין תיקים מציר הזמנים.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-box" style="margin-top:20px">
+      <div class="box-title">ℹ️ גיבוי נתונים</div>
+      <div class="box-body">
+        הנתונים נשמרים ב-<strong>localStorage</strong> של הדפדפן. הם אינם גלויים לשרת חיצוני. <strong>חשוב:</strong>
+        <ul style="margin-top:8px">
+          <li>ניקוי "היסטוריית הגלישה" / "מחיקת מטמון" בדפדפן <strong>ימחק את כל הנתונים</strong>.</li>
+          <li>הנתונים קשורים לדפדפן הספציפי ולמחשב הספציפי — לא יופיעו בדפדפן אחר.</li>
+          <li>מומלץ לגבות נתוני תיקים חשובים ביומן / מסמך חיצוני.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ 9. FAQ ══════════ -->
+<section id="sec-faq" class="section">
+  <div class="container">
+    <div class="section-header">
+      <div class="section-eyebrow">09 · שאלות נפוצות</div>
+      <h2 class="section-title">שאלות נפוצות</h2>
+    </div>
+
+    <div class="faq-item open">
+      <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+        למה תאריכי מטלות מסוימות מופיעים כ-"—" (מקף)?
+        <span class="arrow">+</span>
+      </div>
+      <div class="faq-a">מטלות בשלב קדם-המשפט, הוכחות, והחלטה שיפוטית — מחושבות מ"עוגן" (תאריך ישיבה) שטרם הוזן. עוגנים הם שדות תאריך אדומים/כחולים הנמצאים בכותרת כל שלב. הזן את תאריך הישיבה הרלוונטי — ושאר המטלות יחושבו אוטומטית.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+        האם אוכל לנהל תיקים מרובים?
+        <span class="arrow">+</span>
+      </div>
+      <div class="faq-a">כן. ניתן לפתוח תיקים ללא הגבלה. לחץ "כל התיקים" לסקירת רשת כרטיסי כל התיקים. ניתן לעבור בין תיקים דרך בורר התיקים בפס הכותרת — בלי לאבד נתונים.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+        שיניתי סוג תיק — האם המועדים התחשבו מחדש?
+        <span class="arrow">+</span>
+      </div>
+      <div class="faq-a">כן. שינוי סוג התיק ישנה את מספר ימי ההגנה (מ-60 ל-120 או ל-30 ולהפך) ויחשב מחדש את כל ציר הזמנים מהמצאה. מועדים שהוזנו "בפועל" נשמרים — אך המועדים המקוריים והמחושבים מהם ישתנו.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+        מה ההבדל בין "מועד מקורי" ל"מועד בפועל"?
+        <span class="arrow">+</span>
+      </div>
+      <div class="faq-a">המועד המקורי (עמודה כחולה) — מחושב לפי תאריך ההמצאה בלבד, ומייצג את לוח הזמנים הנורמטיבי. המועד בפועל (עמודה טורקיז) — הוא התאריך שהזנת כשהמסמך הוגש בפועל. כשהוזן מועד בפועל — כל המטלות שמחושבות ממנו ישתנו בהתאם (שרשור אוטומטי).</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+        כיצד לחץ על מספר תקנה פותח את הטקסט?
+        <span class="arrow">+</span>
+      </div>
+      <div class="faq-a">כל מספר תקנה בפלטפורמה (כגון "תקנה 37(ב)") מוצג עם קו תחתון מנוקד. לחיצה עליו פותחת חלון עם הטקסט המלא של התקנה. אם ציינת תת-סעיף (כגון "(ב)") — הסעיף הרלוונטי יודגש בצהוב ויגלול אוטומטית לתצוגה.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+        מה כוונת "עמוד בית המשפט" לתיק?
+        <span class="arrow">+</span>
+      </div>
+      <div class="faq-a">בית המשפט ושופט שמוזנים בפרטי התיק הם לתצוגה בלבד — הם מופיעים בכותרת התיק ובכרטיס רשת התיקים, ואינם משפיעים על חישוב המועדים.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+        האם מגשר מהו"ת ממונה גם בתביעות נזק גוף?
+        <span class="arrow">+</span>
+      </div>
+      <div class="faq-a">לא. תקנה 37(ב) מחריגה מפורשות תובענות לפיצויים בשל נזק גוף ותובענות שעילתן בחוק פיצויים לנפגעי תאונות דרכים. אם בחרת "נזק גוף" כסוג תיק, מטלת מינוי המגשר תופיע אך היא אינה רלוונטית — סמן אותה "בוצע" או התעלם ממנה.</div>
+    </div>
+    <div class="faq-item">
+      <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
+        מחקתי תיק בטעות — אפשר לשחזר?
+        <span class="arrow">+</span>
+      </div>
+      <div class="faq-a">לא. מחיקת תיק היא פעולה בלתי הפיכה. כל הנתונים נמחקים מה-localStorage. לא קיים מנגנון שחזור מובנה. מומלץ לגבות נתוני תיקים חשובים לפני ביצוע פעולות מחיקה.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ══ -->
+<footer class="guide-footer">
+  <div>
+    <strong>⚖️ LexTime</strong> — מדריך ניהול תיקים · תקנות סדר הדין האזרחי, התשע"ט-2018<br>
+    <span style="font-size:11px;margin-top:6px;display:block">
+      כולל תיקוני התשפ"א, התשפ"ב, התשפ"ג · המדריך הוכן על בסיס הנתונים המובנים במערכת<br>
+      <strong>אין לראות במדריך זה ייעוץ משפטי.</strong> יש לוודא עצמאות נכונות כל מועד לפני הסתמכות עליו בהליך משפטי.
+    </span>
+  </div>
+</footer>
+
+<!-- PRINT BUTTON -->
+<button class="print-btn no-print" onclick="window.print()" title="הדפס מדריך">🖨️</button>
+
+<script>
+// ── DYNAMIC SCROLL OFFSET ──
+// Measures the real sticky header height and keeps scroll-margin-top in sync.
+(function(){
+  var sticky = document.getElementById('stickyToc');
+  var NAV_H  = 52;
+  var EXTRA  = 24;
+
+  function setSectionOffsets(){
+    if(!sticky) return;
+    var h = sticky.getBoundingClientRect().height + NAV_H + EXTRA;
+    document.querySelectorAll('section[id]').forEach(function(sec){
+      sec.style.scrollMarginTop = h + 'px';
+    });
+  }
+
+  setSectionOffsets();
+  window.addEventListener('resize', setSectionOffsets, {passive:true});
+
+  // ── ACTIVE TOC ITEM ──
+  var tocItems = document.querySelectorAll('.toc-item[data-sec]');
+  var sections = Array.from(tocItems).map(function(a){
+    return document.getElementById(a.getAttribute('data-sec'));
+  });
+
+  function onScroll(){
+    var stickyH = sticky ? sticky.getBoundingClientRect().height + NAV_H + EXTRA : 0;
+    var active  = 0;
+    sections.forEach(function(sec, i){
+      if(!sec) return;
+      if(sec.getBoundingClientRect().top - stickyH <= 0) active = i;
+    });
+    tocItems.forEach(function(a, i){
+      a.classList.toggle('active', i === active);
+    });
+  }
+
+  window.addEventListener('scroll', onScroll, {passive:true});
+  onScroll();
+})();
+</script>
+
+<!-- ══ BOTTOM CTA ══ -->
+<div style="background:linear-gradient(135deg,#091e40 0%,#0f2d5a 100%);padding:60px 32px;text-align:center">
+  <div style="max-width:600px;margin:0 auto">
+    <div style="font-size:12px;font-weight:700;letter-spacing:1.2px;color:#b8862a;text-transform:uppercase;margin-bottom:14px;font-family:'Heebo',sans-serif">מוכנים להתחיל?</div>
+    <h2 style="font-family:'Frank Ruhl Libre',serif;font-size:32px;font-weight:900;color:#fff;line-height:1.2;margin-bottom:14px">פתחו את הפלטפורמה עכשיו</h2>
+    <p style="font-size:15px;color:rgba(255,255,255,.6);line-height:1.7;margin-bottom:32px;font-family:'Heebo',sans-serif">כל מה שלמדתם כאן — זמין בלחיצה אחת. מועדים אוטומטיים, שלבי הליך מלאים, 140+ תקנות סד"א 2018.</p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+      <a href="platform.html" style="display:inline-flex;align-items:center;gap:8px;padding:14px 30px;background:#b8862a;color:#fff;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;font-family:'Heebo',sans-serif;box-shadow:0 4px 20px rgba(184,134,42,.4)">🚀 פתח את הפלטפורמה</a>
+      <a href="index.html" style="display:inline-flex;align-items:center;gap:8px;padding:14px 26px;background:rgba(255,255,255,.1);color:#fff;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;font-family:'Heebo',sans-serif;border:1.5px solid rgba(255,255,255,.25)">← דף הבית</a>
+    </div>
+    <p style="font-size:11px;color:rgba(255,255,255,.25);margin-top:24px;font-family:'Heebo',sans-serif">© 2025 LexTime · כל הזכויות שמורות</p>
+  </div>
+</div>
+</body>
+</html>
