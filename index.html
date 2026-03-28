@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAOwMTp02bzFJ351uFcrhKalak6TlqbpyE",
+  authDomain: "lextime-82214.firebaseapp.com",
+  projectId: "lextime-82214",
+  storageBucket: "lextime-82214.firebasestorage.app",
+  messagingSenderId: "35753362194",
+  appId: "1:35753362194:web:00b7fb6fc54884c2e769cb"
+};
+firebase.initializeApp(firebaseConfig);
+var fbAuth = firebase.auth();
+var fbDb   = firebase.firestore();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LexTime — ניהול מועדים משפטיים חכם לעורכי דין</title>
@@ -882,7 +899,7 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
       <p class="cta-desc">הורד את הפלטפורמה, פתח תיק ראשון, וציר הזמנים המלא שלך יהיה מוכן תוך פחות מדקה.</p>
       <div class="cta-actions">
         <a href="javascript:void(0)" class="btn btn-primary" style="font-size:16px;padding:16px 32px" onclick="openSignup('משרד','199')">🚀 &nbsp;הרשמה עכשיו</a>
-        <a href="/cdn-cgi/l/email-protection#cfa3aab7bba6a2aabcaabdb9a6acaa8fa8a2aea6a3e1aca0a2" class="btn btn-ghost" style="font-size:16px;padding:16px 32px">📧 &nbsp;דבר איתנו</a>
+        <a href="mailto:lextimeservice@gmail.com" class="btn btn-ghost" style="font-size:16px;padding:16px 32px">📧 &nbsp;דבר איתנו</a>
       </div>
       <p class="cta-note">ביטול בכל עת • ללא התחייבות שנתית • תשלום מאובטח</p>
     </div>
@@ -916,7 +933,7 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
       <div class="footer-col">
         <h4>תמיכה</h4>
         <a href="#faq">שאלות נפוצות</a>
-        <a href="/cdn-cgi/l/email-protection#402c253834292d253325323629232500272d21292c6e232f2d">צור קשר</a>
+        <a href="mailto:lextimeservice@gmail.com">צור קשר</a>
         <a href="guide.html">📖 מדריך שימוש</a>
         <a href="platform.html">🚀 כניסה לפלטפורמה</a>
         <a href="admin.html">⚙️ ממשק ניהול</a>
@@ -938,7 +955,7 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 // ─── NAV SCROLL ───
 window.addEventListener('scroll',function(){
   document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>40);
@@ -1065,7 +1082,7 @@ function toggleMenu(){
           <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#64748b">סניף:</span><strong style="color:#0a1628">800</strong></div>
           <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#64748b">מספר חשבון:</span><strong style="color:#0a1628">12-345678</strong></div>
         </div>
-        <div style="margin-top:12px;font-size:12px;color:#64748b;line-height:1.6">לאחר ביצוע ההעברה שלח/י אישור לכתובת <strong><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="620e071a160b0f07110710140b010722050f030b0e4c010d0f">[email&#160;protected]</a></strong> עם שמך ומספר הטלפון. הגישה תופעל תוך יום עסקים.</div>
+        <div style="margin-top:12px;font-size:12px;color:#64748b;line-height:1.6">לאחר ביצוע ההעברה שלח/י אישור לכתובת <strong>lextimeservice@gmail.com</strong> עם שמך ומספר הטלפון. הגישה תופעל תוך יום עסקים.</div>
       </div>
 
       <!-- PayPal button area -->
@@ -1119,7 +1136,7 @@ function toggleMenu(){
           <div style="display:flex;justify-content:space-between"><span style="color:#64748b">שם:</span><strong>LexTime Ltd.</strong></div>
           <div style="display:flex;justify-content:space-between"><span style="color:#64748b">סכום:</span><strong id="bankAmount" style="color:#c9922a"></strong></div>
         </div>
-        <div style="margin-top:12px;font-size:12px;color:#64748b">שלח/י אישור העברה ל: <strong><a href="/cdn-cgi/l/email-protection#cba7aeb3bfa2a6aeb8aeb9bda2a8ae8baca6aaa2a7e5a8a4a6" style="color:#c9922a"><span class="__cf_email__" data-cfemail="bbd7dec3cfd2d6dec8dec9cdd2d8defbdcd6dad2d795d8d4d6">[email&#160;protected]</span></a></strong></div>
+        <div style="margin-top:12px;font-size:12px;color:#64748b">שלח/י אישור העברה ל: <strong><a href="mailto:lextimeservice@gmail.com" style="color:#c9922a"><span class="__cf_email__" data-cfemail="bbd7dec3cfd2d6dec8dec9cdd2d8defbdcd6dad2d795d8d4d6">[email&#160;protected]</span></a></strong></div>
       </div>
 
       <!-- Activation code input -->
@@ -1139,7 +1156,7 @@ function toggleMenu(){
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script>
 var _plan='', _price='', _payMethod='';
 
 function openSignup(plan,price){
@@ -1203,31 +1220,39 @@ function simpleHash(str){
   return Math.abs(hash).toString(16);
 }
 function grantAccess(name, email, plan, price, method){
-  // שמירת הרשאת גישה לפלטפורמה
-  localStorage.setItem('lextime_access','granted');
-  // שמירת המסלול
   var planKey = plan==='עצמאי' ? 'basic' : plan==='משרד' ? 'office' : 'pro';
-  localStorage.setItem('lextime_plan', planKey);
-  // שמירת אישורי כניסה (מייל + סיסמה מוצפנת)
   var pass = document.getElementById('regPass') ? document.getElementById('regPass').value : '';
-  if(pass){
-    var creds = {email: email.toLowerCase(), passHash: simpleHash(pass), name: name};
-    localStorage.setItem('lextime_credentials', JSON.stringify(creds));
-  }
-  // שמירת פרטי המשתמש
   var userData = {name:name, email:email, plan:plan, price:price, method:method, date:new Date().toLocaleDateString('he-IL')};
+
+  // Create Firebase Auth user + save subscription to Firestore
+  if(pass && email){
+    fbAuth.createUserWithEmailAndPassword(email, pass)
+      .then(function(cred){
+        var uid = cred.user.uid;
+        // Save subscription to Firestore (for admin panel)
+        return fbDb.collection('subscribers').doc(uid).set({
+          uid:uid, name:name, email:email, plan:planKey, planLabel:plan,
+          payMethod:method, status:method==='bank'?'pending':'active',
+          date:new Date().toISOString().slice(0,10), phone:'', notes:'', price:price
+        });
+      })
+      .then(function(){ console.log('Firebase user created'); })
+      .catch(function(e){
+        if(e.code==='auth/email-already-in-use'){
+          console.log('User already exists — sign in instead');
+        } else {
+          console.error('Firebase createUser error:',e.message);
+        }
+      });
+  }
+
+  // Keep localStorage for backward compat during transition
+  localStorage.setItem('lextime_access','granted');
+  localStorage.setItem('lextime_plan', planKey);
+  if(pass){ localStorage.setItem('lextime_credentials', JSON.stringify({email:email.toLowerCase(), passHash:simpleHash(pass), name:name})); }
   localStorage.setItem('lextime_user', JSON.stringify(userData));
-  // הוספת הנרשם לרשימת הניהול (tb_subs) כך שיופיע בממשק הניהול
-  try{
-    var subs = JSON.parse(localStorage.getItem('tb_subs')||'[]');
-    var exists = subs.find(function(s){return s.email===email;});
-    if(!exists){
-      var id = 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-      subs.push({id:id, name:name, firm:'', email:email, phone:'', plan:plan, payMethod:method, status:method==='bank'?'pending':'active', date:new Date().toISOString().slice(0,10), notes:'נרשם דרך האתר'});
-      localStorage.setItem('tb_subs', JSON.stringify(subs));
-    }
-  }catch(e){}
 }
+
 function submitPayment(){
   var err=document.getElementById('payError');
   if(!_payMethod){err.style.display='block';err.textContent='נא לבחור אמצעי תשלום';return;}
