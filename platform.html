@@ -310,6 +310,7 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
       </div>
     </div>
     <div class="topbar-actions">
+      <div id="userGreeting" style="display:none;font-size:13px;font-weight:600;color:rgba(255,255,255,.85);padding:5px 12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);border-radius:7px;white-space:nowrap"></div>
       <div class="save-ind"><div class="save-dot" id="saveDot"></div><span id="saveLabel">שמירה אוטומטית</span></div>
       <a href="guide.html" class="btn btn-ol" style="text-decoration:none" title="מדריך שימוש">📖 מדריך</a>
       <button class="btn btn-ol" onclick="showTab('cases')">כל התיקים</button>
@@ -1272,6 +1273,17 @@ function showToast(msg){var t=g('toast');t.textContent=msg;t.classList.add('show
 /* functions are global */
 document.addEventListener('DOMContentLoaded', function(){
   try{
+    // הצגת ברכת שלום לעורך הדין
+    try{
+      var userData = JSON.parse(localStorage.getItem('lextime_user')||'null');
+      if(userData && userData.name){
+        var greet = document.getElementById('userGreeting');
+        if(greet){
+          greet.textContent = 'שלום, עו"ד ' + userData.name;
+          greet.style.display = 'block';
+        }
+      }
+    }catch(e){}
     if(!stored) autoSave(null);
     renderAll();
   } catch(err){

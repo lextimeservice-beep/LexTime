@@ -1,25 +1,7 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
 <meta charset="UTF-8">
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyAOwMTp02bzFJ351uFcrhKalak6TlqbpyE",
-  authDomain: "lextime-82214.firebaseapp.com",
-  projectId: "lextime-82214",
-  storageBucket: "lextime-82214.firebasestorage.app",
-  messagingSenderId: "35753362194",
-  appId: "1:35753362194:web:00b7fb6fc54884c2e769cb"
-};
-firebase.initializeApp(firebaseConfig);
-var fbAuth = firebase.auth();
-var fbDb   = firebase.firestore();
-</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LexTime — ניהול מועדים משפטיים חכם לעורכי דין</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -380,8 +362,10 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
         <a href="#pricing">מחירים</a>
         <a href="#faq">שאלות נפוצות</a>
         <a href="guide.html">📖 מדריך</a>
+        <a href="platform.html" class="mobile-login-link" style="display:none;border-top:1px solid rgba(255,255,255,.15);padding-top:10px;margin-top:4px;color:rgba(255,255,255,.9);font-weight:600">🔑 &nbsp;כניסת עורכי דין רשומים</a>
       </div>
       <div class="nav-cta">
+        <a href="platform.html" class="btn btn-ghost" style="padding:9px 18px;font-size:13px;border-color:rgba(255,255,255,.5)">🔑 &nbsp;כניסת עורכי דין</a>
         <a href="#pricing" class="btn btn-ghost" style="padding:9px 18px;font-size:13px">הצטרף עכשיו</a>
       </div>
       <button class="hamburger" onclick="toggleMenu()">☰</button>
@@ -815,6 +799,7 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
           <li>תמיכה בדוא"ל</li>
         </ul>
         <a href="javascript:void(0)" class="btn btn-outline" style="width:100%;justify-content:center" onclick="openSignup('עצמאי','49')">הרשמה ותשלום</a>
+        <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:8px">בתוספת מע"מ כדין</div>
       </div>
       <div class="price-card featured reveal reveal-delay-2">
         <div class="price-name">משרד</div>
@@ -829,6 +814,7 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
           <li>תמיכה מועדפת בוואטסאפ</li>
         </ul>
         <a href="javascript:void(0)" class="btn btn-primary" style="width:100%;justify-content:center" onclick="openSignup('משרד','199')">הרשמה ותשלום</a>
+        <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:8px">בתוספת מע"מ כדין</div>
       </div>
       <div class="price-card reveal reveal-delay-3">
         <div class="price-name">משרד גדול</div>
@@ -843,6 +829,7 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
           <li>מנהל חשבון ייעודי</li>
         </ul>
         <a href="javascript:void(0)" class="btn btn-outline" style="width:100%;justify-content:center" onclick="openSignup('משרד גדול','499')">הרשמה ותשלום</a>
+        <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:8px">בתוספת מע"מ כדין</div>
       </div>
     </div>
   </div>
@@ -899,7 +886,7 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
       <h2 class="cta-title display">תפסיק לחשב מועדים ידנית.<br>תתחיל לנצח בתיקים.</h2>
       <p class="cta-desc">הורד את הפלטפורמה, פתח תיק ראשון, וציר הזמנים המלא שלך יהיה מוכן תוך פחות מדקה.</p>
       <div class="cta-actions">
-        <a href="javascript:void(0)" class="btn btn-primary" style="font-size:16px;padding:16px 32px" onclick="openSignup('משרד','199')">🚀 &nbsp;הרשמה עכשיו</a>
+        <a href="#pricing" class="btn btn-primary" style="font-size:16px;padding:16px 32px">🚀 &nbsp;הרשמה עכשיו</a>
         <a href="mailto:lextimeservice@gmail.com" class="btn btn-ghost" style="font-size:16px;padding:16px 32px">📧 &nbsp;דבר איתנו</a>
       </div>
       <p class="cta-note">ביטול בכל עת • ללא התחייבות שנתית • תשלום מאובטח</p>
@@ -934,7 +921,7 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
       <div class="footer-col">
         <h4>תמיכה</h4>
         <a href="#faq">שאלות נפוצות</a>
-        <a href="mailto:lextimeservice@gmail.com">צור קשר</a>
+        <a href="mailto:lextimeservice@gmail.com">צור קשר</a>
         <a href="guide.html">📖 מדריך שימוש</a>
         <a href="platform.html">🚀 כניסה לפלטפורמה</a>
         <a href="admin.html">⚙️ ממשק ניהול</a>
@@ -980,8 +967,9 @@ function toggleFaq(btn){
 // ─── MOBILE MENU ───
 function toggleMenu(){
   var links=document.querySelector('.nav-links');
-  if(links.style.display==='flex'){links.style.display='none';}
-  else{links.style.cssText='display:flex;flex-direction:column;position:fixed;top:68px;right:0;left:0;background:rgba(10,22,40,.98);padding:24px;gap:20px;z-index:400';}
+  var mobileLogin=document.querySelector('.mobile-login-link');
+  if(links.style.display==='flex'){links.style.display='none';if(mobileLogin)mobileLogin.style.display='none';}
+  else{links.style.cssText='display:flex;flex-direction:column;position:fixed;top:68px;right:0;left:0;background:rgba(10,22,40,.98);padding:24px;gap:20px;z-index:400';if(mobileLogin)mobileLogin.style.display='block';}
 }
 </script>
 
@@ -1062,29 +1050,6 @@ function toggleMenu(){
           <div style="font-size:12px;color:#64748b">Visa / Mastercard / Amex — דרך PayPal</div>
         </div>
         <div style="margin-right:auto;width:20px;height:20px;border-radius:50%;border:2px solid #e2e8f0" id="radio-card"></div>
-      </div>
-
-      <!-- Bank transfer -->
-      <div class="pay-opt" id="opt-bank" onclick="selectPayment('bank')" style="border:2px solid #e2e8f0;border-radius:12px;padding:16px 20px;margin-bottom:20px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:14px">
-        <div style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#1a7a4a,#0f5a32);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🏦</div>
-        <div>
-          <div style="font-size:14px;font-weight:700;color:#0a1628">העברה בנקאית</div>
-          <div style="font-size:12px;color:#64748b">העבר ישירות לחשבון הבנק של LexTime</div>
-        </div>
-        <div style="margin-right:auto;width:20px;height:20px;border-radius:50%;border:2px solid #e2e8f0" id="radio-bank"></div>
-      </div>
-
-      <!-- Bank details (shown when bank selected) -->
-      <div id="bankDetails" style="display:none;background:#f0fbf5;border:1px solid #d4eddf;border-radius:12px;padding:18px 20px;margin-bottom:20px">
-        <div style="font-size:13px;font-weight:800;color:#1a6e40;margin-bottom:12px">פרטי חשבון בנק להעברה</div>
-        <div style="display:grid;gap:8px">
-          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#64748b">שם בעל החשבון:</span><strong style="color:#0a1628">LexTime Ltd.</strong></div>
-          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#64748b">בנק:</span><strong style="color:#0a1628">בנק לאומי (10)</strong></div>
-          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#64748b">סניף:</span><strong style="color:#0a1628">800</strong></div>
-          <div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#64748b">מספר חשבון:</span><strong style="color:#0a1628">12-345678</strong></div>
-        </div>
-        <div style="margin-top:12px;font-size:12px;color:#64748b;line-height:1.6">לאחר ביצוע ההעברה שלח/י אישור לכתובת <strong>lextimeservice@gmail.com</strong> עם שמך ומספר הטלפון. הגישה תופעל תוך יום עסקים.</div>
-      </div>
 
       <!-- PayPal button area -->
       <div id="paypalArea" style="display:none;margin-bottom:20px">
@@ -1102,7 +1067,6 @@ function toggleMenu(){
       </div>
 
       <div id="payError" style="display:none;background:#fde8e8;color:#b91c1c;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px"></div>
-      <button id="payBtn" onclick="submitPayment()" style="display:none;width:100%;padding:14px;background:#c9922a;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;font-family:'Heebo',sans-serif;cursor:pointer;transition:.2s" onmouseover="this.style.background='#e8b84b'" onmouseout="this.style.background='#c9922a'">אישור וסיום ההרשמה ✓</button>
       <div style="text-align:center;margin-top:12px">
         <button onclick="backToStep1()" style="background:none;border:none;font-size:13px;color:#94a3b8;cursor:pointer;font-family:'Heebo',sans-serif">← חזרה לפרטים האישיים</button>
       </div>
@@ -1116,44 +1080,6 @@ function toggleMenu(){
       <a href="platform.html" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:#c9922a;color:#fff;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;font-family:'Heebo',sans-serif">🚀 פתח את הפלטפורמה →</a>
       <br><br>
       <a href="guide.html" style="display:inline-flex;align-items:center;gap:8px;padding:11px 22px;background:#f0f4fa;color:#0a1628;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;font-family:'Heebo',sans-serif;border:1px solid #e2e8f0">📖 קרא את המדריך</a>
-    </div>
-
-    <!-- STEP 3B: Bank Transfer Pending -->
-    <div id="signupStep3Bank" style="display:none;padding:40px 32px;text-align:center">
-      <div style="font-size:56px;margin-bottom:16px">⏳</div>
-      <div style="font-family:'Frank Ruhl Libre',serif;font-size:22px;font-weight:900;color:#0a1628;margin-bottom:10px">ההרשמה נקלטה!</div>
-      <p style="font-size:14px;color:#64748b;line-height:1.8;margin-bottom:24px">
-        ממתינים לאישור ההעברה הבנקאית.<br>
-        לאחר קבלת האישור, נשלח לך קוד הפעלה לדוא"ל.
-      </p>
-
-      <!-- Bank details reminder -->
-      <div style="background:#f0fbf5;border:1px solid #d4eddf;border-radius:12px;padding:18px 20px;margin-bottom:20px;text-align:right">
-        <div style="font-size:13px;font-weight:800;color:#1a6e40;margin-bottom:10px">פרטי חשבון בנק להעברה</div>
-        <div style="display:grid;gap:6px;font-size:13px">
-          <div style="display:flex;justify-content:space-between"><span style="color:#64748b">בנק:</span><strong>בנק לאומי (10)</strong></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:#64748b">סניף:</span><strong>800</strong></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:#64748b">חשבון:</span><strong>12-345678</strong></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:#64748b">שם:</span><strong>LexTime Ltd.</strong></div>
-          <div style="display:flex;justify-content:space-between"><span style="color:#64748b">סכום:</span><strong id="bankAmount" style="color:#c9922a"></strong></div>
-        </div>
-        <div style="margin-top:12px;font-size:12px;color:#64748b">שלח/י אישור העברה ל: <strong><a href="mailto:lextimeservice@gmail.com" style="color:#c9922a"><span class="__cf_email__" data-cfemail="bbd7dec3cfd2d6dec8dec9cdd2d8defbdcd6dad2d795d8d4d6">[email&#160;protected]</span></a></strong></div>
-      </div>
-
-      <!-- Activation code input -->
-      <div style="background:#f7f5f0;border:1px solid #e2d9c8;border-radius:12px;padding:20px;margin-bottom:20px;text-align:right">
-        <div style="font-size:13px;font-weight:700;color:#374151;margin-bottom:8px">קיבלת קוד הפעלה?</div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <input id="activationCodeInput" type="text" placeholder="הזן קוד הפעלה"
-            style="flex:1;padding:10px 14px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;outline:none;direction:ltr;letter-spacing:2px"
-            onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='#e2e8f0'"
-            onkeydown="if(event.key==='Enter')activateWithCode()">
-          <button onclick="activateWithCode()" style="padding:10px 18px;background:#c9922a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;font-family:'Heebo',sans-serif;cursor:pointer;white-space:nowrap">הפעל</button>
-        </div>
-        <div id="activationError" style="display:none;color:#b91c1c;font-size:12px;margin-top:6px">קוד שגוי. אנא בדוק ונסה שוב.</div>
-      </div>
-      <a href="guide.html" style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:#f0f4fa;color:#0a1628;border-radius:10px;text-decoration:none;font-size:13px;font-weight:600;font-family:'Heebo',sans-serif;border:1px solid #e2e8f0">📖 קרא את המדריך בינתיים</a>
-    </div>
   </div>
 </div>
 
@@ -1195,15 +1121,13 @@ function goToPayment(){
 function backToStep1(){showStep(1);}
 function selectPayment(method){
   _payMethod=method;
-  ['paypal','card','bank'].forEach(function(m){
+  ['paypal','card'].forEach(function(m){
     var opt=document.getElementById('opt-'+m);
     var radio=document.getElementById('radio-'+m);
     if(opt){opt.style.borderColor=m===method?'#c9922a':'#e2e8f0';}
     if(radio){radio.style.background=m===method?'#c9922a':'';}
   });
-  document.getElementById('bankDetails').style.display=method==='bank'?'block':'none';
   document.getElementById('paypalArea').style.display=(method==='paypal'||method==='card')?'block':'none';
-  document.getElementById('payBtn').style.display=method==='bank'?'flex':'none';
   if(method==='paypal'||method==='card'){
     // Plan IDs — יש להחליף ב-Plan IDs האמיתיים מ-PayPal Dashboard
     var PAYPAL_PLANS = {
@@ -1221,61 +1145,37 @@ function simpleHash(str){
   return Math.abs(hash).toString(16);
 }
 function grantAccess(name, email, plan, price, method){
-  var planKey = plan==='עצמאי' ? 'basic' : plan==='משרד' ? 'office' : 'pro';
-  var pass = document.getElementById('regPass') ? document.getElementById('regPass').value : '';
-  var userData = {name:name, email:email, plan:plan, price:price, method:method, date:new Date().toLocaleDateString('he-IL')};
-
-  // Create Firebase Auth user + save subscription to Firestore
-  if(pass && email){
-    fbAuth.createUserWithEmailAndPassword(email, pass)
-      .then(function(cred){
-        var uid = cred.user.uid;
-        // Save subscription to Firestore (for admin panel)
-        return fbDb.collection('subscribers').doc(uid).set({
-          uid:uid, name:name, email:email, plan:planKey, planLabel:plan,
-          payMethod:method, status:method==='bank'?'pending':'active',
-          date:new Date().toISOString().slice(0,10), phone:'', notes:'', price:price
-        });
-      })
-      .then(function(){ console.log('Firebase user created'); })
-      .catch(function(e){
-        if(e.code==='auth/email-already-in-use'){
-          console.log('User already exists — sign in instead');
-        } else {
-          console.error('Firebase createUser error:',e.message);
-        }
-      });
-  }
-
-  // Keep localStorage for backward compat during transition
+  // שמירת הרשאת גישה לפלטפורמה
   localStorage.setItem('lextime_access','granted');
+  // שמירת המסלול
+  var planKey = plan==='עצמאי' ? 'basic' : plan==='משרד' ? 'office' : 'pro';
   localStorage.setItem('lextime_plan', planKey);
-  if(pass){ localStorage.setItem('lextime_credentials', JSON.stringify({email:email.toLowerCase(), passHash:simpleHash(pass), name:name})); }
+  // שמירת אישורי כניסה (מייל + סיסמה מוצפנת)
+  var pass = document.getElementById('regPass') ? document.getElementById('regPass').value : '';
+  if(pass){
+    var creds = {email: email.toLowerCase(), passHash: simpleHash(pass), name: name};
+    localStorage.setItem('lextime_credentials', JSON.stringify(creds));
+  }
+  // שמירת פרטי המשתמש
+  var userData = {name:name, email:email, plan:plan, price:price, method:method, date:new Date().toLocaleDateString('he-IL')};
   localStorage.setItem('lextime_user', JSON.stringify(userData));
+  // הוספת הנרשם לרשימת הניהול (tb_subs) כך שיופיע בממשק הניהול
+  try{
+    var subs = JSON.parse(localStorage.getItem('tb_subs')||'[]');
+    var exists = subs.find(function(s){return s.email===email;});
+    if(!exists){
+      var id = 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+      subs.push({id:id, name:name, firm:'', email:email, phone:'', plan:plan, payMethod:method, status:'active', date:new Date().toISOString().slice(0,10), notes:'נרשם דרך האתר'});
+      localStorage.setItem('tb_subs', JSON.stringify(subs));
+    }
+  }catch(e){}
 }
-
 function submitPayment(){
   var err=document.getElementById('payError');
   if(!_payMethod){err.style.display='block';err.textContent='נא לבחור אמצעי תשלום';return;}
   err.style.display='none';
   var name=document.getElementById('regName').value.trim();
   var email=document.getElementById('regEmail').value.trim();
-  if(_payMethod==='bank'){
-    grantAccess(name, email, _plan, _price, 'bank');
-    // הוספה לממשק ניהול כממתין לאישור כספי (הגישה כבר פעילה)
-    try{
-      var subs = JSON.parse(localStorage.getItem('tb_subs')||'[]');
-      var exists = subs.find(function(s){return s.email===email;});
-      if(!exists){
-        var id = 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-        var phone = document.getElementById('regPhone') ? document.getElementById('regPhone').value.trim() : '';
-        subs.push({id:id,name:name,firm:'',email:email,phone:phone,plan:_plan,payMethod:'bank',status:'pending',date:new Date().toISOString().slice(0,10),notes:'ממתין לאישור העברה בנקאית — גישה פעילה'});
-        localStorage.setItem('tb_subs', JSON.stringify(subs));
-      }
-    }catch(e){}
-    document.getElementById('successMsg').textContent='ההרשמה הושלמה! הגישה שלך מוכנה. היכנס לפלטפורמה עם כתובת הדוא"ל והסיסמה שבחרת.';
-    showStep(3);
-  }
 }
 function openPayPalSubscription(){
   var btn = document.getElementById('paypalBtnPlaceholder');
@@ -1298,64 +1198,6 @@ function onPayPalReturn(){
   grantAccess(name, email, _plan, _price, 'paypal');
   document.getElementById('successMsg').textContent='התשלום התקבל! מנוי חודשי פעיל. ברוך הבא ל-LexTime!';
   showStep(3);
-}
-
-function showBankPendingStep(name, email, plan, price){
-  // הסתר שלב 3 הרגיל, הצג שלב bank
-  ['signupStep1','signupStep2','signupStep3'].forEach(function(id){
-    document.getElementById(id).style.display='none';
-  });
-  var el = document.getElementById('signupStep3Bank');
-  if(el){
-    el.style.display='block';
-    var amountEl = document.getElementById('bankAmount');
-    if(amountEl) amountEl.textContent = '₪'+price+' לחודש ('+plan+')';
-  }
-}
-
-function generateActivationCode(email){
-  // יצירת קוד 6 ספרות דטרמיניסטי מהמייל
-  var hash = 0;
-  var str = email.toLowerCase() + 'LEXTIME2025';
-  for(var i=0; i<str.length; i++){
-    hash = ((hash<<5)-hash) + str.charCodeAt(i);
-    hash |= 0;
-  }
-  return Math.abs(hash).toString().padStart(8,'0').slice(0,6);
-}
-
-function activateWithCode(){
-  var code = document.getElementById('activationCodeInput').value.trim().toUpperCase();
-  var errEl = document.getElementById('activationError');
-  // בדיקת קוד מול הממשק — הקוד מאוחסן ב-localStorage על ידי האדמין
-  var storedCode = localStorage.getItem('lextime_activation_code');
-  var userData = JSON.parse(localStorage.getItem('lextime_user')||'{}');
-  // קוד שנוצר אוטומטית מהמייל (Admin מחשב אותו ושולח למשתמש)
-  var expectedCode = generateActivationCode(userData.email||'');
-  // גם קוד ידני שהאדמין יכול להגדיר
-  var adminCode = localStorage.getItem('lextime_global_code')||'';
-  if(code === expectedCode || (adminCode && code === adminCode.toUpperCase())){
-    // הפעלת גישה
-    localStorage.setItem('lextime_access','granted');
-    userData.status = 'active';
-    localStorage.setItem('lextime_user', JSON.stringify(userData));
-    errEl.style.display='none';
-    // עדכון ב-tb_subs
-    try{
-      var subs = JSON.parse(localStorage.getItem('tb_subs')||'[]');
-      subs = subs.map(function(s){ return s.email===userData.email ? Object.assign(s,{status:'active'}) : s; });
-      localStorage.setItem('tb_subs', JSON.stringify(subs));
-    }catch(e){}
-    // הצגת הצלחה
-    document.getElementById('signupStep3Bank').innerHTML =
-      '<div style="font-size:56px;margin-bottom:16px">🎉</div>'+
-      '<div style="font-family:Frank Ruhl Libre,serif;font-size:22px;font-weight:900;color:#0a1628;margin-bottom:12px">הגישה הופעלה!</div>'+
-      '<p style="font-size:14px;color:#64748b;margin-bottom:24px">ברוך הבא ל-LexTime. המנוי שלך פעיל.</p>'+
-      '<a href="platform.html" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:#c9922a;color:#fff;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;font-family:Heebo,sans-serif">🚀 פתח את הפלטפורמה →</a>';
-  } else {
-    errEl.style.display='block';
-    document.getElementById('activationCodeInput').value='';
-  }
 }
 </script>
 
@@ -1381,24 +1223,7 @@ function activateWithCode(){
   </div>
 </div>
 
-<!-- ══ LEGAL MODALS ══ -->
-<div id="legalModal" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.65);z-index:3000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)" onclick="if(event.target===this)closeLegal()">
-  <div style="background:#fff;border-radius:20px;width:100%;max-width:680px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.35);overflow:hidden">
-    <div style="background:linear-gradient(135deg,#0a1628,#0f2244);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-      <div>
-        <div id="legalTitle" style="font-family:'Frank Ruhl Libre',serif;font-size:20px;font-weight:900;color:#fff"></div>
-        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:3px">LexTime &middot; עודכן ינואר 2025</div>
-      </div>
-      <button onclick="closeLegal()" style="background:rgba(255,255,255,.12);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:17px">&#x2715;</button>
-    </div>
-    <div style="display:flex;border-bottom:2px solid #f0f4fa;background:#fff;flex-shrink:0">
-      <button onclick="openLegal('terms')"    id="ltab-terms"    style="flex:1;padding:12px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Heebo',sans-serif">תנאי שימוש</button>
-      <button onclick="openLegal('privacy')"  id="ltab-privacy"  style="flex:1;padding:12px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Heebo',sans-serif">מדיניות פרטיות</button>
-      <button onclick="openLegal('security')" id="ltab-security" style="flex:1;padding:12px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Heebo',sans-serif">אבטחת מידע</button>
-    </div>
-    <div id="legalContent" style="overflow-y:auto;padding:28px 32px;font-family:'Heebo',sans-serif;font-size:14px;color:#374151;line-height:1.8;direction:rtl"></div>
-  </div>
-</div>
+
 
 <script>
 var _legalData = {
@@ -1422,7 +1247,7 @@ function openLegal(page) {
   document.getElementById('legalTitle').textContent = d.title;
   document.getElementById('legalContent').innerHTML = d.body;
   ['terms','privacy','security','security'].forEach(function(p){
-    var btn = document.getElementById('legal-tab-'+p);
+    var btn = document.getElementById('ltab-'+p);
     if(btn) btn.style.fontWeight = p===page ? '800' : '600';
     if(btn) btn.style.borderBottom = p===page ? '2px solid #c9922a' : '2px solid transparent';
     if(btn) btn.style.color = p===page ? '#c9922a' : '#94a3b8';
@@ -1473,13 +1298,4 @@ function closeLegal(){ closeLegalModal(); }
     document.documentElement.style.fontSize='';
     ['contrast','links','no-anim','guide'].forEach(function(k){
       var b=document.getElementById('a11y-btn-'+k);
-      if(b){b.classList.remove('active');b.setAttribute('aria-pressed','false');}
-      document.body.classList.remove('a11y-'+k);
-    });
-    var g=document.getElementById('a11y-guide');if(g)g.style.display='none';
-    var fv=document.getElementById('a11y-fval');if(fv)fv.textContent='100%';
-    sv();
-  };
-  document.addEventListener('mousemove',function(e){
-    if(!st.guide)return;
-    var g=document.getElementById('a11y-guide');if(g)g.style.top=(e.clientY-19)
+      if(b){b.classList.remove('active');b.setAttribute('aria

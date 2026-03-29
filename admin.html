@@ -457,6 +457,11 @@ tr:hover td{background:#fafbfc}
               <div class="fg"><label class="fl">שם משתמש לניהול</label><input class="fi" id="settingUser" placeholder="admin"></div>
               <div class="fg"><label class="fl">סיסמה חדשה</label><input class="fi" id="settingPass" type="password" placeholder="לפחות 8 תווים"></div>
             </div>
+            <div id="passChangedNote" style="display:none;background:#fffbeb;border:1px solid #f59e0b;border-radius:8px;padding:11px 14px;font-size:12px;color:#92400e;line-height:1.6;margin-top:4px">
+              &#x26A0;&#xFE0F; <strong>שים לב:</strong> הסיסמה נשמרה בדפדפן הנוכחי בלבד.<br>
+              כדי שתעבוד <strong>בכל מחשב</strong>, עדכן ידנית את השורה הבאה בקובץ <code>admin.html</code>:<br>
+              <code id="passCodeHint" style="display:inline-block;background:#fef3c7;padding:3px 8px;border-radius:4px;margin-top:4px;user-select:all;font-size:11px">var ADMIN_USER = 'admin', ADMIN_PASS = 'timebar2025';</code>
+            </div>
             <div class="fdiv"></div>
             <div class="slbl">PayPal</div>
             <div class="fg"><label class="fl">כתובת PayPal לקבלת תשלומים</label><input class="fi" id="settingPaypal" placeholder="payments@timebar.co.il"></div>
@@ -1232,8 +1237,15 @@ function saveSettings(){
   s.paypal=document.getElementById('settingPaypal').value;
   var newUser=document.getElementById('settingUser').value.trim();
   var newPass=document.getElementById('settingPass').value;
-  if(newUser)s.adminUser=newUser;
-  if(newPass&&newPass.length>=8)s.adminPass=newPass;
+  if(newUser){s.adminUser=newUser;ADMIN_USER=newUser;}
+  if(newPass&&newPass.length>=8){
+    s.adminPass=newPass;
+    ADMIN_PASS=newPass;
+    document.getElementById('settingPass').value='';
+    var hint=document.getElementById('passCodeHint');
+    if(hint)hint.textContent="var ADMIN_USER = '"+(newUser||s.adminUser||'admin')+"', ADMIN_PASS = '"+newPass+"';";
+    document.getElementById('passChangedNote').style.display='block';
+  }
   saveSettingsObj(s);
   toast('ההגדרות נשמרו ✅');
 }
