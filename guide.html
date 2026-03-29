@@ -527,7 +527,7 @@ section[id]{scroll-margin-top:20px}
       <div class="step-card">
         <div class="step-circle">3</div>
         <div class="step-title">בחר סוג תיק</div>
-        <div class="step-text">הבחירה קובעת את מספר ימי ההגנה: 60 / 120 / 30 יום. ראה פירוט בסעיף 5.</div>
+        <div class="step-text">הבחירה קובעת את מספר ימי ההגנה: 30 / 45 / 60 / 120 יום. ראה פירוט בסעיף 5.</div>
       </div>
     </div>
 
@@ -616,7 +616,7 @@ section[id]{scroll-margin-top:20px}
             <tr><td><span class="chip chip-green">בוצע</span></td><td>מטלות שסומנו כ-"בוצע ✓"</td></tr>
             <tr><td><span class="chip chip-blue">סה"כ</span></td><td>מספר כלל המטלות בתיק (שיש להן תאריך)</td></tr>
             <tr><td><strong>בורר תיקים</strong></td><td>תפריט נפתח שמאל — מאפשר מעבר מהיר בין תיקים</td></tr>
-            <tr><td><strong>ימי הגנה</strong></td><td>מציג את מספר הימים הקבוע לפי סוג התיק: 30 / 60 / 120</td></tr>
+            <tr><td><strong>ימי הגנה</strong></td><td>מציג את מספר הימים הקבוע לפי סוג התיק: 30 / 45 / 60 / 120</td></tr>
           </tbody>
         </table>
       </div>
@@ -698,7 +698,7 @@ section[id]{scroll-margin-top:20px}
                 <div class="task-note">🔑 <strong>עוגן ראשי:</strong> כתב ההגנה הוא נקודת ההתחלה של כל ציר הזמנים. הזנת "מועד בפועל" כאן ישנה את כל המועדים הבאים.</div>
               </td>
               <td><span class="chip chip-blue">9(ב)</span></td>
-              <td class="task-timing">+ 30 / 60 / 120 יום מהמצאה</td>
+              <td class="task-timing">+ 30 / 45 / 60 / 120 יום מהמצאה</td>
             </tr>
             <tr>
               <td><div class="task-num" style="background:var(--blue);color:#fff">2</div></td>
@@ -1106,6 +1106,11 @@ section[id]{scroll-margin-top:20px}
               <td class="days-cell green">30 יום</td>
               <td><span class="chip chip-blue">9(ב)</span></td>
             </tr>
+            <tr>
+              <td class="type-cell">סדר דין מהיר</td>
+              <td class="days-cell" style="color:var(--teal);font-weight:900;font-size:15px;text-align:center">45 יום</td>
+              <td><span class="chip chip-blue">9(ב)</span></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -1116,7 +1121,7 @@ section[id]{scroll-margin-top:20px}
             <tr><th>מטלה</th><th>בסיס החישוב</th><th>הפרש</th></tr>
           </thead>
           <tbody>
-            <tr><td>כתב הגנה (t1)</td><td>המצאה לנתבע</td><td class="days-cell amber">+ 30/60/120</td></tr>
+            <tr><td>כתב הגנה (t1)</td><td>המצאה לנתבע</td><td class="days-cell amber">+ 30/45/60/120</td></tr>
             <tr><td>כתב תשובה (t2)</td><td>הגנה (t1)</td><td class="days-cell amber">+ 14</td></tr>
             <tr><td>גילוי מסמכים (t4)</td><td>תשובה (t2)</td><td class="days-cell amber">+ 30</td></tr>
             <tr><td>מינוי מגשר (t3)</td><td>תשובה (t2)</td><td class="days-cell amber">+ 45</td></tr>
@@ -1219,13 +1224,13 @@ section[id]{scroll-margin-top:20px}
           <td><span class="reg-num">6</span></td>
           <td class="reg-name">הגדרות — "כתב הטענות האחרון"</td>
           <td class="reg-days">—</td>
-          <td>כתב תשובה, או המועד שחלף להגשתו (המוקדם). בדיון מהיר — כתב הגנה.</td>
+          <td>כתב תשובה, או המועד שחלף להגשתו (המוקדם). בדיון מהיר — כתב הגנה (45 יום מהמצאה).</td>
         </tr>
         <tr>
           <td><span class="reg-num">9(ב)</span></td>
           <td class="reg-name">כתב הגנה</td>
-          <td class="reg-days">30 / 60 / 120 יום</td>
-          <td>מיום המצאה. רשלנות רפואית: 120 יום. ביטוח לאומי / פינוי מושכר: 30 יום.</td>
+          <td class="reg-days">30 / 45 / 60 / 120 יום</td>
+          <td>מיום המצאה. רשלנות רפואית: 120 יום. ביטוח לאומי / פינוי מושכר: 30 יום. סדר דין מהיר: 45 יום.</td>
         </tr>
         <tr>
           <td><span class="reg-num">13</span></td>
@@ -1502,7 +1507,7 @@ section[id]{scroll-margin-top:20px}
         שיניתי סוג תיק — האם המועדים התחשבו מחדש?
         <span class="arrow">+</span>
       </div>
-      <div class="faq-a">כן. שינוי סוג התיק ישנה את מספר ימי ההגנה (מ-60 ל-120 או ל-30 ולהפך) ויחשב מחדש את כל ציר הזמנים מהמצאה. מועדים שהוזנו "בפועל" נשמרים — אך המועדים המקוריים והמחושבים מהם ישתנו.</div>
+      <div class="faq-a">כן. שינוי סוג התיק ישנה את מספר ימי ההגנה (מ-60 ל-120, ל-45, ל-30 ולהפך) ויחשב מחדש את כל ציר הזמנים מהמצאה. מועדים שהוזנו "בפועל" נשמרים — אך המועדים המקוריים והמחושבים מהם ישתנו.</div>
     </div>
     <div class="faq-item">
       <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">

@@ -430,7 +430,8 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
             <option>אזרחי</option><option>מסחרי</option><option>נזיקין</option>
             <option>נזק גוף</option><option>רשלנות רפואית</option>
             <option>ביטוח לאומי</option><option>חוזים</option><option>קניין</option>
-            <option>עבודה</option><option>מינהלי</option><option>פינוי מושכר</option><option>אחר</option>
+            <option>עבודה</option><option>מינהלי</option><option>פינוי מושכר</option>
+            <option>דיון מהיר</option><option>אחר</option>
           </select>
         </div>
       </div>
@@ -476,7 +477,8 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
             <option>אזרחי</option><option>מסחרי</option><option>נזיקין</option>
             <option>נזק גוף</option><option>רשלנות רפואית</option>
             <option>ביטוח לאומי</option><option>חוזים</option><option>קניין</option>
-            <option>עבודה</option><option>מינהלי</option><option>פינוי מושכר</option><option>אחר</option>
+            <option>עבודה</option><option>מינהלי</option><option>פינוי מושכר</option>
+            <option>דיון מהיר</option><option>אחר</option>
           </select>
         </div>
       </div>
@@ -557,6 +559,7 @@ function getDefenseDays(c){
   var t=(c.type||'').trim();
   if(t==='נזק גוף'||t==='רשלנות רפואית')return 120;
   if(t==='פינוי מושכר'||t==='ביטוח לאומי')return 30;
+  if(t==='דיון מהיר')return 45;
   return 60;
 }
 
