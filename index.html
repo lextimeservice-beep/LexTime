@@ -887,7 +887,7 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
       <p class="cta-desc">הורד את הפלטפורמה, פתח תיק ראשון, וציר הזמנים המלא שלך יהיה מוכן תוך פחות מדקה.</p>
       <div class="cta-actions">
         <a href="#pricing" class="btn btn-primary" style="font-size:16px;padding:16px 32px">🚀 &nbsp;הרשמה עכשיו</a>
-        <a href="mailto:lextimeservice@gmail.com" class="btn btn-ghost" style="font-size:16px;padding:16px 32px">📧 &nbsp;דבר איתנו</a>
+        <a href="contact.html" class="btn btn-ghost" style="font-size:16px;padding:16px 32px">📍 &nbsp;דבר איתנו</a>
       </div>
       <p class="cta-note">ביטול בכל עת • ללא התחייבות שנתית • תשלום מאובטח</p>
     </div>
@@ -921,7 +921,7 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
       <div class="footer-col">
         <h4>תמיכה</h4>
         <a href="#faq">שאלות נפוצות</a>
-        <a href="mailto:lextimeservice@gmail.com">צור קשר</a>
+        <a href="contact.html">צור קשר</a>
         <a href="guide.html">📖 מדריך שימוש</a>
         <a href="platform.html">🚀 כניסה לפלטפורמה</a>
         <a href="admin.html">⚙️ ממשק ניהול</a>
@@ -943,7 +943,7 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
   </div>
 </footer>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ─── NAV SCROLL ───
 window.addEventListener('scroll',function(){
   document.getElementById('navbar').classList.toggle('scrolled',window.scrollY>40);
@@ -1290,9 +1290,4 @@ function closeLegal(){ closeLegalModal(); }
     if(k==='contrast')document.body.classList.toggle('a11y-contrast',st[k]);
     if(k==='links')document.body.classList.toggle('a11y-links',st[k]);
     if(k==='no-anim')document.body.classList.toggle('a11y-no-anim',st[k]);
-    if(k==='guide'){var g=document.getElementById('a11y-guide');if(g)g.style.display=st[k]?'block':'none';}
-    sv();
-  };
-  window.a11yReset=function(){
-    fs=100;st={contrast:false,links:false,'no-anim':false,guide:false};
-    document.documentEl
+    if(k==='guide'){var g=document.getElementBy

@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>צור קשר — LexTime</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0a1628;
+  --ink-mid:#1a2e4a;
+  --gold:#c9922a;
+  --gold-l:#e8b84b;
+  --gold-pale:#fdf6e8;
+  --gold-muted:#f5e6c0;
+  --white:#ffffff;
+  --off:#f7f5f0;
+  --gray:#64748b;
+  --gray-l:#94a3b8;
+  --border:#e2d9c8;
+  --r:10px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
+html{scroll-behavior:smooth}
+body{font-family:'Heebo',sans-serif;color:var(--ink);background:var(--white);min-height:100vh;display:flex;flex-direction:column}
+
+/* ─── NAV ─── */
+nav{background:var(--ink);position:sticky;top:0;z-index:500;box-shadow:0 2px 24px rgba(0,0,0,.3)}
+.nav-inner{display:flex;align-items:center;justify-content:space-between;height:68px;max-width:1120px;margin:0 auto;padding:0 28px}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none}
+.logo-box{
+  width:44px;height:44px;border-radius:10px;
+  background:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;
+}
+.logo-letters{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:17px;font-weight:900;
+  color:var(--white);
+  letter-spacing:-.5px;
+  line-height:1;
+}
+.logo-wordmark{
+  display:flex;flex-direction:column;gap:1px;
+}
+.logo-name{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:22px;font-weight:900;
+  color:var(--white);letter-spacing:-.5px;line-height:1;
+}
+.logo-tagline{
+  font-size:10px;color:rgba(255,255,255,.45);
+  letter-spacing:.5px;font-weight:400;
+}
+.nav-back{
+  display:inline-flex;align-items:center;gap:7px;
+  color:rgba(255,255,255,.7);text-decoration:none;font-size:14px;font-weight:500;
+  transition:.2s;padding:8px 16px;border-radius:8px;border:1px solid rgba(255,255,255,.15);
+}
+.nav-back:hover{color:var(--white);border-color:rgba(255,255,255,.35)}
+
+/* ─── HERO STRIPE ─── */
+.page-hero{
+  background:linear-gradient(160deg,var(--ink) 0%,#0f2244 60%,#162d50 100%);
+  padding:72px 0 80px;
+  position:relative;overflow:hidden;
+}
+.page-hero::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 60% at 30% 50%,rgba(201,146,42,.09) 0%,transparent 70%);
+}
+.page-hero-grid{
+  position:absolute;inset:0;opacity:.035;pointer-events:none;
+  background-image:linear-gradient(var(--gold) 1px,transparent 1px),linear-gradient(90deg,var(--gold) 1px,transparent 1px);
+  background-size:48px 48px;
+}
+.page-hero-inner{position:relative;z-index:2;max-width:1120px;margin:0 auto;padding:0 28px;text-align:center}
+
+/* ─── LOGO BADGE ─── */
+.brand-badge{
+  display:inline-flex;flex-direction:column;align-items:center;gap:8px;
+  margin-bottom:32px;
+}
+.brand-icon{
+  width:80px;height:80px;border-radius:18px;
+  background:var(--gold);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 12px 40px rgba(201,146,42,.4);
+}
+.brand-icon-text{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:32px;font-weight:900;color:var(--white);letter-spacing:-.5px;
+}
+.brand-name{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:36px;font-weight:900;color:var(--white);letter-spacing:-.5px;
+}
+
+.page-title{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:clamp(32px,5vw,52px);font-weight:900;color:var(--white);
+  line-height:1.1;margin-bottom:16px;
+}
+.page-title span{color:var(--gold)}
+.page-sub{font-size:17px;color:rgba(255,255,255,.6);line-height:1.75;max-width:520px;margin:0 auto}
+
+/* ─── MAIN CONTENT ─── */
+main{flex:1;background:var(--off);padding:72px 0}
+.container{max-width:1000px;margin:0 auto;padding:0 28px}
+
+/* ─── CONTACT CARD ─── */
+.contact-wrapper{
+  display:grid;grid-template-columns:1fr 1fr;gap:40px;align-items:start;
+}
+@media(max-width:700px){.contact-wrapper{grid-template-columns:1fr}}
+
+.contact-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:20px;padding:44px 40px;
+  box-shadow:0 8px 40px rgba(10,22,40,.08);
+}
+.card-label{
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;
+  padding:4px 13px;border-radius:20px;
+  background:var(--gold-pale);color:var(--gold);border:1px solid var(--gold-muted);
+  margin-bottom:20px;
+}
+.card-title{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:26px;font-weight:900;color:var(--ink);margin-bottom:32px;line-height:1.2;
+}
+
+/* ─── CONTACT ROWS ─── */
+.contact-row{
+  display:flex;align-items:flex-start;gap:16px;
+  padding:18px 0;border-bottom:1px solid var(--border);
+}
+.contact-row:last-child{border-bottom:none;padding-bottom:0}
+.contact-row:first-of-type{padding-top:0}
+.cr-icon{
+  width:44px;height:44px;border-radius:12px;
+  background:var(--gold-pale);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;margin-top:2px;
+}
+.cr-label{font-size:11px;font-weight:700;color:var(--gray-l);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.cr-value{font-size:15px;font-weight:600;color:var(--ink);line-height:1.6}
+.cr-value a{color:var(--gold);text-decoration:none}
+.cr-value a:hover{text-decoration:underline}
+.cr-sub{font-size:13px;color:var(--gray);margin-top:3px;line-height:1.5}
+
+/* ─── MAP CARD ─── */
+.map-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:20px;overflow:hidden;
+  box-shadow:0 8px 40px rgba(10,22,40,.08);
+  display:flex;flex-direction:column;
+}
+.map-placeholder{
+  width:100%;flex:1;min-height:300px;
+  background:linear-gradient(135deg,#e8f4f8 0%,#d4e8f0 100%);
+  position:relative;display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+iframe.map-embed{width:100%;min-height:340px;border:none;flex:1;display:block}
+.map-footer{
+  padding:20px 24px;
+  background:var(--white);border-top:1px solid var(--border);
+}
+.map-addr{font-size:13px;color:var(--gray);line-height:1.6}
+.map-addr strong{color:var(--ink);font-weight:700}
+
+/* ─── ENGLISH BLOCK ─── */
+.en-block{
+  margin-top:12px;padding-top:12px;
+  border-top:1px dashed var(--border);
+  font-size:12px;color:var(--gray-l);direction:ltr;text-align:left;line-height:1.7;
+}
+
+
+/* ─── CONTACT FORM ─── */
+.form-section{
+  margin-top:40px;
+}
+.form-card{
+  background:var(--white);border:1px solid var(--border);
+  border-radius:20px;padding:44px 40px;
+  box-shadow:0 8px 40px rgba(10,22,40,.08);
+}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:7px}
+.form-group.full{grid-column:1/-1}
+.form-label{font-size:13px;font-weight:700;color:var(--ink);letter-spacing:.2px}
+.form-input,.form-textarea{
+  width:100%;padding:13px 16px;
+  border:1.5px solid var(--border);border-radius:10px;
+  font-family:'Heebo',sans-serif;font-size:15px;color:var(--ink);
+  background:var(--white);transition:.2s;
+  direction:rtl;
+}
+.form-input:focus,.form-textarea:focus{
+  outline:none;border-color:var(--gold);
+  box-shadow:0 0 0 3px rgba(201,146,42,.12);
+}
+.form-textarea{min-height:130px;resize:vertical;line-height:1.6}
+.form-submit{
+  margin-top:8px;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  background:var(--gold);color:var(--white);
+  font-family:'Heebo',sans-serif;font-size:16px;font-weight:700;
+  padding:14px 36px;border-radius:12px;border:none;cursor:pointer;
+  transition:.2s;width:100%;
+}
+.form-submit:hover{background:var(--gold-l);transform:translateY(-1px);box-shadow:0 6px 20px rgba(201,146,42,.35)}
+.form-submit:active{transform:translateY(0)}
+.form-note{
+  font-size:12px;color:var(--gray-l);text-align:center;margin-top:12px;
+}
+.success-msg{
+  display:none;text-align:center;padding:24px;
+  background:var(--gold-pale);border:1px solid var(--gold-muted);
+  border-radius:12px;margin-top:16px;
+}
+.success-msg .s-icon{font-size:36px;margin-bottom:8px}
+.success-msg p{font-size:15px;font-weight:600;color:var(--ink)}
+.success-msg small{font-size:13px;color:var(--gray)}
+
+/* ─── FOOTER ─── */
+footer{background:var(--ink);padding:28px 0;text-align:center}
+.footer-copy{font-size:13px;color:rgba(255,255,255,.35)}
+.footer-copy a{color:var(--gold);text-decoration:none}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-inner">
+    <a href="index.html" class="logo">
+      <img src="data:image/png;base64,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" alt="LexTime Logo" style="width:44px;height:44px;border-radius:50%;object-fit:cover;flex-shrink:0;">
+      <div class="logo-wordmark">
+        <div class="logo-name">LexTime</div>
+        <div class="logo-tagline">ניהול מועדים משפטיים</div>
+      </div>
+    </a>
+    <a href="index.html" class="nav-back">← חזרה לאתר הראשי</a>
+  </div>
+</nav>
+
+<!-- PAGE HERO -->
+<div class="page-hero">
+  <div class="page-hero-grid"></div>
+  <div class="page-hero-inner">
+    <div class="brand-badge">
+      <img src="data:image/png;base64,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" alt="LexTime Logo" style="width:80px;height:80px;border-radius:50%;object-fit:cover;box-shadow:0 12px 40px rgba(201,146,42,.4);">
+      <div class="brand-name">LexTime</div>
+    </div>
+    <h1 class="page-title">יצירת <span>קשר</span></h1>
+    <p class="page-sub">אנחנו כאן בשבילך. צור קשר בכל שאלה, בקשה או סתם לשמוע עוד על הפלטפורמה.</p>
+  </div>
+</div>
+
+<!-- MAIN -->
+<main>
+  <div class="container">
+    <div class="contact-wrapper">
+
+      <!-- LEFT — CONTACT DETAILS -->
+      <div class="contact-card">
+        <div class="card-label">📞 פרטי התקשרות</div>
+        <h2 class="card-title">LexTime<br>ניהול מועדים משפטיים</h2>
+
+        <div class="contact-row">
+          <div class="cr-icon">📍</div>
+          <div>
+            <div class="cr-label">כתובת</div>
+            <div class="cr-value">הנביאים 28, חיפה 3310407</div>
+            <div class="en-block">28 HaNevi'im St., Haifa 3310407</div>
+          </div>
+        </div>
+
+        <div class="contact-row">
+          <div class="cr-icon">📞</div>
+          <div>
+            <div class="cr-label">טלפון</div>
+            <div class="cr-value"><a href="tel:+97248758355" dir="ltr">04-875-8355</a></div>
+            <div class="cr-sub">שעות פעילות: א'–ה' 09:00–18:00</div>
+            <div class="en-block">Tel: +972-4-875-8355</div>
+          </div>
+        </div>
+
+        <div class="contact-row">
+          <div class="cr-icon">📠</div>
+          <div>
+            <div class="cr-label">פקס</div>
+            <div class="cr-value" dir="ltr">077-555-8894</div>
+            <div class="en-block">Fax: +972-77-555-8894</div>
+          </div>
+        </div>
+
+
+      </div>
+
+      <!-- RIGHT — MAP -->
+      <div class="map-card">
+        <iframe
+          class="map-embed"
+          title="מיקום LexTime — הנביאים 28, חיפה"
+          src="https://maps.google.com/maps?q=28+HaNevi'im+St+Haifa+Israel&output=embed&z=15"
+          allowfullscreen
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade">
+        </iframe>
+        <div class="map-footer">
+          <div class="map-addr">
+            <strong>LexTime</strong> · הנביאים 28, חיפה 3310407<br>
+            <span style="direction:ltr;display:inline-block">28 HaNevi'im St., Haifa 3310407, Israel</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+      <!-- CONTACT FORM -->
+      <div class="form-section">
+        <div class="form-card">
+          <div class="card-label">✉️ שלח הודעה</div>
+          <h2 class="card-title">השאירו הודעה<br>ונחזור אליכם בהקדם</h2>
+
+
+          <form id="contactForm" action="https://formspree.io/f/mykbwzek" method="POST">
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label" for="name">שם מלא *</label>
+                <input class="form-input" type="text" id="name" name="name" placeholder="ישראל ישראלי" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="phone">טלפון</label>
+                <input class="form-input" type="tel" id="phone" name="phone" placeholder="050-000-0000" dir="ltr">
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="email">כתובת מייל *</label>
+                <input class="form-input" type="email" id="email" name="email" placeholder="your@email.com" dir="ltr" required>
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="subject">נושא</label>
+                <input class="form-input" type="text" id="subject" name="subject" placeholder="במה נוכל לעזור?">
+              </div>
+              <div class="form-group full">
+                <label class="form-label" for="message">הודעה *</label>
+                <textarea class="form-textarea" id="message" name="message" placeholder="כתוב את הודעתך כאן..." required></textarea>
+              </div>
+            </div>
+
+            <button type="submit" class="form-submit">
+              <span>שלח הודעה</span>
+              <span>📨</span>
+            </button>
+            <p class="form-note">הפרטים שלך נשמרים בסודיות מלאה ולא יועברו לצד שלישי</p>
+          </form>
+
+          <div class="success-msg" id="successMsg">
+            <div class="s-icon">✅</div>
+            <p>ההודעה נשלחה בהצלחה!</p>
+            <small>נחזור אליך תוך יום עסקים אחד</small>
+          </div>
+        </div>
+      </div>
+  </div>
+</main>
+
+<!-- FOOTER -->
+<footer>
