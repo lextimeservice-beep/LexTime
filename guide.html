@@ -1102,14 +1102,19 @@ section[id]{scroll-margin-top:20px}
               <td><span class="chip chip-blue">9(ב)</span></td>
             </tr>
             <tr>
-              <td class="type-cell">ביטוח לאומי / פינוי מושכר</td>
-              <td class="days-cell green">30 יום</td>
-              <td><span class="chip chip-blue">9(ב)</span></td>
+              <td class="type-cell">דיון מהיר</td>
+              <td class="days-cell" style="color:var(--teal);font-weight:900;font-size:15px;text-align:center">45 יום</td>
+              <td><span class="chip chip-blue">80(א)</span></td>
             </tr>
             <tr>
-              <td class="type-cell">סדר דין מהיר</td>
-              <td class="days-cell" style="color:var(--teal);font-weight:900;font-size:15px;text-align:center">45 יום</td>
-              <td><span class="chip chip-blue">9(ב)</span></td>
+              <td class="type-cell">פינוי מושכר</td>
+              <td class="days-cell green">30 יום</td>
+              <td><span class="chip chip-blue">81(ב)</span></td>
+            </tr>
+            <tr>
+              <td class="type-cell">ביטוח לאומי</td>
+              <td class="days-cell green">30 יום</td>
+              <td><span class="chip chip-blue" style="white-space:nowrap;font-size:10px">תק׳ 33 בי״ד לעבודה</span></td>
             </tr>
           </tbody>
         </table>
@@ -1420,7 +1425,7 @@ section[id]{scroll-margin-top:20px}
           <div class="box-body">
             <ul>
               <li>הזן תמיד את תאריך ה<strong>המצאה לנתבע</strong> — ולא תאריך הגשת התביעה לבית המשפט. מהמצאה יתחיל ציר הזמנים.</li>
-              <li>בחר <strong>סוג תיק נכון</strong> — הוא קובע 30/60/120 ימים לכתב הגנה ומשפיע על כל ציר הזמנים.</li>
+              <li>בחר <strong>סוג תיק נכון</strong> — הוא קובע 30/45/60/120 ימים לכתב הגנה ומשפיע על כל ציר הזמנים.</li>
               <li>הזן <strong>מועדים בפועל</strong> מיד לאחר כל הגשה — השרשור יישמר נכון.</li>
               <li>בדוק <strong>את התקנה המלאה</strong> בלחיצה לפני הסתמכות על הכותרת בלבד.</li>
             </ul>
@@ -1447,7 +1452,7 @@ section[id]{scroll-margin-top:20px}
             <ul>
               <li><strong>תקנה 49(ד)</strong> — לפני כל בקשה — חובה לפנות לצד שכנגד 7 ימים מראש. המערכת מתריעה כשמטלה 7 מסומנת "דחוף".</li>
               <li><strong>תקנה 9(ב)</strong> — ודא שסוג התיק נבחר נכון, אחרת מועד ההגנה יהיה שגוי.</li>
-              <li><strong>תקנה 37(ב)</strong> — מינוי מגשר מהו"ת אינו חל בנזק גוף ותאונות דרכים. אם בחרת "נזק גוף" — שלב זה לא רלוונטי.</li>
+              <li><strong>תקנה 37(ב)</strong> — מינוי מגשר מהו"ת אינו חל בנזק גוף ותאונות דרכים, וכן בתובענה <strong>ששווי נושאה אינו עולה על 40,000 ש"ח</strong>. אם בחרת "נזק גוף" — שלב זה לא רלוונטי.</li>
             </ul>
           </div>
         </div>
@@ -1518,7 +1523,7 @@ section[id]{scroll-margin-top:20px}
     </div>
     <div class="faq-item">
       <div class="faq-q" onclick="this.closest('.faq-item').classList.toggle('open')">
-        כיצד לחץ על מספר תקנה פותח את הטקסט?
+        כיצד לחיצה על מספר תקנה פותח את הטקסט?
         <span class="arrow">+</span>
       </div>
       <div class="faq-a">כל מספר תקנה בפלטפורמה (כגון "תקנה 37(ב)") מוצג עם קו תחתון מנוקד. לחיצה עליו פותחת חלון עם הטקסט המלא של התקנה. אם ציינת תת-סעיף (כגון "(ב)") — הסעיף הרלוונטי יודגש בצהוב ויגלול אוטומטית לתצוגה.</div>
@@ -1542,7 +1547,7 @@ section[id]{scroll-margin-top:20px}
         מחקתי תיק בטעות — אפשר לשחזר?
         <span class="arrow">+</span>
       </div>
-      <div class="faq-a">לא. מחיקת תיק היא פעולה בלתי הפיכה. כל הנתונים נמחקים מה-localStorage. לא קיים מנגנון שחזור מובנה. מומלץ לגבות נתוני תיקים חשובים לפני ביצוע פעולות מחיקה.</div>
+      <div class="faq-a">כל הנתונים נמחקים מה-localStorage. קיים מנגנון שחזור מובנה. מומלץ לגבות נתוני תיקים חשובים לפני ביצוע פעולות מחיקה. עם זאת, הזנה מחדש של מועד המצאת כתב הטענות לנתבע, יספיק כדי לחדש את המידע עבור <strong>כול המועדים הרלוונטים לתיק</strong>.</div>
     </div>
   </div>
 </section>
