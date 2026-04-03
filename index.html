@@ -1116,7 +1116,6 @@ function toggleMenu(){
         <div class="sreg-ptabs">
           <div class="sreg-ptab active" id="ptab-card" onclick="sregPayTab('card')"><span class="sreg-ptab-icon">💳</span>כרטיס אשראי</div>
           <div class="sreg-ptab" id="ptab-paypal" onclick="sregPayTab('paypal')"><span class="sreg-ptab-icon">🅿️</span>PayPal</div>
-          <div class="sreg-ptab" id="ptab-bank" onclick="sregPayTab('bank')"><span class="sreg-ptab-icon">🏦</span>העברה בנקאית</div>
         </div>
 
         <!-- Credit Card panel -->
@@ -1187,21 +1186,6 @@ function toggleMenu(){
           </div>
         </div>
 
-        <!-- Bank Transfer panel -->
-        <div class="sreg-ppanel" id="pay-bank">
-          <div style="background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:22px">
-            <div style="font-size:13px;font-weight:600;color:#e8b84b;margin-bottom:14px">פרטי חשבון להעברה:</div>
-            <div style="display:flex;flex-direction:column;gap:10px;font-size:14px;color:rgba(255,255,255,.65)">
-              <div style="display:flex;justify-content:space-between"><span>בנק:</span><strong id="bd-bank" style="color:#fff">לאומי (10)</strong></div>
-              <div style="display:flex;justify-content:space-between"><span>סניף:</span><strong id="bd-branch" style="color:#fff">900</strong></div>
-              <div style="display:flex;justify-content:space-between"><span>חשבון:</span><strong id="bd-account" style="color:#fff">12345678</strong></div>
-              <div style="display:flex;justify-content:space-between"><span>שם:</span><strong id="bd-owner" style="color:#fff">LexTime</strong></div>
-              <div style="display:flex;justify-content:space-between"><span>סכום:</span><strong id="bd-amount" style="color:#e8b84b"></strong></div>
-            </div>
-            <div style="margin-top:14px;padding:10px;background:rgba(201,146,42,.07);border-radius:7px;font-size:12px;color:rgba(255,255,255,.45)">לאחר ביצוע ההעברה שלח אישור ל: <span style="color:#e8b84b">lextimeservice@gmail.com</span></div>
-          </div>
-        </div>
-
         <div id="payError" style="display:none;background:rgba(185,28,28,.15);border:1px solid rgba(185,28,28,.4);color:#f87171;padding:10px 14px;border-radius:8px;font-size:13px;margin-top:14px"></div>
         <button class="sreg-btn sreg-btn-gold" id="paySubmitBtn" onclick="submitPayment()" style="margin-top:20px">השלם תשלום ←</button>
         <button class="sreg-btn sreg-btn-outline" onclick="backToStep1()">← חזרה לפרטים אישיים</button>
@@ -1231,7 +1215,7 @@ function toggleMenu(){
             <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.8">הגישה תינתן לאחר אימות התשלום. נשלח אליך אישור לדוא"ל תוך 24 שעות.</div>
           </div>
           <div style="text-align:center">
-            <a href="mailto:lextimeservice@gmail.com" style="color:#e8b84b;font-size:13px">📧 lextimeservice@gmail.com</a>
+            <a href="/cdn-cgi/l/email-protection#fd919885899490988e988f8b949e98bd9a909c9491d39e9290" style="color:#e8b84b;font-size:13px">📧 <span class="__cf_email__" data-cfemail="6d010815190400081e081f1b040e082d0a000c0401430e0200">[email&#160;protected]</span></a>
           </div>
           <div style="text-align:center;margin-top:16px">
             <button onclick="closeSignup()" style="padding:11px 24px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:13px;cursor:pointer;font-family:'Heebo',sans-serif">← חזרה לדף הבית</button>
@@ -1243,7 +1227,7 @@ function toggleMenu(){
   </div><!-- /sreg-wrap -->
 </div><!-- /signupModal -->
 
-<script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 var _plan='', _price='', _payTab='card';
 
 function openSignup(plan,price){
@@ -1251,7 +1235,6 @@ function openSignup(plan,price){
   document.getElementById('sumPlanName').textContent='מסלול '+plan;
   document.getElementById('sumPrice').textContent='₪'+price+'/חודש';
   document.getElementById('sumPriceSub').textContent='₪'+price;
-  document.getElementById('bd-amount').textContent='₪'+price;
   var m=document.getElementById('signupModal');
   m.style.display='block'; document.body.style.overflow='hidden';
   sregShowStep(1);
@@ -1298,7 +1281,7 @@ function sregFmtExp(inp){
 }
 function sregPayTab(name){
   _payTab=name;
-  ['card','paypal','bank'].forEach(function(m){
+  ['card','paypal'].forEach(function(m){
     var t=document.getElementById('ptab-'+m), p=document.getElementById('pay-'+m);
     if(t)t.classList.toggle('active',m===name);
     if(p)p.classList.toggle('active',m===name);
@@ -1348,17 +1331,6 @@ function submitPayment(){
     sregErr('ccExp',!/^\d{2}\/\d{2}$/.test(exp)); if(!/^\d{2}\/\d{2}$/.test(exp))ok=false;
     sregErr('ccCVV',cvv.length<3);      if(cvv.length<3)ok=false;
     if(!ok)return;
-  }
-  if(_payTab==='bank'){
-    // העברה בנקאית — שמירה כ-pending, אימות ידני
-    var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
-    var email=document.getElementById('regEmail').value.trim();
-    sregShowStep(3);
-    document.getElementById('sregProcessing').style.display='none';
-    document.getElementById('sregSuccess').style.display='none';
-    document.getElementById('sregPending').style.display='block';
-    saveToFirestore(name,email,_plan,_price,'bank','pending');
-    return;
   }
   err.style.display='none';
   var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
@@ -1704,18 +1676,4 @@ function doLogin(){
       }
     }catch(e){}
     if(ok){
-      localStorage.setItem('lextime_access','granted');
-      closeLogin();
-      window.location.href='platform.html';
-    } else {
-      errEl.style.display='block';
-      errEl.textContent='כתובת הדוא"ל או הסיסמה שגויים. נסה שנית.';
-    }
-  },900);
-}
-document.getElementById('loginModal').addEventListener('click',function(e){
-  if(e.target===this) closeLogin();
-});
-</script>
-</body>
-</html>
+      localStorage.setItem('lextime_access','g
