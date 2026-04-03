@@ -1367,6 +1367,80 @@ function saveLocalCredentials(name,email,plan,price,method){
   var userData={name:name,email:email,plan:plan,price:price,method:method,date:new Date().toLocaleDateString('he-IL')};
   localStorage.setItem('lextime_user',JSON.stringify(userData));
 }
+function openPayPalSubscription(){
+  var PAYPAL_PLANS={
+    'עצמאי':'P-1T860757D49561026NHD4DFQ',
+    'משרד':'P-2BT36473BJ884801MNHD5HGY',
+    'משרד גדול':'P-2F482632XU839435PNHD5PTA'
+  };
+  var planId=PAYPAL_PLANS[_plan]||'';
+  var url='https://www.paypal.com/webapps/billing/plans/subscribe?plan_id='+planId;
+  window.open(url,'_blank');
+  document.getElementById('paypalPendingMsg').style.display='block';
+  var ph=document.getElementById('paypalBtnPlaceholder');
+  ph.style.opacity='.4';
+  ph.style.pointerEvents='none';
+  var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
+  var email=document.getElementById('regEmail').value.trim();
+  saveLocalCredentials(name,email,_plan,_price,'paypal');
+  saveToFirestore(name,email,_plan,_price,'paypal','pending');
+}
+function verifyPayPalPayment(){
+  var email=document.getElementById('regEmail').value.trim().toLowerCase();
+  var verifyMsg=document.getElementById('paypalVerifyMsg');
+  verifyMsg.style.display='block';
+  verifyMsg.textContent='מאמת תשלום...';
+  var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
+  fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(data.active){
+      localStorage.setItem('lextime_access','granted');
+      var planKey=data.plan==='עצמאי'?'basic':data.plan==='משרד'?'office':'pro';
+      localStorage.setItem('lextime_plan',planKey);
+      sregShowStep(3);
+      document.getElementById('sregProcessing').style.display='none';
+      document.getElementById('sregPending').style.display='none';
+      document.getElementById('sregSuccess').style.display='block';
+    } else {
+      verifyMsg.textContent='התשלום ב-PayPal טרם אושר. אם סיימת לשלם, נסה שוב בעוד דקה.';
+    }
+  })
+  .catch(function(){
+    try{
+      firebase.firestore().collection('users').where('email','==',email).get()
+      .then(function(snap){
+        if(!snap.empty && snap.docs[0].data().status==='active'){
+          localStorage.setItem('lextime_access','granted');
+          sregShowStep(3);
+          document.getElementById('sregProcessing').style.display='none';
+          document.getElementById('sregPending').style.display='none';
+          document.getElementById('sregSuccess').style.display='block';
+        } else {
+          verifyMsg.textContent='התשלום טרם אושר. נסה שוב בעוד דקה.';
+        }
+      });
+    }catch(e){verifyMsg.textContent='שגיאת חיבור. נסה שוב.';}
+  });
+}
+function onPayPalReturn(){verifyPayPalPayment();}
+function saveToFirestore(name,email,plan,price,method,status){
+  try{
+    var db=firebase.firestore();
+    var emailLower=email.toLowerCase();
+    db.collection('users').where('email','==',emailLower).get().then(function(snap){
+      var data={name:name,email:emailLower,plan:plan,price:price,method:method,status:status,
+        phone:document.getElementById('regPhone')?document.getElementById('regPhone').value:'',
+        updatedAt:firebase.firestore.FieldValue.serverTimestamp()};
+      if(snap.empty){
+        data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+        db.collection('users').add(data);
+      } else {
+        db.collection('users').doc(snap.docs[0].id).update(data);
+      }
+    });
+  }catch(e){console.warn('Firestore save failed:',e);}
+}
 function openLogin(){
   var m=document.getElementById('loginModal');
   m.style.display='flex';
