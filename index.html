@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -6,19 +7,6 @@
 <title>LexTime — ניהול מועדים משפטיים חכם לעורכי דין</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-  <!-- ══ FIREBASE SDK ══ -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script>
-  firebase.initializeApp({
-    apiKey: "AIzaSyAOwMTp02bzFJ351uFcrhKalak6TlqbpyE",
-    authDomain: "lextime-82214.firebaseapp.com",
-    projectId: "lextime-82214",
-    storageBucket: "lextime-82214.firebasestorage.app",
-    messagingSenderId: "35753362194",
-    appId: "1:35753362194:web:00b7fb6fc54884c2e769cb"
-  });
-</script>
 <style>
 :root{
   --ink:#0a1628;
@@ -1516,58 +1504,42 @@ function openPayPalSubscription(){
 function verifyPayPalPayment(){
   var email=document.getElementById('regEmail').value.trim().toLowerCase();
   var verifyMsg=document.getElementById('paypalVerifyMsg');
-  var verifyBtn=document.querySelector('[onclick="verifyPayPalPayment()"]');
   verifyMsg.style.display='block';
   verifyMsg.textContent='מאמת תשלום...';
-  if(verifyBtn){verifyBtn.disabled=true;verifyBtn.style.opacity='0.7';}
-
-  function onSuccess(plan){
-    grantFullAccess(email, plan||_plan);
-    sregShowStep(3);
-    document.getElementById('sregProcessing').style.display='none';
-    document.getElementById('sregPending').style.display='none';
-    document.getElementById('sregSuccess').style.display='block';
-  }
-  function onPending(){
-    verifyMsg.textContent='התשלום ב-PayPal טרם אושר. אם סיימת לשלם, נסה שוב בעוד דקה.';
-    if(verifyBtn){verifyBtn.disabled=false;verifyBtn.style.opacity='1';}
-  }
-  function onError(){
-    verifyMsg.textContent='בודק ישירות מול המערכת...';
-    firebase.firestore().collection('users').where('email','==',email).get()
-    .then(function(snap){
-      if(!snap.empty && snap.docs[0].data().status==='active'){
-        onSuccess(snap.docs[0].data().plan);
-      } else {
-        onPending();
-      }
-    })
-    .catch(function(e){
-      console.error('Firestore error:',e);
-      verifyMsg.textContent='שגיאת חיבור. בדוק את חיבור האינטרנט ונסה שוב.';
-      if(verifyBtn){verifyBtn.disabled=false;verifyBtn.style.opacity='1';}
-    });
-  }
-
   var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
-  fetch(CHECK_URL,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email:email})
-  })
-  .then(function(r){
-    if(!r.ok) throw new Error('HTTP '+r.status);
-    return r.json();
-  })
+  fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+  .then(function(r){return r.json();})
   .then(function(data){
-    if(data.active){ onSuccess(data.plan); }
-    else { onPending(); }
+    if(data.active){
+      // תשלום אומת — מעניקים גישה
+      grantFullAccess(email, data.plan);
+      sregShowStep(3);
+      document.getElementById('sregProcessing').style.display='none';
+      document.getElementById('sregPending').style.display='none';
+      document.getElementById('sregSuccess').style.display='block';
+    } else {
+      verifyMsg.textContent='התשלום ב-PayPal טרם אושר. אם סיימת לשלם, נסה שוב בעוד דקה.';
+    }
   })
   .catch(function(){
-    onError();
+    try{
+      firebase.firestore().collection('users').where('email','==',email).get()
+      .then(function(snap){
+        if(!snap.empty && snap.docs[0].data().status==='active'){
+          grantFullAccess(email, snap.docs[0].data().plan||_plan);
+          sregShowStep(3);
+          document.getElementById('sregProcessing').style.display='none';
+          document.getElementById('sregPending').style.display='none';
+          document.getElementById('sregSuccess').style.display='block';
+        } else {
+          verifyMsg.textContent='התשלום טרם אושר. נסה שוב בעוד דקה.';
+        }
+      });
+    }catch(e){verifyMsg.textContent='שגיאת חיבור. נסה שוב.';}
   });
 }
 function onPayPalReturn(){verifyPayPalPayment();}
+
 function saveToFirestore(name,email,plan,price,method,status){
   try{
     var db=firebase.firestore();
@@ -1724,13 +1696,182 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
       style="width:100%;padding:14px;background:linear-gradient(135deg,#c9922a,#e8b84b);color:#0a1628;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;margin-bottom:12px">
       כניסה למערכת ←
     </button>
+    <div style="text-align:center;margin-bottom:12px">
+      <a href="javascript:void(0)" onclick="showForgotPassword()"
+        style="color:rgba(255,255,255,.4);font-size:13px;text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.2);padding-bottom:1px">
+        שכחתי סיסמה
+      </a>
+    </div>
     <div style="text-align:center;font-size:13px;color:rgba(255,255,255,.35)">
       אין לך חשבון עדיין?
       <a href="javascript:void(0)" onclick="closeLogin();setTimeout(function(){document.getElementById('pricing').scrollIntoView({behavior:'smooth'})},200)"
         style="color:#e8b84b;text-decoration:none;font-weight:600"> הצטרף עכשיו</a>
     </div>
+
+    <!-- ══ FORGOT PASSWORD PANEL ══ -->
+    <div id="forgotPanel" style="display:none;margin-top:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:20px">
+      <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px">איפוס סיסמה</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:14px">הזן את כתובת הדוא"ל שלך ונשלח לך קוד לאיפוס הסיסמה</div>
+      <div id="forgotMsg" style="display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px"></div>
+      <div style="margin-bottom:12px">
+        <input id="forgotEmail" type="email" placeholder="name@lawfirm.co.il"
+          style="width:100%;padding:11px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;color:#fff;outline:none"
+          onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='rgba(255,255,255,.15)'"
+          onkeydown="if(event.key==='Enter')sendResetCode()">
+      </div>
+      <!-- שלב 2: הזנת קוד + סיסמה חדשה -->
+      <div id="resetCodePanel" style="display:none">
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:13px;color:rgba(255,255,255,.65);margin-bottom:6px">קוד אימות (נשלח למייל)</label>
+          <input id="resetCode" type="text" placeholder="123456" maxlength="6"
+            style="width:100%;padding:11px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:18px;font-family:'Heebo',sans-serif;color:#fff;outline:none;text-align:center;letter-spacing:6px"
+            onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+        </div>
+        <div style="margin-bottom:12px">
+          <label style="display:block;font-size:13px;color:rgba(255,255,255,.65);margin-bottom:6px">סיסמה חדשה</label>
+          <input id="resetNewPass" type="password" placeholder="לפחות 8 תווים"
+            style="width:100%;padding:11px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;color:#fff;outline:none"
+            onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+        </div>
+        <button onclick="confirmResetPassword()"
+          style="width:100%;padding:12px;background:linear-gradient(135deg,#1a7a4a,#28a060);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;margin-bottom:10px">
+          אפס סיסמה ✓
+        </button>
+      </div>
+      <button id="sendResetBtn" onclick="sendResetCode()"
+        style="width:100%;padding:12px;background:rgba(201,146,42,.15);color:#e8b84b;border:1px solid rgba(201,146,42,.3);border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;margin-bottom:10px">
+        שלח קוד לאיפוס ←
+      </button>
+      <div style="text-align:center">
+        <a href="javascript:void(0)" onclick="hideForgotPassword()" style="color:rgba(255,255,255,.35);font-size:13px;text-decoration:none">← חזרה לכניסה</a>
+      </div>
+    </div>
   </div>
 </div>
+
+<script>
+function showForgotPassword(){
+  document.getElementById('forgotPanel').style.display='block';
+  document.getElementById('loginBtn').style.display='none';
+  document.getElementById('forgotEmail').value=document.getElementById('loginEmail').value||'';
+  document.getElementById('forgotMsg').style.display='none';
+  document.getElementById('resetCodePanel').style.display='none';
+  document.getElementById('sendResetBtn').style.display='block';
+  setTimeout(function(){document.getElementById('forgotEmail').focus();},100);
+}
+function hideForgotPassword(){
+  document.getElementById('forgotPanel').style.display='none';
+  document.getElementById('loginBtn').style.display='block';
+}
+function sendResetCode(){
+  var email=document.getElementById('forgotEmail').value.trim().toLowerCase();
+  var msgEl=document.getElementById('forgotMsg');
+  var btn=document.getElementById('sendResetBtn');
+  if(!email||!/\S+@\S+\.\S+/.test(email)){
+    msgEl.style.display='block';
+    msgEl.style.background='rgba(185,28,28,.15)';
+    msgEl.style.border='1px solid rgba(185,28,28,.35)';
+    msgEl.style.color='#f87171';
+    msgEl.textContent='נא להזין כתובת דוא"ל תקינה.';
+    return;
+  }
+  btn.textContent='שולח...';
+  btn.disabled=true;
+  var RESET_URL='https://us-central1-lextime-82214.cloudfunctions.net/sendResetCode';
+  fetch(RESET_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    btn.style.display='none';
+    msgEl.style.display='block';
+    if(data.success){
+      msgEl.style.background='rgba(26,122,74,.15)';
+      msgEl.style.border='1px solid rgba(26,122,74,.35)';
+      msgEl.style.color='#4ade80';
+      msgEl.textContent='✅ קוד נשלח למייל שלך. בדוק את תיבת הדואר (כולל ספאם).';
+      document.getElementById('resetCodePanel').style.display='block';
+    } else {
+      msgEl.style.background='rgba(185,28,28,.15)';
+      msgEl.style.border='1px solid rgba(185,28,28,.35)';
+      msgEl.style.color='#f87171';
+      msgEl.textContent=data.error||'שגיאה. נסה שוב.';
+      btn.textContent='שלח קוד לאיפוס ←';
+      btn.disabled=false;
+      btn.style.display='block';
+    }
+  })
+  .catch(function(){
+    msgEl.style.display='block';
+    msgEl.style.background='rgba(185,28,28,.15)';
+    msgEl.style.border='1px solid rgba(185,28,28,.35)';
+    msgEl.style.color='#f87171';
+    msgEl.textContent='שגיאת חיבור. נסה שוב.';
+    btn.textContent='שלח קוד לאיפוס ←';
+    btn.disabled=false;
+    btn.style.display='block';
+  });
+}
+function confirmResetPassword(){
+  var email=document.getElementById('forgotEmail').value.trim().toLowerCase();
+  var code=document.getElementById('resetCode').value.trim();
+  var newPass=document.getElementById('resetNewPass').value;
+  var msgEl=document.getElementById('forgotMsg');
+  if(!code||code.length<6){
+    msgEl.style.display='block';
+    msgEl.style.background='rgba(185,28,28,.15)';
+    msgEl.style.border='1px solid rgba(185,28,28,.35)';
+    msgEl.style.color='#f87171';
+    msgEl.textContent='נא להזין את הקוד שנשלח למייל.';
+    return;
+  }
+  if(!newPass||newPass.length<8){
+    msgEl.style.display='block';
+    msgEl.style.background='rgba(185,28,28,.15)';
+    msgEl.style.border='1px solid rgba(185,28,28,.35)';
+    msgEl.style.color='#f87171';
+    msgEl.textContent='הסיסמה חייבת להכיל לפחות 8 תווים.';
+    return;
+  }
+  var VERIFY_URL='https://us-central1-lextime-82214.cloudfunctions.net/verifyResetCode';
+  fetch(VERIFY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,code:code})})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    if(data.valid){
+      // עדכון סיסמה מקומית
+      try{
+        var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
+        if(!creds) creds={email:email,status:'pending'};
+        creds.passHash=simpleHashLogin(newPass);
+        creds.email=email;
+        localStorage.setItem('lextime_credentials',JSON.stringify(creds));
+      }catch(e){}
+      msgEl.style.display='block';
+      msgEl.style.background='rgba(26,122,74,.15)';
+      msgEl.style.border='1px solid rgba(26,122,74,.35)';
+      msgEl.style.color='#4ade80';
+      msgEl.textContent='✅ הסיסמה אופסה בהצלחה! כעת תוכל להתחבר.';
+      document.getElementById('resetCodePanel').style.display='none';
+      setTimeout(function(){
+        hideForgotPassword();
+        document.getElementById('loginEmail').value=email;
+        document.getElementById('loginPass').focus();
+      },2000);
+    } else {
+      msgEl.style.display='block';
+      msgEl.style.background='rgba(185,28,28,.15)';
+      msgEl.style.border='1px solid rgba(185,28,28,.35)';
+      msgEl.style.color='#f87171';
+      msgEl.textContent='קוד שגוי או פג תוקף. נסה שוב.';
+    }
+  })
+  .catch(function(){
+    msgEl.style.display='block';
+    msgEl.style.background='rgba(185,28,28,.15)';
+    msgEl.style.border='1px solid rgba(185,28,28,.35)';
+    msgEl.style.color='#f87171';
+    msgEl.textContent='שגיאת חיבור. נסה שוב.';
+  });
+}
+</script>
 
 <!-- ══ LEGAL MODAL ══ -->
 <div id="legalModal" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.65);z-index:3000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)" onclick="if(event.target===this)closeLegal()">
