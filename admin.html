@@ -894,20 +894,25 @@ function syncLandingRegistrations(){
   /* בודק אם יש נרשם חדש מדף הנחיתה שעדיין לא נוסף */
   try{
     var userData = JSON.parse(localStorage.getItem('lextime_user')||'null');
-    if(!userData) return;
+    if(!userData || !userData.email) return;
+
     var subs = loadSubs();
     var exists = subs.find(function(s){return s.email===userData.email;});
-    if(!exists && userData.email){
-      var id = 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-      subs.push({
-        id:id, name:userData.name||'', firm:'', email:userData.email||'',
-        phone:'', plan:userData.plan||'', payMethod:userData.method||'',
-        status:userData.method==='bank'?'pending':'active',
-        date:userData.date||new Date().toISOString().slice(0,10),
-        notes:'נרשם דרך האתר'
-      });
-      saveSubs(subs);
-    }
+    if(exists) return; // כבר קיים
+
+    // בדיקה אם נמחק בעבר ע"י המנהל
+    var deleted = JSON.parse(localStorage.getItem('tb_deleted_emails')||'[]');
+    if(deleted.indexOf(userData.email) !== -1) return; // נמחק — לא להוסיף שוב
+
+    var id = 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+    subs.push({
+      id:id, name:userData.name||'', firm:'', email:userData.email||'',
+      phone:'', plan:userData.plan||'', payMethod:userData.method||'',
+      status:'pending',
+      date:userData.date||new Date().toISOString().slice(0,10),
+      notes:'נרשם דרך האתר'
+    });
+    saveSubs(subs);
   }catch(e){}
 }
 function initApp(){
@@ -1231,7 +1236,19 @@ function suspendSub(id){
 }
 function deleteSub(id){
   if(!confirm('למחוק נרשם זה לצמיתות?'))return;
-  saveSubs(loadSubs().filter(function(s){return s.id!==id;}));
+  var subs = loadSubs();
+  var sub = subs.find(function(s){return s.id===id;});
+
+  // שמירת המייל ברשימת מחוקים — כדי שלא יתווסף שוב בטעינה הבאה
+  if(sub && sub.email){
+    try{
+      var deleted = JSON.parse(localStorage.getItem('tb_deleted_emails')||'[]');
+      if(deleted.indexOf(sub.email) === -1) deleted.push(sub.email);
+      localStorage.setItem('tb_deleted_emails', JSON.stringify(deleted));
+    }catch(e){}
+  }
+
+  saveSubs(subs.filter(function(s){return s.id!==id;}));
   savePays(loadPays().filter(function(p){return p.subId!==id;}));
   renderSubs();renderDashboard();
   toast('הנרשם נמחק 🗑');
