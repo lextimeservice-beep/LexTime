@@ -1335,17 +1335,14 @@ function submitPayment(){
   err.style.display='none';
   var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
   var email=document.getElementById('regEmail').value.trim();
+  // שמירת פרטי הרישום בלבד — ללא גישה לפלטפורמה
+  savePendingCredentials(name,email);
+  // שמירה ל-Firestore כ-pending — גישה תינתן רק לאחר אימות webhook
+  saveToFirestore(name,email,_plan,_price,'card','pending');
   sregShowStep(3);
-  document.getElementById('sregProcessing').style.display='block';
+  document.getElementById('sregProcessing').style.display='none';
   document.getElementById('sregSuccess').style.display='none';
-  document.getElementById('sregPending').style.display='none';
-  // כרטיס אשראי — שמירה ל-Firestore ופתיחת גישה (PayPal מעבד)
-  setTimeout(function(){
-    saveToFirestore(name,email,_plan,_price,'card','active');
-    saveLocalCredentials(name,email,_plan,_price,'card');
-    document.getElementById('sregProcessing').style.display='none';
-    document.getElementById('sregSuccess').style.display='block';
-  },1200);
+  document.getElementById('sregPending').style.display='block';
 }
 
 function simpleHash(str){
@@ -1354,19 +1351,27 @@ function simpleHash(str){
   return Math.abs(hash).toString(16);
 }
 
-function saveLocalCredentials(name,email,plan,price,method){
-  // שמירה מקומית לכניסה חוזרת
+// שמירת פרטי רישום בלבד — ללא פתיחת גישה
+function savePendingCredentials(name,email){
+  var pw=document.getElementById('regPass')?document.getElementById('regPass').value:'';
+  if(pw){
+    var creds={email:email.toLowerCase(),passHash:simpleHash(pw),name:name,status:'pending'};
+    localStorage.setItem('lextime_credentials',JSON.stringify(creds));
+  }
+}
+
+// פתיחת גישה מלאה — רק לאחר אימות תשלום
+function grantFullAccess(email,plan){
   localStorage.setItem('lextime_access','granted');
   var planKey=plan==='עצמאי'?'basic':plan==='משרד'?'office':'pro';
   localStorage.setItem('lextime_plan',planKey);
-  var pw=document.getElementById('regPass')?document.getElementById('regPass').value:'';
-  if(pw){
-    var creds={email:email.toLowerCase(),passHash:simpleHash(pw),name:name};
-    localStorage.setItem('lextime_credentials',JSON.stringify(creds));
-  }
-  var userData={name:name,email:email,plan:plan,price:price,method:method,date:new Date().toLocaleDateString('he-IL')};
-  localStorage.setItem('lextime_user',JSON.stringify(userData));
+  // עדכון סטטוס credentials ל-active
+  try{
+    var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
+    if(creds){creds.status='active';localStorage.setItem('lextime_credentials',JSON.stringify(creds));}
+  }catch(e){}
 }
+
 function openPayPalSubscription(){
   var PAYPAL_PLANS={
     'עצמאי':'P-1T860757D49561026NHD4DFQ',
@@ -1382,9 +1387,11 @@ function openPayPalSubscription(){
   ph.style.pointerEvents='none';
   var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
   var email=document.getElementById('regEmail').value.trim();
-  saveLocalCredentials(name,email,_plan,_price,'paypal');
+  // שמירת פרטי רישום בלבד — ללא גישה!
+  savePendingCredentials(name,email);
   saveToFirestore(name,email,_plan,_price,'paypal','pending');
 }
+
 function verifyPayPalPayment(){
   var email=document.getElementById('regEmail').value.trim().toLowerCase();
   var verifyMsg=document.getElementById('paypalVerifyMsg');
@@ -1395,9 +1402,8 @@ function verifyPayPalPayment(){
   .then(function(r){return r.json();})
   .then(function(data){
     if(data.active){
-      localStorage.setItem('lextime_access','granted');
-      var planKey=data.plan==='עצמאי'?'basic':data.plan==='משרד'?'office':'pro';
-      localStorage.setItem('lextime_plan',planKey);
+      // תשלום אומת — מעניקים גישה
+      grantFullAccess(email, data.plan);
       sregShowStep(3);
       document.getElementById('sregProcessing').style.display='none';
       document.getElementById('sregPending').style.display='none';
@@ -1411,7 +1417,7 @@ function verifyPayPalPayment(){
       firebase.firestore().collection('users').where('email','==',email).get()
       .then(function(snap){
         if(!snap.empty && snap.docs[0].data().status==='active'){
-          localStorage.setItem('lextime_access','granted');
+          grantFullAccess(email, snap.docs[0].data().plan||_plan);
           sregShowStep(3);
           document.getElementById('sregProcessing').style.display='none';
           document.getElementById('sregPending').style.display='none';
@@ -1424,6 +1430,7 @@ function verifyPayPalPayment(){
   });
 }
 function onPayPalReturn(){verifyPayPalPayment();}
+
 function saveToFirestore(name,email,plan,price,method,status){
   try{
     var db=firebase.firestore();
@@ -1436,11 +1443,16 @@ function saveToFirestore(name,email,plan,price,method,status){
         data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
         db.collection('users').add(data);
       } else {
-        db.collection('users').doc(snap.docs[0].id).update(data);
+        // עדכון רק אם הסטטוס הנוכחי אינו active — לא לדרוס אישור קיים
+        var currentStatus=snap.docs[0].data().status;
+        if(currentStatus!=='active'){
+          db.collection('users').doc(snap.docs[0].id).update(data);
+        }
       }
     });
   }catch(e){console.warn('Firestore save failed:',e);}
 }
+
 function openLogin(){
   var m=document.getElementById('loginModal');
   m.style.display='flex';
@@ -1479,30 +1491,68 @@ function doLogin(){
   btn.textContent='מתחבר...';
   btn.style.opacity='.7';
   btn.disabled=true;
-  setTimeout(function(){
+
+  // שלב 1: בדיקת סיסמה מקומית
+  var passOk=false;
+  try{
+    var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
+    if(creds && creds.email===email){
+      if(creds.passHash && creds.passHash===simpleHashLogin(pass)) passOk=true;
+      else if(!creds.passHash) passOk=true;
+    }
+  }catch(e){}
+
+  if(!passOk){
     btn.textContent='כניסה למערכת ←';
     btn.style.opacity='1';
     btn.disabled=false;
-    var ok=false;
-    try{
-      var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
-      if(creds && creds.email && creds.email===email){
-        if(creds.passHash){
-          if(creds.passHash===simpleHashLogin(pass)) ok=true;
-        } else {
-          ok=true;
-        }
-      }
-    }catch(e){}
-    if(ok){
-      localStorage.setItem('lextime_access','granted');
+    errEl.style.display='block';
+    errEl.textContent='כתובת הדוא"ל או הסיסמה שגויים. נסה שנית.';
+    return;
+  }
+
+  // שלב 2: אימות תשלום מול Firestore — חובה!
+  var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
+  fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+  .then(function(r){return r.json();})
+  .then(function(data){
+    btn.textContent='כניסה למערכת ←';
+    btn.style.opacity='1';
+    btn.disabled=false;
+    if(data.active){
+      grantFullAccess(email,data.plan);
       closeLogin();
       window.location.href='platform.html';
     } else {
       errEl.style.display='block';
-      errEl.textContent='כתובת הדוא"ל או הסיסמה שגויים. נסה שנית.';
+      errEl.textContent='החשבון שלך ממתין לאימות תשלום. לפרטים: lextimeservice@gmail.com';
     }
-  },900);
+  })
+  .catch(function(){
+    // Fallback: בדיקה ישירה מ-Firestore אם ה-Function לא זמין
+    try{
+      firebase.firestore().collection('users').where('email','==',email).get()
+      .then(function(snap){
+        btn.textContent='כניסה למערכת ←';
+        btn.style.opacity='1';
+        btn.disabled=false;
+        if(!snap.empty && snap.docs[0].data().status==='active'){
+          grantFullAccess(email,snap.docs[0].data().plan||'');
+          closeLogin();
+          window.location.href='platform.html';
+        } else {
+          errEl.style.display='block';
+          errEl.textContent='החשבון ממתין לאימות תשלום. צור קשר: lextimeservice@gmail.com';
+        }
+      });
+    }catch(e){
+      btn.textContent='כניסה למערכת ←';
+      btn.style.opacity='1';
+      btn.disabled=false;
+      errEl.style.display='block';
+      errEl.textContent='שגיאת חיבור. נסה שוב.';
+    }
+  });
 }
 var _lm=document.getElementById('loginModal');
 if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();});
