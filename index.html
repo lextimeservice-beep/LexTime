@@ -1367,261 +1367,6 @@ function saveLocalCredentials(name,email,plan,price,method){
   var userData={name:name,email:email,plan:plan,price:price,method:method,date:new Date().toLocaleDateString('he-IL')};
   localStorage.setItem('lextime_user',JSON.stringify(userData));
 }
-
-function saveToFirestore(name,email,plan,price,method,status){
-  // שמירה ל-Firestore דרך Firebase SDK
-  try{
-    var db=firebase.firestore();
-    var emailLower=email.toLowerCase();
-    db.collection('users').where('email','==',emailLower).get().then(function(snap){
-      var pw=document.getElementById('regPass')?document.getElementById('regPass').value:'';
-      var data={
-        name:name, email:emailLower, plan:plan, price:price,
-        method:method, status:status,
-        phone:document.getElementById('regPhone')?document.getElementById('regPhone').value:'',
-        createdAt:firebase.firestore.FieldValue.serverTimestamp(),
-        updatedAt:firebase.firestore.FieldValue.serverTimestamp(),
-      };
-      if(snap.empty){
-        db.collection('users').add(data);
-      } else {
-        db.collection('users').doc(snap.docs[0].id).update(
-          Object.assign(data,{updatedAt:firebase.firestore.FieldValue.serverTimestamp()})
-        );
-      }
-    });
-  }catch(e){console.warn('Firestore save failed:',e);}
-}
-
-function openPayPalSubscription(){
-  var PAYPAL_PLANS={
-    'עצמאי':'P-1T860757D49561026NHD4DFQ',
-    'משרד':'P-2BT36473BJ884801MNHD5HGY',
-    'משרד גדול':'P-2F482632XU839435PNHD5PTA'
-  };
-  var planId=PAYPAL_PLANS[_plan]||'';
-  var url='https://www.paypal.com/webapps/billing/plans/subscribe?plan_id='+planId;
-  window.open(url,'_blank');
-  // הצגת כפתור האימות
-  document.getElementById('paypalPendingMsg').style.display='block';
-  var ph=document.getElementById('paypalBtnPlaceholder');
-  ph.style.opacity='.4';
-  ph.style.pointerEvents='none';
-  // שמירת פרטי ההרשמה מראש
-  var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
-  var email=document.getElementById('regEmail').value.trim();
-  saveLocalCredentials(name,email,_plan,_price,'paypal');
-  saveToFirestore(name,email,_plan,_price,'paypal','pending');
-}
-
-function verifyPayPalPayment(){
-  // בדיקת סטטוס מ-Firestore — הוגדר כ-active ע"י הWebhook
-  var email=document.getElementById('regEmail').value.trim().toLowerCase();
-  var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
-  document.getElementById('paypalVerifyMsg').style.display='block';
-  document.getElementById('paypalVerifyMsg').textContent='מאמת תשלום...';
-
-  var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
-
-  fetch(CHECK_URL,{
-    method:'POST',
-    headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email:email})
-  })
-  .then(function(r){return r.json();})
-  .then(function(data){
-    if(data.active){
-      // תשלום אומת — פתיחת גישה
-      localStorage.setItem('lextime_access','granted');
-      var planKey=data.plan==='עצמאי'?'basic':data.plan==='משרד'?'office':'pro';
-      localStorage.setItem('lextime_plan',planKey);
-      sregShowStep(3);
-      document.getElementById('sregProcessing').style.display='none';
-      document.getElementById('sregPending').style.display='none';
-      document.getElementById('sregSuccess').style.display='block';
-    } else {
-      // PayPal עדיין לא אישר — ממתין
-      document.getElementById('paypalVerifyMsg').textContent=
-        'התשלום ב-PayPal טרם אושר. אם סיימת לשלם, נסה שוב בעוד דקה.';
-    }
-  })
-  .catch(function(){
-    // אם ה-Function לא זמין — fallback: בדיקה ישירה מ-Firestore
-    try{
-      firebase.firestore().collection('users')
-        .where('email','==',email).get()
-        .then(function(snap){
-          if(!snap.empty && snap.docs[0].data().status==='active'){
-            localStorage.setItem('lextime_access','granted');
-            sregShowStep(3);
-            document.getElementById('sregProcessing').style.display='none';
-            document.getElementById('sregPending').style.display='none';
-            document.getElementById('sregSuccess').style.display='block';
-          } else {
-            document.getElementById('paypalVerifyMsg').textContent=
-              'התשלום טרם אושר. נסה שוב בעוד דקה.';
-          }
-        });
-    }catch(e){
-      document.getElementById('paypalVerifyMsg').textContent=
-        'שגיאת חיבור. נסה שוב.';
-    }
-  });
-}
-
-function onPayPalReturn(){ verifyPayPalPayment(); }
-</script>
-
-<!-- ══ LEGAL MODALS ══ -->
-<div id="legalModal" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.65);z-index:3000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)" onclick="if(event.target===this)closeLegal()">
-  <div style="background:#fff;border-radius:20px;width:100%;max-width:680px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.35);overflow:hidden">
-    <!-- header -->
-    <div style="background:linear-gradient(135deg,#0a1628,#0f2244);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
-      <div>
-        <div id="legalTitle" style="font-family:'Frank Ruhl Libre',serif;font-size:20px;font-weight:900;color:#fff"></div>
-        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:3px">LexTime · עודכן ינואר 2025</div>
-      </div>
-      <button onclick="closeLegal()" style="background:rgba(255,255,255,.12);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center">✕</button>
-    </div>
-    <!-- tabs -->
-    <div style="display:flex;border-bottom:2px solid #f0f4fa;background:#fff;flex-shrink:0">
-      <button onclick="openLegal('terms')"   id="ltab-terms"    style="flex:1;padding:12px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Heebo',sans-serif;transition:.15s">תנאי שימוש</button>
-      <button onclick="openLegal('privacy')" id="ltab-privacy"  style="flex:1;padding:12px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Heebo',sans-serif;transition:.15s">מדיניות פרטיות</button>
-      <button onclick="openLegal('security')" id="ltab-security" style="flex:1;padding:12px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Heebo',sans-serif;transition:.15s">אבטחת מידע</button>
-    </div>
-    <!-- content -->
-    <div id="legalContent" style="overflow-y:auto;padding:28px 32px;font-family:'Heebo',sans-serif;font-size:14px;color:#374151;line-height:1.8;direction:rtl"></div>
-  </div>
-</div>
-
-
-
-<script>
-var _legalData = {
-  terms: {
-    title: 'תנאי שימוש',
-    body: '<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. קבלת התנאים</h3><p style="margin-bottom:16px">השימוש בפלטפורמת LexTime מהווה הסכמה מלאה לתנאי שימוש אלו. אם אינך מסכים לתנאים, אנא הפסק את השימוש בפלטפורמה.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. תיאור השירות</h3><p style="margin-bottom:16px">LexTime היא פלטפורמה לניהול מועדים משפטיים המיועדת לעורכי דין בישראל. הפלטפורמה מסייעת בחישוב מועדים על בסיס תקנות סדר הדין האזרחי 2018 ואינה מהווה ייעוץ משפטי.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. אחריות המשתמש</h3><p style="margin-bottom:16px">המשתמש אחראי לאימות כל מועד משפטי באופן עצמאי. LexTime משמשת ככלי עזר בלבד ואין להסתמך עליה כמקור בלעדי לחישוב מועדים.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. הגבלת אחריות</h3><p style="margin-bottom:16px">החברה לא תישא באחריות לנזקים ישירים, עקיפים, מקריים או תוצאתיים הנובעים מהשימוש בפלטפורמה, לרבות טעויות בחישוב מועדים.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">5. מנוי ותשלום</h3><p style="margin-bottom:16px">המנוי הוא חודשי וניתן לביטול בכל עת. לא יינתן החזר כספי על תקופה שכבר שולמה. שינוי מחיר יודע 30 יום מראש.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">6. קניין רוחני</h3><p style="margin-bottom:16px">כל זכויות הקניין הרוחני בפלטפורמה שמורות ל-LexTime. אין להעתיק, לשכפל או להפיץ ללא אישור מפורש.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">7. יצירת קשר</h3><p>לשאלות: <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'
-  },
-  privacy: {
-    title: 'מדיניות פרטיות',
-    body: '<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. איסוף מידע</h3><p style="margin-bottom:16px">אנו אוספים את המידע הבא בעת ההרשמה: שם מלא, כתובת דוא"ל, מספר טלפון ושם המשרד. מידע זה נדרש לצורך מתן השירות וניהול החשבון.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. שמירת נתוני תיקים</h3><p style="margin-bottom:16px">נתוני התיקים המשפטיים נשמרים <strong>מקומית בדפדפן שלך בלבד</strong> (localStorage) ואינם מועברים לשרתים שלנו.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. שימוש במידע</h3><p style="margin-bottom:16px">המידע האישי ישמש אך ורק לצורך: מתן השירות, עדכונים על שינויי תקנות, ותמיכה טכנית. לא נמכור ולא נעביר מידע לצד שלישי.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. זכויות המשתמש</h3><p style="margin-bottom:16px">בהתאם לחוק הגנת הפרטיות, יש לך זכות לעיין, לתקן או למחוק את המידע האישי שלך.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">5. יצירת קשר</h3><p>לפניות פרטיות: <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'
-  },
-  security: {
-    title: 'אבטחת מידע',
-    body: '<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. עקרונות האבטחה</h3><p style="margin-bottom:16px">אבטחת הנתונים שלך היא בראש סדר העדיפויות. הפלטפורמה בנויה לפי עקרון "פרטיות כברירת מחדל" — נתוני התיקים לא עוזבים את המכשיר שלך.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. אחסון מקומי</h3><p style="margin-bottom:16px">כל נתוני התיקים מאוחסנים ב-localStorage של הדפדפן בלבד. הנתונים אינם מועברים לשרתים חיצוניים.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. הצפנת תקשורת</h3><p style="margin-bottom:16px">תשלומים מעובדים דרך PayPal בלבד ואינם עוברים דרך המערכת שלנו.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. המלצות אבטחה</h3><p style="margin-bottom:8px">מומלץ: להשתמש במחשב אישי בלבד, לא להיכנס מרשת Wi-Fi ציבורית, לגבות נתונים קבוע, לצאת בסיום כל עבודה.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">5. דיווח על בעיות</h3><p>גילית בעיית אבטחה? <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'
-  }
-};
-
-function openLegal(page) {
-  var d = _legalData[page];
-  if (!d) return;
-  document.getElementById('legalTitle').textContent = d.title;
-  document.getElementById('legalContent').innerHTML = d.body;
-  ['terms','privacy','security','security'].forEach(function(p){
-    var btn = document.getElementById('ltab-'+p);
-    if(btn) btn.style.fontWeight = p===page ? '800' : '600';
-    if(btn) btn.style.borderBottom = p===page ? '2px solid #c9922a' : '2px solid transparent';
-    if(btn) btn.style.color = p===page ? '#c9922a' : '#94a3b8';
-  });
-  document.getElementById('legalModal').style.display='flex';
-}
-function closeLegalModal(){
-  document.getElementById('legalModal').style.display='none';
-}
-function closeLegal(){ closeLegalModal(); }
-</script>
-
-<script>
-(function(){
-  var fs=100, st={contrast:false,links:false,'no-anim':false,guide:false}, open=false;
-  var SK='lx_a11y';
-  function sv(){try{localStorage.setItem(SK,JSON.stringify({fs:fs,st:st}));}catch(e){}}
-  function ld(){try{var d=JSON.parse(localStorage.getItem(SK)||'{}');if(d.fs)fs=d.fs;if(d.st)st=Object.assign(st,d.st);}catch(e){}}
-  window.a11yOpen=function(){
-    open=!open;
-    var p=document.getElementById('a11y-panel');
-    var t=document.getElementById('a11y-toggle');
-    if(p)p.classList.toggle('open',open);
-    if(t)t.setAttribute('aria-expanded',open);
-  };
-  window.a11yFont=function(d){
-    fs=Math.min(150,Math.max(80,fs+d*10));
-    document.documentElement.style.fontSize=fs+'%';
-    var e=document.getElementById('a11y-fval');if(e)e.textContent=fs+'%';
-    sv();
-  };
-  window.a11yFontReset=function(){
-    fs=100;document.documentElement.style.fontSize='';
-    var e=document.getElementById('a11y-fval');if(e)e.textContent='100%';sv();
-  };
-  window.a11yToggle=function(k){
-    st[k]=!st[k];
-    var btn=document.getElementById('a11y-btn-'+k);
-    if(btn){btn.classList.toggle('active',st[k]);btn.setAttribute('aria-pressed',st[k]);}
-    if(k==='contrast')document.body.classList.toggle('a11y-contrast',st[k]);
-    if(k==='links')document.body.classList.toggle('a11y-links',st[k]);
-    if(k==='no-anim')document.body.classList.toggle('a11y-no-anim',st[k]);
-    if(k==='guide'){
-    var g=document.getElementById('a11y-guide');
-    if(g)g.style.display=st[k]?'block':'none';
-  }
-  sv();
-};
-window.a11yReset=function(){
-  fs=100;st={contrast:false,links:false,'no-anim':false,guide:false};
-  document.documentElement.style.fontSize='';
-  document.body.classList.remove('a11y-contrast','a11y-links','a11y-no-anim');
-  ['contrast','links','no-anim','guide'].forEach(function(k){
-    var btn=document.getElementById('a11y-btn-'+k);
-    if(btn){btn.classList.remove('active');btn.setAttribute('aria-pressed',false);}
-  });
-  var fval=document.getElementById('a11y-fval');if(fval)fval.textContent='100%';
-  sv();
-};
-ld();
-})();
-</script>
-
-<!-- ══ LOGIN MODAL ══ -->
-<div id="loginModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(10,22,40,.8);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
-  <div style="background:#0f1e38;border:1px solid rgba(201,146,42,.25);border-radius:20px;width:100%;max-width:420px;padding:40px 36px;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.5)">
-    <button onclick="closeLogin()" style="position:absolute;top:16px;left:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
-    <div style="font-family:'Frank Ruhl Libre',serif;font-size:24px;color:#c9922a;text-align:center;margin-bottom:6px">⚖️ LexTime</div>
-    <div style="text-align:center;color:rgba(255,255,255,.4);font-size:13px;margin-bottom:28px">ניהול מועדים משפטיים</div>
-    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">כניסה למערכת</div>
-    <div style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:24px">הזן את כתובת הדוא&quot;ל והסיסמה שבחרת בהרשמה</div>
-    <div id="loginErr" style="display:none;background:rgba(185,28,28,.15);border:1px solid rgba(185,28,28,.35);border-radius:8px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:14px"></div>
-    <div style="margin-bottom:14px">
-      <label style="display:block;font-size:13px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px">כתובת דוא&quot;ל</label>
-      <input id="loginEmail" type="email" placeholder="name@lawfirm.co.il"
-        style="width:100%;padding:11px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;color:#fff;outline:none"
-        onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='rgba(255,255,255,.15)'"
-        onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
-    <div style="margin-bottom:22px">
-      <label style="display:block;font-size:13px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px">סיסמה</label>
-      <div style="position:relative">
-        <input id="loginPass" type="password" placeholder="הסיסמה שלך"
-          style="width:100%;padding:11px 44px 11px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;color:#fff;outline:none"
-          onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='rgba(255,255,255,.15)'"
-          onkeydown="if(event.key==='Enter')doLogin()">
-        <button id="loginPassToggle" onclick="loginTogglePass()" type="button"
-          style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:15px;padding:0">👁</button>
-      </div>
-    </div>
-    <button id="loginBtn" onclick="doLogin()"
-      style="width:100%;padding:14px;background:linear-gradient(135deg,#c9922a,#e8b84b);color:#0a1628;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;margin-bottom:12px">
-      כניסה למערכת ←
-    </button>
-    <div style="text-align:center;font-size:13px;color:rgba(255,255,255,.35)">
-      אין לך חשבון עדיין?
-      <a href="javascript:void(0)" onclick="closeLogin();setTimeout(function(){document.getElementById('pricing').scrollIntoView({behavior:'smooth'})},200)"
-        style="color:#e8b84b;text-decoration:none;font-weight:600"> הצטרף עכשיו</a>
-    </div>
-  </div>
-</div>
-
-<script>
 function openLogin(){
   var m=document.getElementById('loginModal');
   m.style.display='flex';
@@ -1676,4 +1421,55 @@ function doLogin(){
       }
     }catch(e){}
     if(ok){
-      localStorage.setItem('lextime_access','g
+      localStorage.setItem('lextime_access','granted');
+      closeLogin();
+      window.location.href='platform.html';
+    } else {
+      errEl.style.display='block';
+      errEl.textContent='כתובת הדוא"ל או הסיסמה שגויים. נסה שנית.';
+    }
+  },900);
+}
+var _lm=document.getElementById('loginModal');
+if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();});
+</script><!-- ══ LEGAL MODAL ══ -->
+<div id="legalModal" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.65);z-index:3000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)" onclick="if(event.target===this)closeLegal()">
+  <div style="background:#fff;border-radius:20px;width:100%;max-width:680px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.35);overflow:hidden">
+    <div style="background:linear-gradient(135deg,#0a1628,#0f2244);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
+      <div>
+        <div id="legalTitle" style="font-family:'Frank Ruhl Libre',serif;font-size:20px;font-weight:900;color:#fff"></div>
+        <div style="font-size:12px;color:rgba(255,255,255,.5);margin-top:3px">LexTime · עודכן ינואר 2025</div>
+      </div>
+      <button onclick="closeLegal()" style="background:rgba(255,255,255,.12);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+    <div style="display:flex;border-bottom:2px solid #f0f4fa;background:#fff;flex-shrink:0">
+      <button onclick="openLegal('terms')"    id="ltab-terms"    style="flex:1;padding:12px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Heebo',sans-serif;transition:.15s">תנאי שימוש</button>
+      <button onclick="openLegal('privacy')"  id="ltab-privacy"  style="flex:1;padding:12px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Heebo',sans-serif;transition:.15s">מדיניות פרטיות</button>
+      <button onclick="openLegal('security')" id="ltab-security" style="flex:1;padding:12px;background:none;border:none;cursor:pointer;font-size:13px;font-weight:700;font-family:'Heebo',sans-serif;transition:.15s">אבטחת מידע</button>
+    </div>
+    <div id="legalContent" style="overflow-y:auto;padding:28px 32px;font-family:'Heebo',sans-serif;font-size:14px;color:#374151;line-height:1.8;direction:rtl"></div>
+  </div>
+</div>
+
+<script>
+var _legalData={
+  terms:{title:'תנאי שימוש',body:'<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. קבלת התנאים</h3><p style="margin-bottom:16px">השימוש בפלטפורמת LexTime מהווה הסכמה מלאה לתנאי שימוש אלו.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. תיאור השירות</h3><p style="margin-bottom:16px">LexTime היא פלטפורמה לניהול מועדים משפטיים המיועדת לעורכי דין בישראל.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. אחריות המשתמש</h3><p style="margin-bottom:16px">המשתמש אחראי לאימות כל מועד משפטי באופן עצמאי.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. הגבלת אחריות</h3><p style="margin-bottom:16px">החברה לא תישא באחריות לנזקים הנובעים מהשימוש בפלטפורמה.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">5. מנוי ותשלום</h3><p style="margin-bottom:16px">המנוי הוא חודשי וניתן לביטול בכל עת.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">6. יצירת קשר</h3><p>לשאלות: <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'},
+  privacy:{title:'מדיניות פרטיות',body:'<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. איסוף מידע</h3><p style="margin-bottom:16px">אנו אוספים שם מלא, כתובת דוא"ל ומספר טלפון בעת ההרשמה.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. שמירת נתוני תיקים</h3><p style="margin-bottom:16px">נתוני התיקים המשפטיים נשמרים מקומית בדפדפן שלך בלבד.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. שימוש במידע</h3><p style="margin-bottom:16px">המידע ישמש לצורך מתן השירות בלבד. לא נמכור מידע לצד שלישי.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. יצירת קשר</h3><p>לפניות: <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'},
+  security:{title:'אבטחת מידע',body:'<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. עקרונות האבטחה</h3><p style="margin-bottom:16px">נתוני התיקים לא עוזבים את המכשיר שלך.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. אחסון מקומי</h3><p style="margin-bottom:16px">כל נתוני התיקים מאוחסנים ב-localStorage של הדפדפן בלבד.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. תשלומים</h3><p style="margin-bottom:16px">תשלומים מעובדים דרך PayPal בלבד ואינם עוברים דרך המערכת שלנו.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. דיווח על בעיות</h3><p><a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'}
+};
+function openLegal(page){
+  var d=_legalData[page];if(!d)return;
+  document.getElementById('legalTitle').textContent=d.title;
+  document.getElementById('legalContent').innerHTML=d.body;
+  ['terms','privacy','security'].forEach(function(p){
+    var btn=document.getElementById('ltab-'+p);
+    if(btn){btn.style.fontWeight=p===page?'800':'600';btn.style.borderBottom=p===page?'2px solid #c9922a':'2px solid transparent';btn.style.color=p===page?'#c9922a':'#94a3b8';}
+  });
+  document.getElementById('legalModal').style.display='flex';
+}
+function closeLegalModal(){document.getElementById('legalModal').style.display='none';}
+function closeLegal(){closeLegalModal();}
+</script>
+
+</body>
+</html>
