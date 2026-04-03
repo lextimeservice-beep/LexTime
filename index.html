@@ -1432,7 +1432,46 @@ function doLogin(){
 }
 var _lm=document.getElementById('loginModal');
 if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();});
-</script><!-- ══ LEGAL MODAL ══ -->
+</script><!-- ══ LOGIN MODAL ══ -->
+<div id="loginModal" style="display:none;position:fixed;inset:0;z-index:3000;background:rgba(10,22,40,.8);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0f1e38;border:1px solid rgba(201,146,42,.25);border-radius:20px;width:100%;max-width:420px;padding:40px 36px;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.5)">
+    <button onclick="closeLogin()" style="position:absolute;top:16px;left:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
+    <div style="font-family:'Frank Ruhl Libre',serif;font-size:24px;color:#c9922a;text-align:center;margin-bottom:6px">⚖️ LexTime</div>
+    <div style="text-align:center;color:rgba(255,255,255,.4);font-size:13px;margin-bottom:28px">ניהול מועדים משפטיים</div>
+    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">כניסה למערכת</div>
+    <div style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:24px">הזן את כתובת הדוא&quot;ל והסיסמה שבחרת בהרשמה</div>
+    <div id="loginErr" style="display:none;background:rgba(185,28,28,.15);border:1px solid rgba(185,28,28,.35);border-radius:8px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:14px"></div>
+    <div style="margin-bottom:14px">
+      <label style="display:block;font-size:13px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px">כתובת דוא&quot;ל</label>
+      <input id="loginEmail" type="email" placeholder="name@lawfirm.co.il"
+        style="width:100%;padding:11px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;color:#fff;outline:none"
+        onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='rgba(255,255,255,.15)'"
+        onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
+    <div style="margin-bottom:22px">
+      <label style="display:block;font-size:13px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px">סיסמה</label>
+      <div style="position:relative">
+        <input id="loginPass" type="password" placeholder="הסיסמה שלך"
+          style="width:100%;padding:11px 44px 11px 14px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;color:#fff;outline:none"
+          onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='rgba(255,255,255,.15)'"
+          onkeydown="if(event.key==='Enter')doLogin()">
+        <button id="loginPassToggle" onclick="loginTogglePass()" type="button"
+          style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:15px;padding:0">👁</button>
+      </div>
+    </div>
+    <button id="loginBtn" onclick="doLogin()"
+      style="width:100%;padding:14px;background:linear-gradient(135deg,#c9922a,#e8b84b);color:#0a1628;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;margin-bottom:12px">
+      כניסה למערכת ←
+    </button>
+    <div style="text-align:center;font-size:13px;color:rgba(255,255,255,.35)">
+      אין לך חשבון עדיין?
+      <a href="javascript:void(0)" onclick="closeLogin();setTimeout(function(){document.getElementById('pricing').scrollIntoView({behavior:'smooth'})},200)"
+        style="color:#e8b84b;text-decoration:none;font-weight:600"> הצטרף עכשיו</a>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LEGAL MODAL ══ -->
 <div id="legalModal" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.65);z-index:3000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px)" onclick="if(event.target===this)closeLegal()">
   <div style="background:#fff;border-radius:20px;width:100%;max-width:680px;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 32px 80px rgba(0,0,0,.35);overflow:hidden">
     <div style="background:linear-gradient(135deg,#0a1628,#0f2244);padding:22px 28px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0">
