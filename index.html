@@ -6,6 +6,19 @@
 <title>LexTime — ניהול מועדים משפטיים חכם לעורכי דין</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Heebo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- ══ FIREBASE SDK ══ -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script>
+  firebase.initializeApp({
+    apiKey: "AIzaSyAOwMTp02bzFJ351uFcrhKalak6TlqbpyE",
+    authDomain: "lextime-82214.firebaseapp.com",
+    projectId: "lextime-82214",
+    storageBucket: "lextime-82214.firebasestorage.app",
+    messagingSenderId: "35753362194",
+    appId: "1:35753362194:web:00b7fb6fc54884c2e769cb"
+  });
+</script>
 <style>
 :root{
   --ink:#0a1628;
@@ -1503,42 +1516,58 @@ function openPayPalSubscription(){
 function verifyPayPalPayment(){
   var email=document.getElementById('regEmail').value.trim().toLowerCase();
   var verifyMsg=document.getElementById('paypalVerifyMsg');
+  var verifyBtn=document.querySelector('[onclick="verifyPayPalPayment()"]');
   verifyMsg.style.display='block';
   verifyMsg.textContent='מאמת תשלום...';
+  if(verifyBtn){verifyBtn.disabled=true;verifyBtn.style.opacity='0.7';}
+
+  function onSuccess(plan){
+    grantFullAccess(email, plan||_plan);
+    sregShowStep(3);
+    document.getElementById('sregProcessing').style.display='none';
+    document.getElementById('sregPending').style.display='none';
+    document.getElementById('sregSuccess').style.display='block';
+  }
+  function onPending(){
+    verifyMsg.textContent='התשלום ב-PayPal טרם אושר. אם סיימת לשלם, נסה שוב בעוד דקה.';
+    if(verifyBtn){verifyBtn.disabled=false;verifyBtn.style.opacity='1';}
+  }
+  function onError(){
+    verifyMsg.textContent='בודק ישירות מול המערכת...';
+    firebase.firestore().collection('users').where('email','==',email).get()
+    .then(function(snap){
+      if(!snap.empty && snap.docs[0].data().status==='active'){
+        onSuccess(snap.docs[0].data().plan);
+      } else {
+        onPending();
+      }
+    })
+    .catch(function(e){
+      console.error('Firestore error:',e);
+      verifyMsg.textContent='שגיאת חיבור. בדוק את חיבור האינטרנט ונסה שוב.';
+      if(verifyBtn){verifyBtn.disabled=false;verifyBtn.style.opacity='1';}
+    });
+  }
+
   var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
-  fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
-  .then(function(r){return r.json();})
+  fetch(CHECK_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:email})
+  })
+  .then(function(r){
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    return r.json();
+  })
   .then(function(data){
-    if(data.active){
-      // תשלום אומת — מעניקים גישה
-      grantFullAccess(email, data.plan);
-      sregShowStep(3);
-      document.getElementById('sregProcessing').style.display='none';
-      document.getElementById('sregPending').style.display='none';
-      document.getElementById('sregSuccess').style.display='block';
-    } else {
-      verifyMsg.textContent='התשלום ב-PayPal טרם אושר. אם סיימת לשלם, נסה שוב בעוד דקה.';
-    }
+    if(data.active){ onSuccess(data.plan); }
+    else { onPending(); }
   })
   .catch(function(){
-    try{
-      firebase.firestore().collection('users').where('email','==',email).get()
-      .then(function(snap){
-        if(!snap.empty && snap.docs[0].data().status==='active'){
-          grantFullAccess(email, snap.docs[0].data().plan||_plan);
-          sregShowStep(3);
-          document.getElementById('sregProcessing').style.display='none';
-          document.getElementById('sregPending').style.display='none';
-          document.getElementById('sregSuccess').style.display='block';
-        } else {
-          verifyMsg.textContent='התשלום טרם אושר. נסה שוב בעוד דקה.';
-        }
-      });
-    }catch(e){verifyMsg.textContent='שגיאת חיבור. נסה שוב.';}
+    onError();
   });
 }
 function onPayPalReturn(){verifyPayPalPayment();}
-
 function saveToFirestore(name,email,plan,price,method,status){
   try{
     var db=firebase.firestore();
