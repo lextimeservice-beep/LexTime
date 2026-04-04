@@ -1401,7 +1401,11 @@ function sregPayTab(name){
     else payBtn.style.display='block';
   }
   if(name==='paypal'){
-    var PAYPAL_PLANS={'עצמאי':'P-1T860757D49561026NHD4DFQ','משרד':'P-2BT36473BJ884801MNHD5HGY','משרד גדול':'P-2F482632XU839435PNHD5PTA'};
+   var PAYPAL_PLANS={
+  'עצמאי':'P-3SV511239A415693PNHIOIIY',
+  'משרד':'P-27Y47624J88823805NHIOK4Q',
+  'משרד גדול':'P-66G23455KU1597137NHIOL2Y'
+};
     var planId=PAYPAL_PLANS[_plan]||'';
     var ph=document.getElementById('paypalBtnPlaceholder');
     if(ph)ph.setAttribute('data-plan-id',planId);
@@ -1482,11 +1486,11 @@ function grantFullAccess(email,plan){
 }
 
 function openPayPalSubscription(){
-  var PAYPAL_PLANS={
-    'עצמאי':'P-1T860757D49561026NHD4DFQ',
-    'משרד':'P-2BT36473BJ884801MNHD5HGY',
-    'משרד גדול':'P-2F482632XU839435PNHD5PTA'
-  };
+ var PAYPAL_PLANS={
+  'עצמאי':'P-3SV511239A415693PNHIOIIY',
+  'משרד':'P-27Y47624J88823805NHIOK4Q',
+  'משרד גדול':'P-66G23455KU1597137NHIOL2Y'
+};
   var planId=PAYPAL_PLANS[_plan]||'';
   var url='https://www.paypal.com/webapps/billing/plans/subscribe?plan_id='+planId;
   window.open(url,'_blank');
