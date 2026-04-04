@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="he" dir="rtl">
 <head>
@@ -1401,11 +1400,7 @@ function sregPayTab(name){
     else payBtn.style.display='block';
   }
   if(name==='paypal'){
-   var PAYPAL_PLANS={
-  'עצמאי':'P-3SV511239A415693PNHIOIIY',
-  'משרד':'P-27Y47624J88823805NHIOK4Q',
-  'משרד גדול':'P-66G23455KU1597137NHIOL2Y'
-};
+    var PAYPAL_PLANS={'עצמאי':'P-1T860757D49561026NHD4DFQ','משרד':'P-2BT36473BJ884801MNHD5HGY','משרד גדול':'P-2F482632XU839435PNHD5PTA'};
     var planId=PAYPAL_PLANS[_plan]||'';
     var ph=document.getElementById('paypalBtnPlaceholder');
     if(ph)ph.setAttribute('data-plan-id',planId);
@@ -1450,6 +1445,11 @@ function submitPayment(){
   var email=document.getElementById('regEmail').value.trim();
   // שמירת פרטי הרישום בלבד — ללא גישה לפלטפורמה
   savePendingCredentials(name,email);
+  // ✅ תיקון באג 1: שמירת lextime_user כדי שממשק הניהול יזהה את הנרשם
+  localStorage.setItem('lextime_user', JSON.stringify({
+    name: name, email: email, plan: _plan, method: 'card',
+    date: new Date().toISOString().slice(0,10)
+  }));
   // שמירה ל-Firestore כ-pending — גישה תינתן רק לאחר אימות webhook
   saveToFirestore(name,email,_plan,_price,'card','pending');
   sregShowStep(3);
@@ -1486,11 +1486,11 @@ function grantFullAccess(email,plan){
 }
 
 function openPayPalSubscription(){
- var PAYPAL_PLANS={
-  'עצמאי':'P-3SV511239A415693PNHIOIIY',
-  'משרד':'P-27Y47624J88823805NHIOK4Q',
-  'משרד גדול':'P-66G23455KU1597137NHIOL2Y'
-};
+  var PAYPAL_PLANS={
+    'עצמאי':'P-1T860757D49561026NHD4DFQ',
+    'משרד':'P-2BT36473BJ884801MNHD5HGY',
+    'משרד גדול':'P-2F482632XU839435PNHD5PTA'
+  };
   var planId=PAYPAL_PLANS[_plan]||'';
   var url='https://www.paypal.com/webapps/billing/plans/subscribe?plan_id='+planId;
   window.open(url,'_blank');
@@ -1502,6 +1502,11 @@ function openPayPalSubscription(){
   var email=document.getElementById('regEmail').value.trim();
   // שמירת פרטי רישום בלבד — ללא גישה!
   savePendingCredentials(name,email);
+  // ✅ תיקון באג 1: שמירת lextime_user כדי שממשק הניהול יזהה את הנרשם
+  localStorage.setItem('lextime_user', JSON.stringify({
+    name: name, email: email, plan: _plan, method: 'paypal',
+    date: new Date().toISOString().slice(0,10)
+  }));
   saveToFirestore(name,email,_plan,_price,'paypal','pending');
 }
 
@@ -1626,6 +1631,22 @@ function doLogin(){
 
   // שלב 2: אימות תשלום מול Firestore — חובה!
   var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
+
+  // ✅ תיקון באג 2: פונקציית fallback שבודקת tb_subs (ממשק הניהול) ישירות
+  function checkLocalAdminApproval(){
+    try{
+      var subs=JSON.parse(localStorage.getItem('tb_subs')||'[]');
+      var sub=subs.find(function(s){return s.email&&s.email.toLowerCase()===email;});
+      if(sub&&sub.status==='active'){
+        grantFullAccess(email,sub.plan||'');
+        closeLogin();
+        window.location.href='platform.html';
+        return true;
+      }
+    }catch(e){}
+    return false;
+  }
+
   fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
   .then(function(r){return r.json();})
   .then(function(data){
@@ -1637,6 +1658,8 @@ function doLogin(){
       closeLogin();
       window.location.href='platform.html';
     } else {
+      // ✅ תיקון באג 2: בדיקת אישור מנהל מקומי לפני הצגת שגיאה
+      if(checkLocalAdminApproval()) return;
       errEl.style.display='block';
       errEl.textContent='החשבון שלך ממתין לאימות תשלום. לפרטים: lextimeservice@gmail.com';
     }
@@ -1654,6 +1677,8 @@ function doLogin(){
           closeLogin();
           window.location.href='platform.html';
         } else {
+          // ✅ תיקון באג 2: fallback אחרון — בדיקת אישור מנהל מקומי
+          if(checkLocalAdminApproval()) return;
           errEl.style.display='block';
           errEl.textContent='החשבון ממתין לאימות תשלום. צור קשר: lextimeservice@gmail.com';
         }
@@ -1804,14 +1829,40 @@ function sendResetCode(){
     }
   })
   .catch(function(){
-    msgEl.style.display='block';
-    msgEl.style.background='rgba(185,28,28,.15)';
-    msgEl.style.border='1px solid rgba(185,28,28,.35)';
-    msgEl.style.color='#f87171';
-    msgEl.textContent='שגיאת חיבור. נסה שוב.';
-    btn.textContent='שלח קוד לאיפוס ←';
-    btn.disabled=false;
-    btn.style.display='block';
+    // ✅ תיקון באג 3: fallback מקומי לאיפוס סיסמה כשה-Function לא זמין
+    try{
+      var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
+      if(creds && creds.email===email){
+        // יצירת קוד זמני ב-localStorage
+        var localCode=Math.floor(100000+Math.random()*900000).toString();
+        localStorage.setItem('lextime_reset_code',JSON.stringify({email:email,code:localCode,exp:Date.now()+600000}));
+        btn.style.display='none';
+        msgEl.style.display='block';
+        msgEl.style.background='rgba(146,64,14,.15)';
+        msgEl.style.border='1px solid rgba(146,64,14,.35)';
+        msgEl.style.color='#fde68a';
+        msgEl.textContent='⚠️ שירות המייל אינו זמין כרגע. הקוד הזמני שלך: '+localCode+' (תקף ל-10 דקות). שמור אותו והזן בשדה הקוד.';
+        document.getElementById('resetCodePanel').style.display='block';
+      } else {
+        msgEl.style.display='block';
+        msgEl.style.background='rgba(185,28,28,.15)';
+        msgEl.style.border='1px solid rgba(185,28,28,.35)';
+        msgEl.style.color='#f87171';
+        msgEl.textContent='כתובת הדוא"ל אינה רשומה במערכת. צור קשר: lextimeservice@gmail.com';
+        btn.textContent='שלח קוד לאיפוס ←';
+        btn.disabled=false;
+        btn.style.display='block';
+      }
+    }catch(e){
+      msgEl.style.display='block';
+      msgEl.style.background='rgba(185,28,28,.15)';
+      msgEl.style.border='1px solid rgba(185,28,28,.35)';
+      msgEl.style.color='#f87171';
+      msgEl.textContent='שגיאת חיבור. נסה שוב.';
+      btn.textContent='שלח קוד לאיפוס ←';
+      btn.disabled=false;
+      btn.style.display='block';
+    }
   });
 }
 function confirmResetPassword(){
@@ -1868,11 +1919,41 @@ function confirmResetPassword(){
     }
   })
   .catch(function(){
-    msgEl.style.display='block';
-    msgEl.style.background='rgba(185,28,28,.15)';
-    msgEl.style.border='1px solid rgba(185,28,28,.35)';
-    msgEl.style.color='#f87171';
-    msgEl.textContent='שגיאת חיבור. נסה שוב.';
+    // ✅ תיקון באג 3: fallback לאימות קוד מקומי
+    try{
+      var stored=JSON.parse(localStorage.getItem('lextime_reset_code')||'null');
+      if(stored && stored.email===email && stored.code===code && Date.now()<stored.exp){
+        localStorage.removeItem('lextime_reset_code');
+        var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
+        if(!creds) creds={email:email,status:'pending'};
+        creds.passHash=simpleHashLogin(newPass);
+        creds.email=email;
+        localStorage.setItem('lextime_credentials',JSON.stringify(creds));
+        msgEl.style.display='block';
+        msgEl.style.background='rgba(26,122,74,.15)';
+        msgEl.style.border='1px solid rgba(26,122,74,.35)';
+        msgEl.style.color='#4ade80';
+        msgEl.textContent='✅ הסיסמה אופסה בהצלחה! כעת תוכל להתחבר.';
+        document.getElementById('resetCodePanel').style.display='none';
+        setTimeout(function(){
+          hideForgotPassword();
+          document.getElementById('loginEmail').value=email;
+          document.getElementById('loginPass').focus();
+        },2000);
+      } else {
+        msgEl.style.display='block';
+        msgEl.style.background='rgba(185,28,28,.15)';
+        msgEl.style.border='1px solid rgba(185,28,28,.35)';
+        msgEl.style.color='#f87171';
+        msgEl.textContent='קוד שגוי או פג תוקף. בקש קוד חדש.';
+      }
+    }catch(e){
+      msgEl.style.display='block';
+      msgEl.style.background='rgba(185,28,28,.15)';
+      msgEl.style.border='1px solid rgba(185,28,28,.35)';
+      msgEl.style.color='#f87171';
+      msgEl.textContent='שגיאת חיבור. נסה שוב.';
+    }
   });
 }
 </script>
