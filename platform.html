@@ -583,18 +583,19 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
 
 <script>
 /* ══ STORAGE ══ */
-// FILE_UID: each downloaded copy gets its own unique storage namespace
-var FILE_UID=(function(){
-  // Try to read UID from a fixed key; if not found, use the one embedded at build time
+var FILE_UID='72c8fbcf';
+/* ── תיקון באג: namespace נפרד לכל משתמש לפי האימייל שלו ──
+   כך תיקי משתמש אחד לא יופיעו אצל משתמש אחר באותו מחשב */
+var USER_NS=(function(){
   try{
-    var k=localStorage.getItem('_lm_uid');
-    if(k)return k;
-    // First run: embed the build-time UID and save it
-    localStorage.setItem('_lm_uid','72c8fbcf');
-    return '72c8fbcf';
-  }catch(e){return '72c8fbcf';}
+    var u=JSON.parse(localStorage.getItem('lextime_user')||'null');
+    if(u&&u.email) return u.email.toLowerCase().replace(/[^a-z0-9]/g,'_');
+  }catch(e){}
+  return 'guest';
 })();
-var KEY_IDS='lm_'+FILE_UID+'_ids',KEY_CUR='lm_'+FILE_UID+'_cur',KEY_PFX='lm_'+FILE_UID+'_case_';
+var KEY_IDS='lm_'+FILE_UID+'_'+USER_NS+'_ids';
+var KEY_CUR='lm_'+FILE_UID+'_'+USER_NS+'_cur';
+var KEY_PFX='lm_'+FILE_UID+'_'+USER_NS+'_case_';
 function saveCurrentId(id){try{localStorage.setItem(KEY_CUR,id)}catch(e){}}
 function loadCurrentId(){try{return localStorage.getItem(KEY_CUR)}catch(e){return null}}
 function saveCaseIds(ids){try{localStorage.setItem(KEY_IDS,JSON.stringify(ids))}catch(e){}}
@@ -818,15 +819,8 @@ function defaultStatuses(){
 }
 
 var stored=loadAllCases();
-var cases=(stored!==null&&stored.length>0)?stored:[{
-  id:'case-1',casenum:'2235-23',parties:"פלוני נ׳ אלמוני",
-  type:'אזרחי',court:'שלום תל אביב',judge:'',lawyer:'',notes:'',counter:'no',
-  filing:'2025-09-01',service:'2025-09-21',
-  pretrial:'',pretrialActual:'',pretrialFinal:'',pretrialFinalActual:'',
-  trial:'',trialActual:'',decision:'',decisionActual:'',
-  appealDec:'',appealDecActual:'',appealHr:'',appealHrActual:'',verdict:'',
-  statuses:defaultStatuses(),actualDates:{}
-}];
+/* ── תיקון באג: פלטפורמה ריקה למשתמש חדש, ללא תיק דמו ── */
+var cases=(stored!==null&&stored.length>0)?stored:[];
 
 var savedCurId=loadCurrentId();
 var curId=(savedCurId&&cases.length>0&&cases.some(function(c){return c.id===savedCurId;}))?savedCurId:(cases.length>0?cases[0].id:'case-1');
