@@ -1137,6 +1137,16 @@ function renderStages(){
 /* ══ RENDER HEADER & STATS ══ */
 function renderHeader(){
   var c=cur();
+  /* ── תיקון: אם אין תיקים, אפס את הכותרת ואל תקרוס ── */
+  if(!c){
+    ['hParties','hNum','hCourt','hFiling','hService','hType'].forEach(function(id){
+      var el=g(id);if(el)el.textContent='—';
+    });
+    g('hToday').textContent=fmtDate(todayStr());
+    g('hDefDays').textContent='—';
+    g('caseSwitcher').innerHTML='';
+    return;
+  }
   g('hParties').textContent=c.parties||'—';
   g('hNum').textContent=c.casenum||'—';
   g('hCourt').textContent=c.court||'—';
@@ -1151,7 +1161,14 @@ function renderHeader(){
 }
 
 function renderStats(){
-  var c=cur(),chain=getCascadedChain(c),ur=0,pn=0,dn=0,tot=0;
+  var c=cur();
+  /* ── תיקון: אם אין תיקים, אפס סטטיסטיקות ── */
+  if(!c){
+    g('sUrgent').textContent='0';g('sPending').textContent='0';
+    g('sDone').textContent='0';g('sTotal').textContent='0';
+    return;
+  }
+  var chain=getCascadedChain(c),ur=0,pn=0,dn=0,tot=0;
   STAGES.forEach(function(st){
     var all=st.tasks.slice();if(st.preTaskNote)all.push(st.preTaskNote);
     all.forEach(function(t){

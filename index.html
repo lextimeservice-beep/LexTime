@@ -1464,12 +1464,27 @@ function simpleHash(str){
   return Math.abs(hash).toString(16);
 }
 
+/* ══ Firebase RTDB — אחסון אישורי כניסה ואישורי מנהל בענן ══
+   מאפשר התחברות מכל מחשב/טלפון                              */
+var _RTDB='https://lextime-82214-default-rtdb.europe-west1.firebasedatabase.app';
+var _RTDB_S='ZRYmRM293l9TyrLs9vRt02MYRtBKMWDwNiMFirgk';
+function _rtdbGet(path){
+  return fetch(_RTDB+path+'.json?auth='+_RTDB_S).then(function(r){return r.json();}).catch(function(){return null;});
+}
+function _rtdbPut(path,data){
+  return fetch(_RTDB+path+'.json?auth='+_RTDB_S,{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).catch(function(){});
+}
+function _emailKey(email){return email.toLowerCase().replace(/[^a-z0-9]/g,'_');}
+
 // שמירת פרטי רישום בלבד — ללא פתיחת גישה
 function savePendingCredentials(name,email){
   var pw=document.getElementById('regPass')?document.getElementById('regPass').value:'';
   if(pw){
-    var creds={email:email.toLowerCase(),passHash:simpleHash(pw),name:name,status:'pending'};
+    var hash=simpleHash(pw);
+    var creds={email:email.toLowerCase(),passHash:hash,name:name,status:'pending'};
     localStorage.setItem('lextime_credentials',JSON.stringify(creds));
+    /* ── שמירה בענן — מאפשרת התחברות מכל מחשב ── */
+    _rtdbPut('/credentials/'+_emailKey(email),creds);
   }
 }
 
@@ -1609,88 +1624,72 @@ function doLogin(){
   btn.textContent='מתחבר...';
   btn.style.opacity='.7';
   btn.disabled=true;
+  var passHash=simpleHashLogin(pass);
 
-  // שלב 1: בדיקת סיסמה מקומית
-  var passOk=false;
+  function resetBtn(){btn.textContent='כניסה למערכת ←';btn.style.opacity='1';btn.disabled=false;}
+  function showErr(msg){resetBtn();errEl.style.display='block';errEl.textContent=msg||'שגיאה. נסה שוב.';}
+
+  /* הענקת גישה + שמירת פרטי משתמש + מעבר לפלטפורמה */
+  function grantAndGo(name,plan){
+    localStorage.setItem('lextime_user',JSON.stringify({
+      name:name,email:email,plan:plan,date:new Date().toISOString().slice(0,10)
+    }));
+    grantFullAccess(email,plan);
+    closeLogin();
+    window.location.href='platform.html';
+  }
+
+  /* בדיקת אישור מנהל ב-Firebase RTDB — עובד מכל מחשב */
+  function checkRTDBApproval(name,plan){
+    _rtdbGet('/subs').then(function(data){
+      var arr=data?(Array.isArray(data)?data.filter(Boolean):Object.values(data).filter(Boolean)):[];
+      var sub=arr.find(function(s){return s&&s.email&&s.email.toLowerCase()===email;});
+      if(sub&&sub.status==='active'){
+        grantAndGo(sub.name||name,sub.plan||plan);
+      } else {
+        showErr('החשבון שלך ממתין לאישור תשלום. לפרטים: lextimeservice@gmail.com');
+      }
+    }).catch(function(){showErr('שגיאת חיבור. נסה שוב.');});
+  }
+
+  /* בדיקת תשלום דרך Cloud Function → Firestore → RTDB */
+  function checkPaymentAndProceed(name,plan){
+    var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
+    fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+    .then(function(r){return r.json();})
+    .then(function(data){
+      if(data.active){grantAndGo(name,data.plan||plan);}
+      else{checkRTDBApproval(name,plan);}
+    })
+    .catch(function(){checkRTDBApproval(name,plan);});
+  }
+
+  /* שלב 1: בדיקת סיסמה מקומית */
   try{
     var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
-    if(creds && creds.email===email){
-      if(creds.passHash && creds.passHash===simpleHashLogin(pass)) passOk=true;
-      else if(!creds.passHash) passOk=true;
+    if(creds&&creds.email===email){
+      if(creds.passHash===passHash||!creds.passHash){
+        checkPaymentAndProceed(creds.name||'',creds.plan||'');
+        return;
+      } else {
+        showErr('כתובת הדוא"ל או הסיסמה שגויים. נסה שנית.');
+        return;
+      }
     }
   }catch(e){}
 
-  if(!passOk){
-    btn.textContent='כניסה למערכת ←';
-    btn.style.opacity='1';
-    btn.disabled=false;
-    errEl.style.display='block';
-    errEl.textContent='כתובת הדוא"ל או הסיסמה שגויים. נסה שנית.';
-    return;
-  }
-
-  // שלב 2: אימות תשלום מול Firestore — חובה!
-  var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
-
-  // ✅ תיקון באג 2: פונקציית fallback שבודקת tb_subs (ממשק הניהול) ישירות
-  function checkLocalAdminApproval(){
-    try{
-      var subs=JSON.parse(localStorage.getItem('tb_subs')||'[]');
-      var sub=subs.find(function(s){return s.email&&s.email.toLowerCase()===email;});
-      if(sub&&sub.status==='active'){
-        grantFullAccess(email,sub.plan||'');
-        closeLogin();
-        window.location.href='platform.html';
-        return true;
-      }
-    }catch(e){}
-    return false;
-  }
-
-  fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
-  .then(function(r){return r.json();})
-  .then(function(data){
-    btn.textContent='כניסה למערכת ←';
-    btn.style.opacity='1';
-    btn.disabled=false;
-    if(data.active){
-      grantFullAccess(email,data.plan);
-      closeLogin();
-      window.location.href='platform.html';
+  /* שלב 2: אין credentials מקומיים — בדיקה מהענן (מכשיר חדש) */
+  _rtdbGet('/credentials/'+_emailKey(email)).then(function(data){
+    if(data&&data.passHash===passHash){
+      /* שמירה מקומית לשימוש עתידי */
+      localStorage.setItem('lextime_credentials',JSON.stringify(data));
+      checkPaymentAndProceed(data.name||'',data.plan||'');
+    } else if(data){
+      showErr('כתובת הדוא"ל או הסיסמה שגויים. נסה שנית.');
     } else {
-      // ✅ תיקון באג 2: בדיקת אישור מנהל מקומי לפני הצגת שגיאה
-      if(checkLocalAdminApproval()) return;
-      errEl.style.display='block';
-      errEl.textContent='החשבון שלך ממתין לאימות תשלום. לפרטים: lextimeservice@gmail.com';
+      showErr('לא נמצא חשבון עם כתובת דוא"ל זו. נסה להירשם מחדש.');
     }
-  })
-  .catch(function(){
-    // Fallback: בדיקה ישירה מ-Firestore אם ה-Function לא זמין
-    try{
-      firebase.firestore().collection('users').where('email','==',email).get()
-      .then(function(snap){
-        btn.textContent='כניסה למערכת ←';
-        btn.style.opacity='1';
-        btn.disabled=false;
-        if(!snap.empty && snap.docs[0].data().status==='active'){
-          grantFullAccess(email,snap.docs[0].data().plan||'');
-          closeLogin();
-          window.location.href='platform.html';
-        } else {
-          // ✅ תיקון באג 2: fallback אחרון — בדיקת אישור מנהל מקומי
-          if(checkLocalAdminApproval()) return;
-          errEl.style.display='block';
-          errEl.textContent='החשבון ממתין לאימות תשלום. צור קשר: lextimeservice@gmail.com';
-        }
-      });
-    }catch(e){
-      btn.textContent='כניסה למערכת ←';
-      btn.style.opacity='1';
-      btn.disabled=false;
-      errEl.style.display='block';
-      errEl.textContent='שגיאת חיבור. נסה שוב.';
-    }
-  });
+  }).catch(function(){showErr('שגיאת חיבור. נסה שוב.');});
 }
 var _lm=document.getElementById('loginModal');
 if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();});
