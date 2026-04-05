@@ -1016,7 +1016,18 @@ function taskRowHtml(t,c,chain,isNext){
 
 /* ══ RENDER STAGES ══ */
 function renderStages(){
-  var c=cur(),chain=getCascadedChain(c);
+  var c=cur();
+  /* ── תיקון: אם אין תיקים, הצג מסך ריק נקי ── */
+  if(!c){
+    g('stagesWrap').innerHTML=
+      '<div class="empty-state" style="padding:80px 20px;text-align:center;color:#64748b">'+
+      '<div style="font-size:56px;margin-bottom:16px">📁</div>'+
+      '<h3 style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:8px">אין תיקים פתוחים</h3>'+
+      '<p style="font-size:14px">לחץ על "+ פתיחת תיק חדש" כדי להתחיל</p>'+
+      '</div>';
+    return;
+  }
+  var chain=getCascadedChain(c);
   var html='';
   // Compute the single "next task/anchor" - the closest undone item in the timeline.
   // We track two separate "next" items:

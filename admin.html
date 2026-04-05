@@ -696,19 +696,26 @@ tr:hover td{background:#fafbfc}
 <script>
 /* ═══ AUTH ═══ */
 var ADMIN_USER = 'admin', ADMIN_PASS = 'timebar2025';
-function doLogin(){
+async function doLogin(){
   var u=document.getElementById('loginUser').value.trim();
   var p=document.getElementById('loginPass').value;
-  var s=loadSettings();
-  var targetUser=s.adminUser||ADMIN_USER;
-  var targetPass=s.adminPass||ADMIN_PASS;
-  if(u===targetUser&&p===targetPass){
-    document.getElementById('loginScreen').style.display='none';
-    document.getElementById('adminApp').style.display='block';
-    initApp();
-  } else {
+  /* בדיקה ראשונית לפי הגדרות localStorage (לפני טעינת Firebase) */
+  var localCfg={};
+  try{ localCfg=JSON.parse(localStorage.getItem('tb_settings')||'{}'); }catch(e){}
+  var targetUser=localCfg.adminUser||ADMIN_USER;
+  var targetPass=localCfg.adminPass||ADMIN_PASS;
+  if(u!==targetUser||p!==targetPass){
     document.getElementById('loginErr').style.display='block';
+    return;
   }
+  /* הצג מסך טעינה */
+  var btn=document.querySelector('.login-btn');
+  if(btn){btn.textContent='מתחבר לענן...';btn.disabled=true;}
+  document.getElementById('loginErr').style.display='none';
+  await initApp();
+  document.getElementById('loginScreen').style.display='none';
+  document.getElementById('adminApp').style.display='block';
+  if(btn){btn.textContent='כניסה';btn.disabled=false;}
 }
 function openPlatformAsAdmin(){
   /* מגדיר הרשאת גישה מנהל ופותח את הפלטפורמה */
@@ -873,14 +880,101 @@ function doLogout(){
   document.getElementById('loginErr').style.display='none';
 }
 
-/* ═══ STORAGE ═══ */
-var KEY_SUBS='tb_subs', KEY_PAYS='tb_pays', KEY_SET='tb_settings';
-function loadSubs(){try{return JSON.parse(localStorage.getItem(KEY_SUBS)||'[]')}catch(e){return[];}}
-function saveSubs(d){localStorage.setItem(KEY_SUBS,JSON.stringify(d));}
-function loadPays(){try{return JSON.parse(localStorage.getItem(KEY_PAYS)||'[]')}catch(e){return[];}}
-function savePays(d){localStorage.setItem(KEY_PAYS,JSON.stringify(d));}
-function loadSettings(){try{return JSON.parse(localStorage.getItem(KEY_SET)||'{}')}catch(e){return{};}}
-function saveSettingsObj(d){localStorage.setItem(KEY_SET,JSON.stringify(d));}
+/* ═══ STORAGE — Firebase Realtime Database + cache מקומי ═══
+   הנתונים נשמרים בענן (Firebase) כך שניתן לגשת מכל מחשב.
+
+   ▶ הגדרה חד-פעמית ב-Firebase Console:
+
+   שלב 1 — פתח את מסד הנתונים:
+     https://console.firebase.google.com/project/lextime-82214
+     → Realtime Database → Create database → US → Enable
+
+   שלב 2 — הגדר Rules (לשונית "Rules"):
+     {
+       "rules": {
+         ".read":  "auth != null",
+         ".write": "auth != null"
+       }
+     }
+     ← כך רק מי שמחזיק ב-DB_SECRET למטה יכול לגשת
+
+   שלב 3 — קבל את ה-Database Secret:
+     Project Settings (גלגל שיניים) → Service Accounts → Database secrets
+     → "Show" → העתק את המחרוזת הארוכה → הדבק ב-DB_SECRET למטה
+
+   ══════════════════════════════════════════════════════════ */
+var DB_URL    = 'https://lextime-82214-default-rtdb.europe-west1.firebasedatabase.app';
+var DB_SECRET = 'ZRYmRM293l9TyrLs9vRt02MYRtBKMWDwNiMFirgk';
+
+/* זיכרון מקומי (נטען מ-Firebase בכניסה) */
+var _cache = { subs:[], pays:[], settings:{}, deletedEmails:[] };
+
+async function _fbGet(path){
+  var r = await fetch(DB_URL+path+'.json?auth='+DB_SECRET);
+  var d = await r.json();
+  return d;
+}
+async function _fbPut(path,data){
+  await fetch(DB_URL+path+'.json?auth='+DB_SECRET,{
+    method:'PUT',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  });
+}
+function _arrFromFb(d){ // Firebase מחזיר null / array / object
+  if(!d) return [];
+  if(Array.isArray(d)) return d.filter(Boolean);
+  return Object.values(d).filter(Boolean);
+}
+
+/* טעינת כל הנתונים מ-Firebase בכניסה */
+async function loadFromFirebase(){
+  try{
+    var [s,p,cfg,del] = await Promise.all([
+      _fbGet('/subs'), _fbGet('/pays'),
+      _fbGet('/settings'), _fbGet('/deletedEmails')
+    ]);
+    _cache.subs          = _arrFromFb(s);
+    _cache.pays          = _arrFromFb(p);
+    _cache.settings      = cfg || {};
+    _cache.deletedEmails = _arrFromFb(del);
+  }catch(e){
+    /* fallback: localStorage אם אין חיבור */
+    _cache.subs          = JSON.parse(localStorage.getItem('tb_subs')||'[]');
+    _cache.pays          = JSON.parse(localStorage.getItem('tb_pays')||'[]');
+    _cache.settings      = JSON.parse(localStorage.getItem('tb_settings')||'{}');
+    _cache.deletedEmails = JSON.parse(localStorage.getItem('tb_deleted_emails')||'[]');
+    console.warn('Firebase לא זמין — נטען מ-localStorage');
+  }
+}
+
+/* פונקציות קריאה — מחזירות מה-cache (סינכרוני) */
+function loadSubs()    { return _cache.subs.slice(); }
+function loadPays()    { return _cache.pays.slice(); }
+function loadSettings(){ return Object.assign({}, _cache.settings); }
+
+/* פונקציות כתיבה — מעדכנות cache + Firebase + localStorage (fallback) */
+function saveSubs(d){
+  _cache.subs = d;
+  localStorage.setItem('tb_subs', JSON.stringify(d));
+  _fbPut('/subs', d).catch(function(){ console.warn('שגיאת שמירת נרשמים ל-Firebase'); });
+}
+function savePays(d){
+  _cache.pays = d;
+  localStorage.setItem('tb_pays', JSON.stringify(d));
+  _fbPut('/pays', d).catch(function(){ console.warn('שגיאת שמירת תשלומים ל-Firebase'); });
+}
+function saveSettingsObj(d){
+  _cache.settings = d;
+  localStorage.setItem('tb_settings', JSON.stringify(d));
+  _fbPut('/settings', d).catch(function(){ console.warn('שגיאת שמירת הגדרות ל-Firebase'); });
+}
+function _loadDeletedEmails(){ return _cache.deletedEmails.slice(); }
+function _saveDeletedEmails(d){
+  _cache.deletedEmails = d;
+  localStorage.setItem('tb_deleted_emails', JSON.stringify(d));
+  _fbPut('/deletedEmails', d).catch(function(){});
+}
 function genId(){return 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
 function fmtDate(s){if(!s)return '—';try{return new Date(s+'T00:00:00').toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'});}catch(e){return s;}}
 function todayISO(){return new Date().toISOString().slice(0,10);}
@@ -891,31 +985,12 @@ var METHOD_LABELS={'paypal':'PayPal','card':'כ. אשראי (PP)','bank':'העב
 
 /* ═══ SAMPLE DATA ═══ */
 function syncLandingRegistrations(){
-  /* בודק אם יש נרשם חדש מדף הנחיתה שעדיין לא נוסף */
-  try{
-    var userData = JSON.parse(localStorage.getItem('lextime_user')||'null');
-    if(!userData || !userData.email) return;
-
-    var subs = loadSubs();
-    var exists = subs.find(function(s){return s.email===userData.email;});
-    if(exists) return; // כבר קיים
-
-    // בדיקה אם נמחק בעבר ע"י המנהל
-    var deleted = JSON.parse(localStorage.getItem('tb_deleted_emails')||'[]');
-    if(deleted.indexOf(userData.email) !== -1) return; // נמחק — לא להוסיף שוב
-
-    var id = 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
-    subs.push({
-      id:id, name:userData.name||'', firm:'', email:userData.email||'',
-      phone:'', plan:userData.plan||'', payMethod:userData.method||'',
-      status:'pending',
-      date:userData.date||new Date().toISOString().slice(0,10),
-      notes:'נרשם דרך האתר'
-    });
-    saveSubs(subs);
-  }catch(e){}
+  /* ── קורא נרשמים חדשים מ-RTDB ומסנכרן לרשימה המקומית ── */
+  /* (הנרשמים מגיעים ישירות מ-index.html ל-RTDB) */
+  /* אין צורך לעשות כלום כאן — loadFromFirebase טוען /subs ישירות */
 }
-function initApp(){
+async function initApp(){
+  await loadFromFirebase();   /* ← טוען מהענן */
   syncLandingRegistrations();
   setToday();
   fillSettingsForm();
@@ -1239,13 +1314,11 @@ function deleteSub(id){
   var subs = loadSubs();
   var sub = subs.find(function(s){return s.id===id;});
 
-  // שמירת המייל ברשימת מחוקים — כדי שלא יתווסף שוב בטעינה הבאה
+  /* שמירת המייל ברשימת מחוקים — כדי שלא יתווסף שוב בטעינה הבאה */
   if(sub && sub.email){
-    try{
-      var deleted = JSON.parse(localStorage.getItem('tb_deleted_emails')||'[]');
-      if(deleted.indexOf(sub.email) === -1) deleted.push(sub.email);
-      localStorage.setItem('tb_deleted_emails', JSON.stringify(deleted));
-    }catch(e){}
+    var deleted = _loadDeletedEmails();
+    if(deleted.indexOf(sub.email) === -1) deleted.push(sub.email);
+    _saveDeletedEmails(deleted);
   }
 
   saveSubs(subs.filter(function(s){return s.id!==id;}));

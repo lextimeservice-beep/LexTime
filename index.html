@@ -1426,6 +1426,23 @@ function goToPayment(){
   sregShowStep(2);
 }
 function backToStep1(){sregShowStep(1);}
+/* ── שמירת נרשם ל-RTDB /subs כדי שהמנהל יראה אותו מכל מחשב ── */
+function saveSubToRTDB(name,email,plan,method,status){
+  var key=_emailKey(email);
+  /* קודם קרא נתון קיים כדי לא לדרוס id קיים */
+  _rtdbGet('/subs/'+key).then(function(existing){
+    var sub={
+      id: existing&&existing.id ? existing.id : 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
+      name:name, firm:'', email:email.toLowerCase(),
+      phone:'', plan:plan||'', payMethod:method||'',
+      status: existing&&existing.status==='active' ? 'active' : (status||'pending'),
+      date: existing&&existing.date ? existing.date : new Date().toISOString().slice(0,10),
+      notes:'נרשם דרך האתר'
+    };
+    _rtdbPut('/subs/'+key, sub);
+  });
+}
+
 function submitPayment(){
   var err=document.getElementById('payError');
   if(_payTab==='card'){
@@ -1443,15 +1460,14 @@ function submitPayment(){
   err.style.display='none';
   var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
   var email=document.getElementById('regEmail').value.trim();
-  // שמירת פרטי הרישום בלבד — ללא גישה לפלטפורמה
   savePendingCredentials(name,email);
-  // ✅ תיקון באג 1: שמירת lextime_user כדי שממשק הניהול יזהה את הנרשם
   localStorage.setItem('lextime_user', JSON.stringify({
     name: name, email: email, plan: _plan, method: 'card',
     date: new Date().toISOString().slice(0,10)
   }));
-  // שמירה ל-Firestore כ-pending — גישה תינתן רק לאחר אימות webhook
   saveToFirestore(name,email,_plan,_price,'card','pending');
+  /* ── שמירה ל-RTDB כדי שהמנהל יראה את הנרשם ── */
+  saveSubToRTDB(name,email,_plan,'card','pending');
   sregShowStep(3);
   document.getElementById('sregProcessing').style.display='none';
   document.getElementById('sregSuccess').style.display='none';
@@ -1517,12 +1533,13 @@ function openPayPalSubscription(){
   var email=document.getElementById('regEmail').value.trim();
   // שמירת פרטי רישום בלבד — ללא גישה!
   savePendingCredentials(name,email);
-  // ✅ תיקון באג 1: שמירת lextime_user כדי שממשק הניהול יזהה את הנרשם
   localStorage.setItem('lextime_user', JSON.stringify({
     name: name, email: email, plan: _plan, method: 'paypal',
     date: new Date().toISOString().slice(0,10)
   }));
   saveToFirestore(name,email,_plan,_price,'paypal','pending');
+  /* ── שמירה ל-RTDB כדי שהמנהל יראה את הנרשם ── */
+  saveSubToRTDB(name,email,_plan,'paypal','pending');
 }
 
 function verifyPayPalPayment(){
