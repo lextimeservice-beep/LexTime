@@ -287,6 +287,10 @@ tr:hover td{background:#fafbfc}
         <span class="nav-icon">📋</span><span>מסלולים</span>
       </div>
       <div class="nav-section">הגדרות</div>
+      <div class="nav-item" onclick="showPage('contacts')" id="nav-contacts">
+        <span class="nav-icon">💬</span><span>פניות יצירת קשר</span>
+        <span class="nav-badge" id="contactsBadge" style="display:none">0</span>
+      </div>
       <div class="nav-item" onclick="showPage('settings')" id="nav-settings">
         <span class="nav-icon">⚙️</span><span>הגדרות מערכת</span>
       </div>
@@ -502,6 +506,24 @@ tr:hover td{background:#fafbfc}
             <table>
               <thead><tr><th>מסלול</th><th>מחיר חודשי</th><th>נרשמים פעילים</th><th>ממתינים</th><th>הכנסה חודשית</th></tr></thead>
               <tbody id="planTable"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── CONTACTS PAGE ── -->
+      <div id="page-contacts" style="display:none">
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">💬 פניות יצירת קשר</div>
+            <button class="btn btn-gh btn-sm" onclick="loadContacts()">🔄 רענן</button>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr>
+                <th>#</th><th>שם</th><th>דוא"ל</th><th>הודעה</th><th>תאריך</th><th>סטטוס</th><th>פעולות</th>
+              </tr></thead>
+              <tbody id="contactsTable"><tr class="empty-row"><td colspan="7">טוען פניות...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1017,19 +1039,20 @@ function setToday(){
 /* ═══ PAGE NAVIGATION ═══ */
 var _currentFilter='all';
 function showPage(page){
-  ['dashboard','subscribers','payments','plans','settings'].forEach(function(p){
+  ['dashboard','subscribers','payments','plans','contacts','settings'].forEach(function(p){
     var el=document.getElementById('page-'+p);
     if(el)el.style.display=p===page?'block':'none';
     var nav=document.getElementById('nav-'+p);
     if(nav)nav.className='nav-item'+(p===page?' active':'');
   });
-  var titles={dashboard:'לוח בקרה',subscribers:'ניהול נרשמים',payments:'ניהול תשלומים',plans:'מסלולים ומנויים',settings:'הגדרות מערכת'};
+  var titles={dashboard:'לוח בקרה',subscribers:'ניהול נרשמים',payments:'ניהול תשלומים',plans:'מסלולים ומנויים',contacts:'פניות יצירת קשר',settings:'הגדרות מערכת'};
   document.getElementById('pageTitle').textContent=titles[page]||page;
   document.getElementById('pageSub').textContent='';
   if(page==='dashboard')renderDashboard();
   if(page==='subscribers')renderSubs();
   if(page==='payments')renderPayments();
   if(page==='plans')renderPlans();
+  if(page==='contacts')loadContacts();
 }
 
 /* ═══ DASHBOARD ═══ */
@@ -1446,6 +1469,56 @@ function exportCSV(){
   a.click();
   toast('הקובץ יורד...');
 }
+
+/* ═══ CONTACT REQUESTS ═══ */
+async function loadContacts(){
+  var tb = document.getElementById('contactsTable');
+  if(tb) tb.innerHTML = '<tr class="empty-row"><td colspan="7">טוען...</td></tr>';
+  try{
+    var r = await _fbGet('/contact_requests');
+    var items = r ? Object.entries(r).map(function(e){ return Object.assign({_key:e[0]},e[1]); }) : [];
+    items.sort(function(a,b){ return (b.date||'').localeCompare(a.date||''); });
+    var newCount = items.filter(function(x){return x.status==='new';}).length;
+    var badge = document.getElementById('contactsBadge');
+    if(badge){ badge.textContent=newCount; badge.style.display=newCount?'':'none'; }
+    if(!tb) return;
+    if(!items.length){ tb.innerHTML='<tr class="empty-row"><td colspan="7">אין פניות עדיין</td></tr>'; return; }
+    tb.innerHTML = items.map(function(c,i){
+      var d = c.date ? new Date(c.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+      var sBadge = c.status==='new' ? '<span class="badge badge-amber">חדש 🔔</span>' : '<span class="badge badge-green">טופל ✅</span>';
+      var shortMsg = (c.msg||'').length>60 ? c.msg.slice(0,60)+'...' : (c.msg||'—');
+      return '<tr style="'+(c.status==='new'?'background:#fffbeb;':'')+'">'+
+        '<td style="color:var(--gray-l)">'+(i+1)+'</td>'+
+        '<td><strong>'+(c.name||'—')+'</strong></td>'+
+        '<td style="color:var(--gray);direction:ltr">'+(c.email||'—')+'</td>'+
+        '<td style="color:var(--gray);max-width:260px" title="'+(c.msg||'')+'">'+shortMsg+'</td>'+
+        '<td style="color:var(--gray);white-space:nowrap;font-size:12px">'+d+'</td>'+
+        '<td>'+sBadge+'</td>'+
+        '<td><div class="row-actions">'+
+        (c.status==='new'?'<button class="btn btn-green btn-sm" onclick="markContactDone(\''+c._key+'\')">✅ טופל</button>':'')+
+        '<button class="btn btn-gh btn-sm" onclick="replyContact(\''+encodeURIComponent(c.email||'')+'\',\''+encodeURIComponent(c.name||'')+'\')">📧 השב</button>'+
+        '<button class="btn btn-red btn-sm" onclick="deleteContact(\''+c._key+'\')">🗑</button>'+
+        '</div></td></tr>';
+    }).join('');
+  }catch(e){
+    if(tb) tb.innerHTML='<tr class="empty-row"><td colspan="7">שגיאת חיבור</td></tr>';
+  }
+}
+async function markContactDone(key){
+  var d = await _fbGet('/contact_requests/'+key);
+  if(d) await _fbPut('/contact_requests/'+key, Object.assign(d,{status:'done'}));
+  loadContacts(); toast('הפנייה סומנה כטופלה ✅');
+}
+async function deleteContact(key){
+  if(!confirm('למחוק פנייה זו?')) return;
+  await fetch(DB_URL+'/contact_requests/'+key+'.json?auth='+DB_SECRET,{method:'DELETE'});
+  loadContacts(); toast('הפנייה נמחקה 🗑');
+}
+function replyContact(emailEnc,nameEnc){
+  var email=decodeURIComponent(emailEnc), name=decodeURIComponent(nameEnc);
+  window.open('mailto:'+email+'?subject='+encodeURIComponent('LexTime — בהמשך לפנייתך')+'&body='+encodeURIComponent('שלום '+name+',\n\nתודה שפנית אלינו.\n\n'));
+}
+/* ════════════════════════════════════════════════ */
 
 /* ═══ CREDENTIALS MANAGEMENT ═══
    מנהל credentials של משתמשים ב-Firebase RTDB.
