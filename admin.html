@@ -361,6 +361,16 @@ tr:hover td{background:#fafbfc}
           </div>
         </div>
 
+        <!-- Warning: missing credentials -->
+        <div id="credWarningBanner" style="display:none;background:#fffbeb;border:1px solid #f59e0b;border-radius:10px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px">
+          <span style="font-size:22px">⚠️</span>
+          <div style="flex:1">
+            <div style="font-weight:700;color:#92400e;font-size:14px">משתמשים פעילים שלא יכולים להתחבר</div>
+            <div style="font-size:12px;color:#b45309;margin-top:2px"><span id="credWarningCount">0</span> נרשמים פעילים חסרי credentials — לחץ על "ניהול נרשמים" ותקן ידנית.</div>
+          </div>
+          <button class="btn btn-sm" style="background:#f59e0b;color:#fff" onclick="showPage('subscribers')">עבור לנרשמים ←</button>
+        </div>
+
         <!-- Recent subscribers -->
         <div class="card" style="margin-bottom:20px">
           <div class="card-header">
@@ -420,9 +430,9 @@ tr:hover td{background:#fafbfc}
             <table>
               <thead><tr>
                 <th>#</th><th>שם</th><th>דוא"ל</th><th>טלפון</th><th>משרד</th>
-                <th>מסלול</th><th>אמצעי תשלום</th><th>סטטוס</th><th>תאריך</th><th>פעולות</th>
+                <th>מסלול</th><th>אמצעי תשלום</th><th>סטטוס</th><th>כניסה 🔑</th><th>תאריך</th><th>פעולות</th>
               </tr></thead>
-              <tbody id="subTable"><tr class="empty-row"><td colspan="10">אין נרשמים</td></tr></tbody>
+              <tbody id="subTable"><tr class="empty-row"><td colspan="11">אין נרשמים</td></tr></tbody>
             </table>
           </div>
           <div style="padding:14px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--gray)" id="subCount"></div>
@@ -685,6 +695,7 @@ tr:hover td{background:#fafbfc}
     <div class="mf">
       <button id="sendCodeBtn" class="btn btn-gold" style="display:none" onclick="">📧 שלח קוד הפעלה</button>
       <button class="btn btn-gold" id="manageLawyersBtn" onclick="">👥 עורכי דין מורשים</button>
+      <button class="btn btn-sm" id="fixCredsBtn" style="display:none;background:#f59e0b;color:#fff" onclick="">🔧 תקן כניסה</button>
       <button class="btn btn-gh" onclick="closeModal('modalSubView')">סגור</button>
       <button class="btn btn-gold" id="subViewEditBtn">✏️ עריכה</button>
     </div>
@@ -992,6 +1003,7 @@ function syncLandingRegistrations(){
 async function initApp(){
   await loadFromFirebase();   /* ← טוען מהענן */
   syncLandingRegistrations();
+  await loadAllCredentials(); /* ← בודק credentials לכל נרשם */
   setToday();
   fillSettingsForm();
   showPage('dashboard');
@@ -1032,6 +1044,7 @@ function renderDashboard(){
   document.getElementById('kpiPending').textContent=pending.length;
   document.getElementById('pendingBadge').textContent=pending.length;
   document.getElementById('pendingBadge').style.display=pending.length?'':'none';
+  _updateCredWarning();
 
   // Recent subs
   var recent=subs.slice().sort(function(a,b){return b.date.localeCompare(a.date);}).slice(0,5);
@@ -1075,8 +1088,10 @@ function renderSubs(){
   });
   var tb=document.getElementById('subTable');
   var cnt=document.getElementById('subCount');
-  if(!filtered.length){tb.innerHTML='<tr class="empty-row"><td colspan="10">לא נמצאו נרשמים</td></tr>';cnt.textContent='';return;}
+  if(!filtered.length){tb.innerHTML='<tr class="empty-row"><td colspan="11">לא נמצאו נרשמים</td></tr>';cnt.textContent='';return;}
   tb.innerHTML=filtered.map(function(s,i){
+    var cred=getCredStatus(s.email);
+    var credNeedsfix = cred && (!cred.exists || !cred.passHash);
     return '<tr>'+
       '<td style="color:var(--gray-l)">'+(i+1)+'</td>'+
       '<td><strong>'+s.name+'</strong></td>'+
@@ -1086,6 +1101,7 @@ function renderSubs(){
       '<td>'+planBadge(s.plan)+'</td>'+
       '<td>'+methodBadge(s.payMethod)+'</td>'+
       '<td>'+statusBadge(s.status)+'</td>'+
+      '<td>'+credBadge(s.email)+(credNeedsfix?'&nbsp;<button class="btn btn-sm" style="background:#f59e0b;color:#fff;padding:3px 8px;font-size:11px" onclick="fixCredentials(\''+s.id+'\')">🔧 תקן</button>':'')+'</td>'+
       '<td style="color:var(--gray);white-space:nowrap">'+fmtDate(s.date)+'</td>'+
       '<td><div class="row-actions">'+
       '<button class="btn btn-gh btn-sm" onclick="viewSub(\''+s.id+'\')">👁</button>'+
@@ -1286,6 +1302,18 @@ function viewSub(id){
       sendCodeBtn.style.display='none';
     }
   }
+  // כפתור תיקון credentials
+  var fixBtn = document.getElementById('fixCredsBtn');
+  if(fixBtn){
+    var cred = getCredStatus(s.email);
+    var needsFix = !cred || !cred.exists || !cred.passHash;
+    if(needsFix){
+      fixBtn.style.display='inline-flex';
+      fixBtn.onclick = function(){ fixCredentials(id); closeModal('modalSubView'); };
+    } else {
+      fixBtn.style.display='none';
+    }
+  }
   document.getElementById('modalSubView').classList.remove('hidden');
 }
 function approveSub(id){
@@ -1298,6 +1326,8 @@ function approveSub(id){
   var pays=loadPays();
   var exists=pays.find(function(p){return p.subId===id&&p.month===todayMonth();});
   if(!exists){pays.push({id:genId(),subId:id,subName:s.name,plan:s.plan,amount:PLAN_PRICES[s.plan]||0,method:s.payMethod,month:todayMonth(),status:'approved',ref:'',notes:'אושר ידנית'});savePays(pays);}
+  /* ── תיקון אוטומטי של credentials בענן ── */
+  _ensureCredentials(s);
   renderSubs();renderDashboard();renderPayments();
   toast('המנוי אושר ✅');
 }
@@ -1417,7 +1447,162 @@ function exportCSV(){
   toast('הקובץ יורד...');
 }
 
-/* ═══ BADGE HELPERS ═══ */
+/* ═══ CREDENTIALS MANAGEMENT ═══
+   מנהל credentials של משתמשים ב-Firebase RTDB.
+   מאפשר לזהות ולתקן משתמשים שאינם יכולים להתחבר.
+   ════════════════════════════════════════════════ */
+
+var _credCache = {}; /* email.toLowerCase() → {exists, status, passHash} */
+
+function _emailKeyAdmin(email){
+  return email.toLowerCase().replace(/[^a-z0-9]/g,'_');
+}
+
+/* טוען סטטוס credentials לכל הנרשמים מ-RTDB */
+async function loadAllCredentials(){
+  var subs = loadSubs();
+  _credCache = {};
+  await Promise.all(subs.map(async function(s){
+    if(!s.email) return;
+    try{
+      var r = await fetch(DB_URL+'/credentials/'+_emailKeyAdmin(s.email)+'.json?auth='+DB_SECRET);
+      var d = await r.json();
+      _credCache[s.email.toLowerCase()] = d
+        ? {exists:true, status:d.status||'unknown', passHash:!!(d.passHash && d.passHash!=='RESET_REQUIRED')}
+        : {exists:false};
+    }catch(e){
+      _credCache[s.email.toLowerCase()] = {exists:null}; /* שגיאת חיבור */
+    }
+  }));
+  /* עדכון באנר אזהרה בלוח הבקרה */
+  _updateCredWarning();
+}
+
+/* מחזיר את סטטוס credentials של אימייל */
+function getCredStatus(email){
+  return _credCache[(email||'').toLowerCase()] || null;
+}
+
+/* מציג תג ויזואלי לסטטוס credentials */
+function credBadge(email){
+  var c = getCredStatus(email);
+  if(!c)           return '<span class="badge badge-gray" title="לא נטען">—</span>';
+  if(c.exists===null) return '<span class="badge badge-gray" title="שגיאת חיבור">⚡</span>';
+  if(!c.exists)    return '<span class="badge badge-red" title="חסר ב-RTDB — לא יכול להתחבר">❌ חסר</span>';
+  if(!c.passHash)  return '<span class="badge badge-amber" title="קיים ללא סיסמה — נדרש איפוס">⚠️ ריק</span>';
+  if(c.status==='active') return '<span class="badge badge-green" title="credentials תקינים">✅ תקין</span>';
+  return '<span class="badge badge-amber" title="סטטוס: '+c.status+'">⏳</span>';
+}
+
+/* מחזיר מספר נרשמים פעילים שחסרים להם credentials תקינים */
+function _getMissingCredsCount(){
+  return loadSubs().filter(function(s){
+    if(s.status!=='active') return false;
+    var c = getCredStatus(s.email);
+    return !c || !c.exists || !c.passHash;
+  }).length;
+}
+
+/* מעדכן את באנר האזהרה בלוח הבקרה */
+function _updateCredWarning(){
+  var count = _getMissingCredsCount();
+  var banner = document.getElementById('credWarningBanner');
+  var countEl = document.getElementById('credWarningCount');
+  if(!banner) return;
+  if(count > 0){
+    banner.style.display = 'flex';
+    if(countEl) countEl.textContent = count;
+  } else {
+    banner.style.display = 'none';
+  }
+}
+
+/* תיקון credentials לנרשם ספציפי — קריאה מהטבלה או מחלונית הצפייה */
+async function fixCredentials(subId){
+  var s = loadSubs().find(function(x){return x.id===subId;});
+  if(!s){toast('❌ נרשם לא נמצא');return;}
+
+  var key = _emailKeyAdmin(s.email);
+  toast('🔄 מתחבר ל-Firebase...');
+
+  try{
+    /* בדיקת credentials קיימים */
+    var r = await fetch(DB_URL+'/credentials/'+key+'.json?auth='+DB_SECRET);
+    var existing = await r.json();
+
+    var updated;
+    var msg;
+
+    if(existing && existing.passHash && existing.passHash !== 'RESET_REQUIRED'){
+      /* credentials קיים עם סיסמה — רק מעדכן סטטוס ל-active */
+      updated = Object.assign({}, existing, {status:'active', name: s.name || existing.name || ''});
+      msg = '✅ סטטוס עודכן — המשתמש יכול להתחבר עם הסיסמה הקיימת';
+    } else {
+      /* אין credentials, או passHash חסר / ריאסט נדרש
+         → יוצר רשומה שמאפשרת "שכחתי סיסמה" לעבוד */
+      updated = {
+        email: s.email.toLowerCase(),
+        name:  s.name || '',
+        status: 'active',
+        passHash: 'RESET_REQUIRED' /* ← מאפשר זיהוי ב-forgot-password אך חוסם כניסה ישירה */
+      };
+      msg = '✅ כניסה תוקנה! המשתמש צריך ללחוץ "שכחתי סיסמה" ולאפס את הסיסמה שלו';
+    }
+
+    /* שמירה ב-RTDB */
+    var putR = await fetch(DB_URL+'/credentials/'+key+'.json?auth='+DB_SECRET,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(updated)
+    });
+    if(!putR.ok) throw new Error('PUT failed');
+
+    /* עדכון cache מקומי */
+    _credCache[s.email.toLowerCase()] = {
+      exists: true,
+      status: 'active',
+      passHash: updated.passHash !== 'RESET_REQUIRED'
+    };
+
+    renderSubs();
+    _updateCredWarning();
+    toast(msg);
+
+  }catch(e){
+    console.error('fixCredentials error:', e);
+    toast('❌ שגיאת חיבור ל-Firebase. נסה שוב.');
+  }
+}
+
+/* נקרא אוטומטית כשמאשרים נרשם — מוודא שיש לו credentials */
+async function _ensureCredentials(sub){
+  if(!sub || !sub.email) return;
+  var key = _emailKeyAdmin(sub.email);
+  try{
+    var r = await fetch(DB_URL+'/credentials/'+key+'.json?auth='+DB_SECRET);
+    var existing = await r.json();
+
+    if(!existing){
+      /* אין credentials כלל → יוצר עם RESET_REQUIRED */
+      await fetch(DB_URL+'/credentials/'+key+'.json?auth='+DB_SECRET,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email:sub.email.toLowerCase(), name:sub.name||'', status:'active', passHash:'RESET_REQUIRED'})
+      });
+      _credCache[sub.email.toLowerCase()] = {exists:true, status:'active', passHash:false};
+    } else if(existing.status !== 'active'){
+      /* credentials קיים אך לא active → מעדכן סטטוס */
+      await fetch(DB_URL+'/credentials/'+key+'.json?auth='+DB_SECRET,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(Object.assign({}, existing, {status:'active'}))
+      });
+      _credCache[sub.email.toLowerCase()] = {exists:true, status:'active', passHash:!!existing.passHash && existing.passHash!=='RESET_REQUIRED'};
+    }
+    _updateCredWarning();
+  }catch(e){ console.warn('_ensureCredentials failed:', e); }
+}
+/* ════════════════════════════════════════════════ */
 function planBadge(p){
   var cls={עצמאי:'badge-gold',משרד:'badge-blue','משרד גדול':'badge-green'};
   return '<span class="badge '+(cls[p]||'badge-gray')+'">'+p+'</span>';

@@ -1682,7 +1682,27 @@ function doLogin(){
   var passHash=simpleHashLogin(pass);
 
   function resetBtn(){btn.textContent='כניסה למערכת ←';btn.style.opacity='1';btn.disabled=false;}
-  function showErr(msg){resetBtn();errEl.style.display='block';errEl.textContent=msg||'שגיאה. נסה שוב.';}
+
+  /* הצגת שגיאה רגילה (ללא כפתור יצירת קשר) */
+  function showErr(msg){
+    resetBtn();
+    document.getElementById('loginContactWrap').style.display='none';
+    errEl.style.display='block';
+    errEl.textContent=msg||'שגיאה. נסה שוב.';
+  }
+
+  /* הצגת שגיאה + כפתור "דברו איתנו" */
+  function showErrWithContact(msg){
+    resetBtn();
+    errEl.style.display='block';
+    errEl.textContent=msg;
+    /* בניית קישור mailto עם פרטי פנייה מולאו מראש */
+    var subject=encodeURIComponent('בעיית כניסה ל-LexTime');
+    var body=encodeURIComponent('שלום,\n\nנרשמתי ל-LexTime ואני מתקשה להתחבר.\nכתובת האימייל שלי: '+email+'\n\nאשמח לעזרה.');
+    var contactEl=document.getElementById('loginContactBtn');
+    contactEl.href='mailto:lextimeservice@gmail.com?subject='+subject+'&body='+body;
+    document.getElementById('loginContactWrap').style.display='block';
+  }
 
   /* הענקת גישה + שמירת פרטי משתמש + מעבר לפלטפורמה */
   function grantAndGo(name,plan){
@@ -1702,7 +1722,7 @@ function doLogin(){
       if(sub&&sub.status==='active'){
         grantAndGo(sub.name||name,sub.plan||plan);
       } else {
-        showErr('החשבון שלך ממתין לאישור תשלום. לפרטים: lextimeservice@gmail.com');
+        showErrWithContact('החשבון שלך ממתין לאישור. אנחנו כאן לעזור —');
       }
     }).catch(function(){showErr('שגיאת חיבור. נסה שוב.');});
   }
@@ -1742,7 +1762,7 @@ function doLogin(){
     } else if(data){
       showErr('כתובת הדוא"ל או הסיסמה שגויים. נסה שנית.');
     } else {
-      showErr('לא נמצא חשבון עם כתובת דוא"ל זו. נסה להירשם מחדש.');
+      showErrWithContact('לא מצאנו חשבון עם כתובת דוא"ל זו. שילמת כבר? אנחנו נסדר זאת —');
     }
   }).catch(function(){showErr('שגיאת חיבור. נסה שוב.');});
 }
@@ -1756,7 +1776,16 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
     <div style="text-align:center;color:rgba(255,255,255,.4);font-size:13px;margin-bottom:28px">ניהול מועדים משפטיים</div>
     <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">כניסה למערכת</div>
     <div style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:24px">הזן את כתובת הדוא&quot;ל והסיסמה שבחרת בהרשמה</div>
-    <div id="loginErr" style="display:none;background:rgba(185,28,28,.15);border:1px solid rgba(185,28,28,.35);border-radius:8px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:14px"></div>
+    <div id="loginErr" style="display:none;background:rgba(185,28,28,.15);border:1px solid rgba(185,28,28,.35);border-radius:8px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:8px"></div>
+    <div id="loginContactWrap" style="display:none;margin-bottom:14px">
+      <a id="loginContactBtn" href="#"
+        style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:10px 16px;background:linear-gradient(135deg,#1a4fa0,#2563eb);color:#fff;border-radius:8px;font-size:13px;font-weight:700;text-decoration:none;transition:.2s;box-shadow:0 2px 10px rgba(37,99,235,.35)"
+        onmouseover="this.style.transform='translateY(-1px)';this.style.boxShadow='0 6px 20px rgba(37,99,235,.45)'"
+        onmouseout="this.style.transform='';this.style.boxShadow='0 2px 10px rgba(37,99,235,.35)'">
+        <span style="font-size:16px">💬</span>
+        <span>דברו איתנו — נסייע לכם להתחבר</span>
+      </a>
+    </div>
     <div style="margin-bottom:14px">
       <label style="display:block;font-size:13px;font-weight:500;color:rgba(255,255,255,.65);margin-bottom:6px">כתובת דוא&quot;ל</label>
       <input id="loginEmail" type="email" placeholder="name@lawfirm.co.il"
@@ -1912,7 +1941,9 @@ function sendResetCode(){
         msgEl.style.background='rgba(185,28,28,.15)';
         msgEl.style.border='1px solid rgba(185,28,28,.35)';
         msgEl.style.color='#f87171';
-        msgEl.textContent='כתובת הדוא"ל אינה רשומה במערכת. צור קשר: lextimeservice@gmail.com';
+        msgEl.innerHTML='כתובת הדוא"ל אינה רשומה במערכת.<br>'
+          +'<a href="mailto:lextimeservice@gmail.com?subject='+encodeURIComponent('בעיית כניסה ל-LexTime')+'&body='+encodeURIComponent('שלום,\n\nנרשמתי ל-LexTime ואני מתקשה להתחבר.\nכתובת האימייל שלי: '+email+'\n\nאשמח לעזרה.')
+          +'" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 14px;background:linear-gradient(135deg,#1a4fa0,#2563eb);color:#fff;border-radius:7px;font-size:12px;font-weight:700;text-decoration:none">💬 דברו איתנו — נסייע להתחבר</a>';
         btn.textContent='שלח קוד לאיפוס ←';
         btn.disabled=false;
         btn.style.display='block';
