@@ -582,10 +582,12 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
 <div class="toast" id="toast"></div>
 
 <script>
-/* ══ STORAGE ══ */
+/* ══ STORAGE — Firebase RTDB ══
+   כל התיקים נשמרים בענן לפי מייל המשתמש — נגישים מכל מכשיר */
 var FILE_UID='72c8fbcf';
-/* ── תיקון באג: namespace נפרד לכל משתמש לפי האימייל שלו ──
-   כך תיקי משתמש אחד לא יופיעו אצל משתמש אחר באותו מחשב */
+var _RTDB='https://lextime-82214-default-rtdb.europe-west1.firebasedatabase.app';
+var _RTDB_S='ZRYmRM293l9TyrLs9vRt02MYRtBKMWDwNiMFirgk';
+
 var USER_NS=(function(){
   try{
     var u=JSON.parse(localStorage.getItem('lextime_user')||'null');
@@ -593,25 +595,73 @@ var USER_NS=(function(){
   }catch(e){}
   return 'guest';
 })();
-var KEY_IDS='lm_'+FILE_UID+'_'+USER_NS+'_ids';
+
 var KEY_CUR='lm_'+FILE_UID+'_'+USER_NS+'_cur';
 var KEY_PFX='lm_'+FILE_UID+'_'+USER_NS+'_case_';
-function saveCurrentId(id){try{localStorage.setItem(KEY_CUR,id)}catch(e){}}
-function loadCurrentId(){try{return localStorage.getItem(KEY_CUR)}catch(e){return null}}
-function saveCaseIds(ids){try{localStorage.setItem(KEY_IDS,JSON.stringify(ids))}catch(e){}}
-function loadAllCases(){
+
+function _rtdbGet(path){
+  return fetch(_RTDB+path+'.json?auth='+_RTDB_S)
+    .then(function(r){return r.json();})
+    .catch(function(){return null;});
+}
+function _rtdbPut(path,data){
+  return fetch(_RTDB+path+'.json?auth='+_RTDB_S,{
+    method:'PUT',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(data)
+  }).catch(function(){});
+}
+function _rtdbDelete(path){
+  return fetch(_RTDB+path+'.json?auth='+_RTDB_S,{method:'DELETE'})
+    .catch(function(){});
+}
+var _CASES_PATH='/cases/'+USER_NS;
+
+function saveCurrentId(id){
+  try{localStorage.setItem(KEY_CUR,id);}catch(e){}
+  _rtdbPut(_CASES_PATH+'/curId',id);
+}
+function loadCurrentId(){
+  try{return localStorage.getItem(KEY_CUR);}catch(e){return null;}
+}
+
+/* טעינת תיקים מ-RTDB — async */
+async function loadAllCasesFromRTDB(){
   try{
-    var raw=localStorage.getItem(KEY_IDS);
-    if(raw===null||raw===undefined)return null;
-    var ids=JSON.parse(raw),r=[];
-    ids.forEach(function(id){var d=localStorage.getItem(KEY_PFX+id);if(d)r.push(JSON.parse(d));});
-    return r;
+    var data=await _rtdbGet(_CASES_PATH+'/list');
+    if(!data) return null;
+    var arr=Array.isArray(data)?data.filter(Boolean):Object.values(data).filter(Boolean);
+    return arr.length>0?arr:null;
   }catch(e){return null;}
 }
+
+/* שמירת תיק יחיד ל-RTDB + localStorage (fallback) */
 function autoSave(c){
   setSaving();
-  try{if(c)localStorage.setItem(KEY_PFX+c.id,JSON.stringify(c));saveCaseIds(cases.map(function(x){return x.id;}));}catch(e){}
-  setTimeout(setSaved,700);
+  try{
+    if(c){
+      localStorage.setItem(KEY_PFX+c.id,JSON.stringify(c));
+    }
+    /* שמירת כל הרשימה ל-RTDB */
+    var obj={};
+    cases.forEach(function(x){obj[x.id]=x;});
+    _rtdbPut(_CASES_PATH+'/list',obj).then(setSaved);
+  }catch(e){setSaved();}
+}
+
+function saveCaseIds(ids){/* handled by autoSave */}
+function loadAllCases(){
+  /* fallback sync מ-localStorage בלבד */
+  try{
+    var keys=[];
+    for(var i=0;i<localStorage.length;i++){
+      var k=localStorage.key(i);
+      if(k&&k.indexOf(KEY_PFX)===0) keys.push(k);
+    }
+    if(!keys.length) return null;
+    var r=[];
+    keys.forEach(function(k){try{r.push(JSON.parse(localStorage.getItem(k)));}catch(e){}});
+    return r.length>0?r:null;
+  }catch(e){return null;}
 }
 function setSaving(){var d=g('saveDot'),l=g('saveLabel');if(d){d.className='save-dot saving';l.textContent='שומר...'}}
 function setSaved(){var d=g('saveDot'),l=g('saveLabel');if(d){d.className='save-dot saved';l.textContent='נשמר'}}
@@ -821,9 +871,8 @@ function defaultStatuses(){
 var stored=loadAllCases();
 /* ── תיקון באג: פלטפורמה ריקה למשתמש חדש, ללא תיק דמו ── */
 var cases=(stored!==null&&stored.length>0)?stored:[];
-
 var savedCurId=loadCurrentId();
-var curId=(savedCurId&&cases.length>0&&cases.some(function(c){return c.id===savedCurId;}))?savedCurId:(cases.length>0?cases[0].id:'case-1');
+var curId=(savedCurId&&cases.length>0&&cases.some(function(c){return c.id===savedCurId;}))?savedCurId:(cases.length>0?cases[0].id:null);
 function cur(){return cases.filter(function(c){return c.id===curId;})[0]||(cases.length>0?cases[0]:null);}
 
 /* ══ DATE ENGINE ══
@@ -1344,11 +1393,15 @@ function deleteCase(){
   if(!confirm('למחוק את התיק? פעולה זו אינה הפיכה.'))return;
   try{localStorage.removeItem(KEY_PFX+curId);}catch(e){}
   cases=cases.filter(function(c){return c.id!==curId;});
-  saveCaseIds(cases.map(function(c){return c.id;}));
+  /* עדכון RTDB */
+  var obj={};
+  cases.forEach(function(x){obj[x.id]=x;});
+  _rtdbPut(_CASES_PATH+'/list', cases.length>0?obj:null);
   closeModal('modalEdit');
   if(!cases.length){
     curId=null;
     try{localStorage.removeItem(KEY_CUR);}catch(ex){}
+    _rtdbDelete(_CASES_PATH+'/curId');
     var sw=g('stagesWrap');
     if(sw)sw.innerHTML='<div class="empty-state"><div class="icon">📁</div><h3>אין תיקים פתוחים — לחץ על "+ פתיחת תיק חדש"</h3></div>';
   }
@@ -1366,25 +1419,44 @@ function doLogout(){
 function showToast(msg){var t=g('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},3000);}
 
 /* functions are global */
-document.addEventListener('DOMContentLoaded', function(){
+document.addEventListener('DOMContentLoaded', async function(){
   try{
-    // הצגת ברכת שלום לעורך הדין
+    /* ── ברכת שלום ── */
     try{
-      var userData = JSON.parse(localStorage.getItem('lextime_user')||'null');
-      if(userData && userData.name){
-        var greet = document.getElementById('userGreeting');
-        if(greet){
-          greet.textContent = 'שלום, עו"ד ' + userData.name;
-          greet.style.display = 'block';
-        }
+      var userData=JSON.parse(localStorage.getItem('lextime_user')||'null');
+      if(userData&&userData.name){
+        var greet=document.getElementById('userGreeting');
+        if(greet){greet.textContent='שלום, עו"ד '+userData.name;greet.style.display='block';}
       }
     }catch(e){}
-    if(!stored) autoSave(null);
+
+    /* ── טעינת תיקים מ-RTDB (מכל מכשיר) ── */
+    var sw=g('stagesWrap');
+    if(sw) sw.innerHTML='<div style="padding:60px;text-align:center;color:#64748b;font-family:Heebo,Arial,sans-serif">⏳ טוען תיקים...</div>';
+
+    var rtdbCases=await loadAllCasesFromRTDB();
+    if(rtdbCases&&rtdbCases.length>0){
+      cases=rtdbCases;
+      /* טעינת ה-curId מ-RTDB */
+      var rtdbCurId=await _rtdbGet(_CASES_PATH+'/curId');
+      var validCur=rtdbCurId&&cases.some(function(c){return c.id===rtdbCurId;});
+      curId=validCur?rtdbCurId:cases[0].id;
+    } else {
+      /* fallback: localStorage */
+      var localCases=loadAllCases();
+      if(localCases&&localCases.length>0){
+        cases=localCases;
+        curId=cases[0].id;
+        /* העלאת תיקים מקומיים ל-RTDB */
+        autoSave(null);
+      }
+    }
+
     renderAll();
-  } catch(err){
-    console.error('TimeBar init error:', err);
-    var sw = g('stagesWrap');
-    if(sw) sw.innerHTML = '<div style="padding:40px;text-align:center;direction:rtl;color:#b91c1c;font-family:Arial,sans-serif;font-size:16px">&#x26A0; שגיאת טעינה<br><small>' + err.message + '</small></div>';
+  }catch(err){
+    console.error('TimeBar init error:',err);
+    var sw=g('stagesWrap');
+    if(sw) sw.innerHTML='<div style="padding:40px;text-align:center;direction:rtl;color:#b91c1c;font-family:Arial,sans-serif;font-size:16px">&#x26A0; שגיאת טעינה<br><small>'+err.message+'</small></div>';
   }
 });
 </script>

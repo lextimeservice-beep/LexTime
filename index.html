@@ -1547,36 +1547,47 @@ function verifyPayPalPayment(){
   var verifyMsg=document.getElementById('paypalVerifyMsg');
   verifyMsg.style.display='block';
   verifyMsg.textContent='מאמת תשלום...';
+
+  function grantAndRedirect(plan){
+    var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
+    localStorage.setItem('lextime_user',JSON.stringify({
+      name:name, email:email, plan:plan, date:new Date().toISOString().slice(0,10)
+    }));
+    grantFullAccess(email,plan);
+    sregShowStep(3);
+    document.getElementById('sregProcessing').style.display='none';
+    document.getElementById('sregPending').style.display='none';
+    document.getElementById('sregSuccess').style.display='block';
+  }
+
+  /* בדיקת אישור מנהל ב-RTDB — fallback אחרי Cloud Function */
+  function checkRTDBFallback(){
+    _rtdbGet('/subs').then(function(data){
+      var arr=data?(Array.isArray(data)?data.filter(Boolean):Object.values(data).filter(Boolean)):[];
+      var sub=arr.find(function(s){return s&&s.email&&s.email.toLowerCase()===email;});
+      if(sub&&sub.status==='active'){
+        grantAndRedirect(sub.plan||_plan);
+      } else {
+        verifyMsg.textContent='התשלום ב-PayPal טרם אושר. אם סיימת לשלם, נסה שוב בעוד דקה.';
+      }
+    }).catch(function(){
+      verifyMsg.textContent='שגיאת חיבור. נסה שוב.';
+    });
+  }
+
   var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
   fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
   .then(function(r){return r.json();})
   .then(function(data){
     if(data.active){
-      // תשלום אומת — מעניקים גישה
-      grantFullAccess(email, data.plan);
-      sregShowStep(3);
-      document.getElementById('sregProcessing').style.display='none';
-      document.getElementById('sregPending').style.display='none';
-      document.getElementById('sregSuccess').style.display='block';
+      grantAndRedirect(data.plan||_plan);
     } else {
-      verifyMsg.textContent='התשלום ב-PayPal טרם אושר. אם סיימת לשלם, נסה שוב בעוד דקה.';
+      /* ← בדיקה ב-RTDB אם המנהל אישר ידנית */
+      checkRTDBFallback();
     }
   })
   .catch(function(){
-    try{
-      firebase.firestore().collection('users').where('email','==',email).get()
-      .then(function(snap){
-        if(!snap.empty && snap.docs[0].data().status==='active'){
-          grantFullAccess(email, snap.docs[0].data().plan||_plan);
-          sregShowStep(3);
-          document.getElementById('sregProcessing').style.display='none';
-          document.getElementById('sregPending').style.display='none';
-          document.getElementById('sregSuccess').style.display='block';
-        } else {
-          verifyMsg.textContent='התשלום טרם אושר. נסה שוב בעוד דקה.';
-        }
-      });
-    }catch(e){verifyMsg.textContent='שגיאת חיבור. נסה שוב.';}
+    checkRTDBFallback();
   });
 }
 function onPayPalReturn(){verifyPayPalPayment();}
@@ -1845,19 +1856,29 @@ function sendResetCode(){
     }
   })
   .catch(function(){
-    // ✅ תיקון באג 3: fallback מקומי לאיפוס סיסמה כשה-Function לא זמין
-    try{
-      var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
-      if(creds && creds.email===email){
-        // יצירת קוד זמני ב-localStorage
+    /* fallback: בדיקת קיום מייל ב-RTDB */
+    _rtdbGet('/credentials/'+_emailKey(email)).then(function(rtdbCreds){
+      var credsToUse=null;
+      /* נסה localStorage קודם */
+      try{
+        var local=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
+        if(local&&local.email===email) credsToUse=local;
+      }catch(e){}
+      /* אם לא נמצא מקומית — בדוק RTDB */
+      if(!credsToUse&&rtdbCreds&&rtdbCreds.email===email) credsToUse=rtdbCreds;
+
+      if(credsToUse){
         var localCode=Math.floor(100000+Math.random()*900000).toString();
-        localStorage.setItem('lextime_reset_code',JSON.stringify({email:email,code:localCode,exp:Date.now()+600000}));
+        var resetData={email:email,code:localCode,exp:Date.now()+600000};
+        localStorage.setItem('lextime_reset_code',JSON.stringify(resetData));
+        /* שמירת הקוד ב-RTDB כדי שיעבוד מכל מכשיר */
+        _rtdbPut('/reset_codes/'+_emailKey(email),resetData);
         btn.style.display='none';
         msgEl.style.display='block';
         msgEl.style.background='rgba(146,64,14,.15)';
         msgEl.style.border='1px solid rgba(146,64,14,.35)';
         msgEl.style.color='#fde68a';
-        msgEl.textContent='⚠️ שירות המייל אינו זמין כרגע. הקוד הזמני שלך: '+localCode+' (תקף ל-10 דקות). שמור אותו והזן בשדה הקוד.';
+        msgEl.textContent='⚠️ שירות המייל אינו זמין. הקוד הזמני שלך: '+localCode+' (תקף ל-10 דקות).';
         document.getElementById('resetCodePanel').style.display='block';
       } else {
         msgEl.style.display='block';
@@ -1869,7 +1890,7 @@ function sendResetCode(){
         btn.disabled=false;
         btn.style.display='block';
       }
-    }catch(e){
+    }).catch(function(){
       msgEl.style.display='block';
       msgEl.style.background='rgba(185,28,28,.15)';
       msgEl.style.border='1px solid rgba(185,28,28,.35)';
@@ -1878,7 +1899,7 @@ function sendResetCode(){
       btn.textContent='שלח קוד לאיפוס ←';
       btn.disabled=false;
       btn.style.display='block';
-    }
+    });
   });
 }
 function confirmResetPassword(){
@@ -1907,13 +1928,18 @@ function confirmResetPassword(){
   .then(function(r){return r.json();})
   .then(function(data){
     if(data.valid){
-      // עדכון סיסמה מקומית
+      /* עדכון סיסמה מקומית + ב-RTDB */
       try{
         var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
         if(!creds) creds={email:email,status:'pending'};
         creds.passHash=simpleHashLogin(newPass);
         creds.email=email;
         localStorage.setItem('lextime_credentials',JSON.stringify(creds));
+        /* עדכון ב-RTDB — מאפשר כניסה מכל מכשיר עם הסיסמה החדשה */
+        _rtdbGet('/credentials/'+_emailKey(email)).then(function(rtdbCreds){
+          var updated=Object.assign(rtdbCreds||{},{email:email,passHash:creds.passHash});
+          _rtdbPut('/credentials/'+_emailKey(email),updated);
+        });
       }catch(e){}
       msgEl.style.display='block';
       msgEl.style.background='rgba(26,122,74,.15)';
@@ -1936,26 +1962,43 @@ function confirmResetPassword(){
   })
   .catch(function(){
     // ✅ תיקון באג 3: fallback לאימות קוד מקומי
-    try{
-      var stored=JSON.parse(localStorage.getItem('lextime_reset_code')||'null');
-      if(stored && stored.email===email && stored.code===code && Date.now()<stored.exp){
-        localStorage.removeItem('lextime_reset_code');
+    /* fallback: בדיקת קוד מ-localStorage וגם מ-RTDB */
+    function applyNewPassword(){
+      var newHash=simpleHashLogin(newPass);
+      /* עדכון localStorage */
+      try{
         var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
         if(!creds) creds={email:email,status:'pending'};
-        creds.passHash=simpleHashLogin(newPass);
-        creds.email=email;
+        creds.passHash=newHash; creds.email=email;
         localStorage.setItem('lextime_credentials',JSON.stringify(creds));
-        msgEl.style.display='block';
-        msgEl.style.background='rgba(26,122,74,.15)';
-        msgEl.style.border='1px solid rgba(26,122,74,.35)';
-        msgEl.style.color='#4ade80';
-        msgEl.textContent='✅ הסיסמה אופסה בהצלחה! כעת תוכל להתחבר.';
-        document.getElementById('resetCodePanel').style.display='none';
-        setTimeout(function(){
-          hideForgotPassword();
-          document.getElementById('loginEmail').value=email;
-          document.getElementById('loginPass').focus();
-        },2000);
+      }catch(e){}
+      /* עדכון RTDB */
+      _rtdbGet('/credentials/'+_emailKey(email)).then(function(rtdbCreds){
+        var updated=Object.assign(rtdbCreds||{},{email:email,passHash:newHash});
+        _rtdbPut('/credentials/'+_emailKey(email),updated);
+        _rtdbDelete('/reset_codes/'+_emailKey(email));
+      });
+      msgEl.style.display='block';
+      msgEl.style.background='rgba(26,122,74,.15)';
+      msgEl.style.border='1px solid rgba(26,122,74,.35)';
+      msgEl.style.color='#4ade80';
+      msgEl.textContent='✅ הסיסמה אופסה בהצלחה! כעת תוכל להתחבר.';
+      document.getElementById('resetCodePanel').style.display='none';
+      setTimeout(function(){hideForgotPassword();document.getElementById('loginEmail').value=email;document.getElementById('loginPass').focus();},2000);
+    }
+
+    /* בדוק קוד ב-localStorage */
+    var localStored=null;
+    try{localStored=JSON.parse(localStorage.getItem('lextime_reset_code')||'null');}catch(e){}
+    if(localStored&&localStored.email===email&&localStored.code===code&&Date.now()<localStored.exp){
+      localStorage.removeItem('lextime_reset_code');
+      applyNewPassword();
+      return;
+    }
+    /* בדוק קוד ב-RTDB */
+    _rtdbGet('/reset_codes/'+_emailKey(email)).then(function(rtdbStored){
+      if(rtdbStored&&rtdbStored.email===email&&rtdbStored.code===code&&Date.now()<rtdbStored.exp){
+        applyNewPassword();
       } else {
         msgEl.style.display='block';
         msgEl.style.background='rgba(185,28,28,.15)';
@@ -1963,13 +2006,13 @@ function confirmResetPassword(){
         msgEl.style.color='#f87171';
         msgEl.textContent='קוד שגוי או פג תוקף. בקש קוד חדש.';
       }
-    }catch(e){
+    }).catch(function(){
       msgEl.style.display='block';
       msgEl.style.background='rgba(185,28,28,.15)';
       msgEl.style.border='1px solid rgba(185,28,28,.35)';
       msgEl.style.color='#f87171';
       msgEl.textContent='שגיאת חיבור. נסה שוב.';
-    }
+    });
   });
 }
 </script>
