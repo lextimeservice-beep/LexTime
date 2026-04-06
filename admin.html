@@ -718,6 +718,7 @@ tr:hover td{background:#fafbfc}
       <button id="sendCodeBtn" class="btn btn-gold" style="display:none" onclick="">📧 שלח קוד הפעלה</button>
       <button class="btn btn-gold" id="manageLawyersBtn" onclick="">👥 עורכי דין מורשים</button>
       <button class="btn btn-sm" id="fixCredsBtn" style="display:none;background:#f59e0b;color:#fff" onclick="">🔧 תקן כניסה</button>
+      <button class="btn btn-sm" id="sendResetInstructionsBtn" style="display:none;background:#2563eb;color:#fff" onclick="">📩 שלח הוראות איפוס</button>
       <button class="btn btn-gh" onclick="closeModal('modalSubView')">סגור</button>
       <button class="btn btn-gold" id="subViewEditBtn">✏️ עריכה</button>
     </div>
@@ -1337,6 +1338,16 @@ function viewSub(id){
       fixBtn.style.display='none';
     }
   }
+  /* כפתור שלח הוראות איפוס — מוצג תמיד לנרשמים פעילים */
+  var resetBtn = document.getElementById('sendResetInstructionsBtn');
+  if(resetBtn){
+    if(s.status === 'active'){
+      resetBtn.style.display = 'inline-flex';
+      resetBtn.onclick = function(){ sendResetInstructions(s); };
+    } else {
+      resetBtn.style.display = 'none';
+    }
+  }
   document.getElementById('modalSubView').classList.remove('hidden');
 }
 function approveSub(id){
@@ -1517,6 +1528,36 @@ async function deleteContact(key){
 function replyContact(emailEnc,nameEnc){
   var email=decodeURIComponent(emailEnc), name=decodeURIComponent(nameEnc);
   window.open('mailto:'+email+'?subject='+encodeURIComponent('LexTime — בהמשך לפנייתך')+'&body='+encodeURIComponent('שלום '+name+',\n\nתודה שפנית אלינו.\n\n'));
+}
+/* ════════════════════════════════════════════════ */
+
+/* ═══ RESET INSTRUCTIONS ═══ */
+async function sendResetInstructions(sub){
+  if(!sub || !sub.email){ toast('❌ אין כתובת מייל לנרשם'); return; }
+
+  /* שלב 1: וודא שיש credentials ב-RTDB כדי שהאיפוס יעבוד */
+  await _ensureCredentials(sub);
+
+  /* שלב 2: פתח מייל מוכן עם הסבר צעד-אחר-צעד */
+  var name  = sub.name || 'שלום';
+  var subject = encodeURIComponent('LexTime — הוראות לאיפוס סיסמה');
+  var body = encodeURIComponent(
+    'שלום ' + name + ',\n\n' +
+    'קיבלנו את פנייתך. כדי לאפס את הסיסמה שלך ב-LexTime, בצע את הצעדים הבאים:\n\n' +
+    '1. היכנס לאתר: https://www.lextime.co.il\n' +
+    '2. לחץ על כפתור "כניסה" בפינה הימנית למעלה\n' +
+    '3. לחץ על "שכחתי סיסמה" מתחת לכפתור הכניסה\n' +
+    '4. הזן את כתובת המייל שלך: ' + sub.email + '\n' +
+    '5. לחץ "שלח קוד לאיפוס"\n' +
+    '6. בדוק את תיבת הדואר שלך (כולל ספאם) — תקבל קוד בן 6 ספרות\n' +
+    '7. הזן את הקוד ובחר סיסמה חדשה\n\n' +
+    'אם נתקלת בבעיה נוספת — ענה למייל זה ונשמח לעזור.\n\n' +
+    'בברכה,\nצוות LexTime'
+  );
+
+  window.open('mailto:' + sub.email + '?subject=' + subject + '&body=' + body);
+  toast('📩 נפתח מייל עם הוראות לאיפוס עבור ' + sub.email);
+  closeModal('modalSubView');
 }
 /* ════════════════════════════════════════════════ */
 
