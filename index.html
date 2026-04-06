@@ -1323,7 +1323,8 @@ function toggleMenu(){
             <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.8">הגישה תינתן לאחר אימות התשלום. נשלח אליך אישור לדוא"ל תוך 24 שעות.</div>
           </div>
           <div style="text-align:center">
-            <a href="/cdn-cgi/l/email-protection#fd919885899490988e988f8b949e98bd9a909c9491d39e9290" style="color:#e8b84b;font-size:13px">📧 <span class="__cf_email__" data-cfemail="6d010815190400081e081f1b040e082d0a000c0401430e0200">[email&#160;protected]</span></a>
+            <!-- ── כתובת המייל מוצגת דרך JavaScript כדי למנוע חסימת Cloudflare ── -->
+            <span id="pendingContactEmail" style="color:#e8b84b;font-size:13px">📧 </span>
           </div>
           <div style="text-align:center;margin-top:16px">
             <button onclick="closeSignup()" style="padding:11px 24px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15);border-radius:8px;font-size:13px;cursor:pointer;font-family:'Heebo',sans-serif">← חזרה לדף הבית</button>
@@ -1336,6 +1337,20 @@ function toggleMenu(){
 </div><!-- /signupModal -->
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+/* ── הצגת כתובת מייל ב-JavaScript למניעת חסימת Cloudflare ── */
+(function(){
+  var parts=['lextimeservice','@','gmail','.','com'];
+  var addr=parts.join('');
+  var el=document.getElementById('pendingContactEmail');
+  if(el){
+    var a=document.createElement('a');
+    a.href='mailto:'+addr;
+    a.style.color='#e8b84b';
+    a.textContent=addr;
+    el.appendChild(a);
+  }
+})();
+
 var _plan='', _price='', _payTab='card';
 
 function openSignup(plan,price){
@@ -1429,7 +1444,6 @@ function backToStep1(){sregShowStep(1);}
 /* ── שמירת נרשם ל-RTDB /subs כדי שהמנהל יראה אותו מכל מחשב ── */
 function saveSubToRTDB(name,email,plan,method,status){
   var key=_emailKey(email);
-  /* קודם קרא נתון קיים כדי לא לדרוס id קיים */
   _rtdbGet('/subs/'+key).then(function(existing){
     var sub={
       id: existing&&existing.id ? existing.id : 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,6),
@@ -1445,29 +1459,42 @@ function saveSubToRTDB(name,email,plan,method,status){
 
 function submitPayment(){
   var err=document.getElementById('payError');
-  if(_payTab==='card'){
-    var ok=true;
-    var cn=document.getElementById('ccName').value.trim();
-    var num=document.getElementById('ccNum').value.replace(/\s/g,'');
-    var exp=document.getElementById('ccExp').value.trim();
-    var cvv=document.getElementById('ccCVV').value.trim();
-    sregErr('ccName',!cn);              if(!cn)ok=false;
-    sregErr('ccNum',num.length<16);     if(num.length<16)ok=false;
-    sregErr('ccExp',!/^\d{2}\/\d{2}$/.test(exp)); if(!/^\d{2}\/\d{2}$/.test(exp))ok=false;
-    sregErr('ccCVV',cvv.length<3);      if(cvv.length<3)ok=false;
-    if(!ok)return;
-  }
   err.style.display='none';
   var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
   var email=document.getElementById('regEmail').value.trim();
+
+  if(_payTab==='card'){
+    /* ── כרטיס אשראי עובר דרך PayPal — מפנה לדף PayPal ── */
+    savePendingCredentials(name,email);
+    localStorage.setItem('lextime_user',JSON.stringify({
+      name:name,email:email,plan:_plan,method:'card',
+      date:new Date().toISOString().slice(0,10)
+    }));
+    saveToFirestore(name,email,_plan,_price,'card','pending');
+    saveSubToRTDB(name,email,_plan,'card','pending');
+    /* פותח PayPal לתשלום בכרטיס */
+    var PAYPAL_PLANS={
+      'עצמאי':'P-1T860757D49561026NHD4DFQ',
+      'משרד':'P-2BT36473BJ884801MNHD5HGY',
+      'משרד גדול':'P-2F482632XU839435PNHD5PTA'
+    };
+    var planId=PAYPAL_PLANS[_plan]||'';
+    window.open('https://www.paypal.com/webapps/billing/plans/subscribe?plan_id='+planId,'_blank');
+    sregShowStep(3);
+    document.getElementById('sregProcessing').style.display='none';
+    document.getElementById('sregSuccess').style.display='none';
+    document.getElementById('sregPending').style.display='block';
+    return;
+  }
+
+  /* PayPal — נשמר ומוצג מסך המתנה */
   savePendingCredentials(name,email);
-  localStorage.setItem('lextime_user', JSON.stringify({
-    name: name, email: email, plan: _plan, method: 'card',
-    date: new Date().toISOString().slice(0,10)
+  localStorage.setItem('lextime_user',JSON.stringify({
+    name:name,email:email,plan:_plan,method:'paypal',
+    date:new Date().toISOString().slice(0,10)
   }));
-  saveToFirestore(name,email,_plan,_price,'card','pending');
-  /* ── שמירה ל-RTDB כדי שהמנהל יראה את הנרשם ── */
-  saveSubToRTDB(name,email,_plan,'card','pending');
+  saveToFirestore(name,email,_plan,_price,'paypal','pending');
+  saveSubToRTDB(name,email,_plan,'paypal','pending');
   sregShowStep(3);
   document.getElementById('sregProcessing').style.display='none';
   document.getElementById('sregSuccess').style.display='none';
