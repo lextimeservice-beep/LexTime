@@ -1902,7 +1902,7 @@ function sendResetCode(){
       msgEl.style.background='rgba(185,28,28,.15)';
       msgEl.style.border='1px solid rgba(185,28,28,.35)';
       msgEl.style.color='#f87171';
-      msgEl.textContent=data.error||'שגיאה. נסה שוב.';
+      msgEl.innerHTML=(data.error||'כתובת הדוא"ל אינה רשומה במערכת.')+'<br><button onclick="_contactPrefillEmail=\''+email+'\';openContactForm()" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 14px;background:linear-gradient(135deg,#1a4fa0,#2563eb);color:#fff;border-radius:7px;font-size:12px;font-weight:700;border:none;cursor:pointer">💬 דברו איתנו \u2014 נסייע להתחבר</button>';
       btn.textContent='שלח קוד לאיפוס ←';
       btn.disabled=false;
       btn.style.display='block';
