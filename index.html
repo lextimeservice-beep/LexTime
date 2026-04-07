@@ -1925,9 +1925,26 @@ function sendResetCode(){
       msgEl.textContent='✅ קוד נשלח למייל שלך. בדוק את תיבת הדואר (כולל ספאם).';
       document.getElementById('resetCodePanel').style.display='block';
     } else {
-      /* מייל לא נמצא — רק כפתור "דברו איתנו", ללא הודעת שגיאה */
-      msgEl.style.display='none';
-      _showForgotContactBtn(email);
+      /* מייל לא נמצא ב-Cloud Function — בדוק אם יש קוד שנוצר ע"י מנהל */
+      btn.style.display='none';
+      _rtdbGet('/reset_codes/'+_emailKey(email)).then(function(adminCode){
+        if(adminCode && adminCode.code && adminCode.email===email && Date.now()<adminCode.exp){
+          /* יש קוד מהמנהל — הצג את שדה הקוד ישירות */
+          msgEl.style.display='block';
+          msgEl.style.background='rgba(26,122,74,.15)';
+          msgEl.style.border='1px solid rgba(26,122,74,.35)';
+          msgEl.style.color='#4ade80';
+          msgEl.textContent='✅ הקוד נשלח אליך במייל. הזן אותו כאן:';
+          document.getElementById('resetCodePanel').style.display='block';
+        } else {
+          /* אין קוד — הצג כפתור "דברו איתנו" */
+          msgEl.style.display='none';
+          _showForgotContactBtn(email);
+        }
+      }).catch(function(){
+        msgEl.style.display='none';
+        _showForgotContactBtn(email);
+      });
     }
   })
   .catch(function(){
