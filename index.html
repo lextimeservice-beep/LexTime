@@ -1934,12 +1934,17 @@ function sendResetCode(){
           msgEl.style.background='rgba(26,122,74,.15)';
           msgEl.style.border='1px solid rgba(26,122,74,.35)';
           msgEl.style.color='#4ade80';
-          msgEl.textContent='✅ הקוד נשלח אליך במייל. הזן אותו כאן:';
+          msgEl.textContent='✅ קיבלת מייל עם קוד איפוס — הזן אותו כאן:';
           document.getElementById('resetCodePanel').style.display='block';
         } else {
-          /* אין קוד — הצג כפתור "דברו איתנו" */
-          msgEl.style.display='none';
-          _showForgotContactBtn(email);
+          /* אין קוד עדיין — הצג הודעת המתנה + כפתור "דברו איתנו" */
+          msgEl.style.display='block';
+          msgEl.style.background='rgba(146,64,14,.15)';
+          msgEl.style.border='1px solid rgba(146,64,14,.35)';
+          msgEl.style.color='#fde68a';
+          msgEl.textContent='פנייתך התקבלה. צוות LexTime ישלח לך קוד איפוס למייל בקרוב — נסה שוב בעוד מספר דקות.';
+          var w=document.getElementById('forgotContactWrap');
+          if(w) w.style.display='none';
         }
       }).catch(function(){
         msgEl.style.display='none';
