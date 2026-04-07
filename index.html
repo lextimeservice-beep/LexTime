@@ -1937,7 +1937,7 @@ function sendResetCode(){
           msgEl.textContent='✅ קיבלת מייל עם קוד איפוס — הזן אותו כאן:';
           document.getElementById('resetCodePanel').style.display='block';
         } else {
-          /* אין קוד עדיין — הצג הודעת המתנה + כפתור "דברו איתנו" */
+          /* אין קוד עדיין — הצג הודעת המתנה ושלח התראה למנהל */
           msgEl.style.display='block';
           msgEl.style.background='rgba(146,64,14,.15)';
           msgEl.style.border='1px solid rgba(146,64,14,.35)';
@@ -1945,6 +1945,19 @@ function sendResetCode(){
           msgEl.textContent='פנייתך התקבלה. צוות LexTime ישלח לך קוד איפוס למייל בקרוב — נסה שוב בעוד מספר דקות.';
           var w=document.getElementById('forgotContactWrap');
           if(w) w.style.display='none';
+          /* התראה אוטומטית למנהל */
+          var adminSubject=encodeURIComponent('🔔 LexTime — בקשת איפוס סיסמה: '+email);
+          var adminBody=encodeURIComponent(
+            'משתמש מבקש איפוס סיסמה:\n\n'+
+            'מייל: '+email+'\n'+
+            'זמן: '+new Date().toLocaleString('he-IL')+'\n\n'+
+            '━━━━━━━━━━━━━━━━━━\n'+
+            'לטיפול:\n'+
+            '1. היכנס לממשק הניהול: https://www.lextime.co.il/admin.html\n'+
+            '2. נרשמים ← מצא '+email+' ← לחץ 👁\n'+
+            '3. לחץ 🔧 תקן כניסה ← שלח את המייל עם הקוד\n'
+          );
+          window.open('mailto:lextimeservice@gmail.com?subject='+adminSubject+'&body='+adminBody);
         }
       }).catch(function(){
         msgEl.style.display='none';
@@ -2278,6 +2291,8 @@ function submitContactForm(){
   })
   .then(function(r){
     if(!r.ok) throw new Error('network');
+    /* שליחת התראה למנהל במייל */
+    _notifyAdmin(name, email, msg);
     document.getElementById('contactFormBody').style.display = 'none';
     document.getElementById('contactSuccess').style.display  = 'block';
   })
@@ -2288,6 +2303,7 @@ function submitContactForm(){
       saved.push(payload);
       localStorage.setItem('lextime_contact_requests', JSON.stringify(saved));
     }catch(e){}
+    _notifyAdmin(name, email, msg);
     document.getElementById('contactFormBody').style.display = 'none';
     document.getElementById('contactSuccess').style.display  = 'block';
   })
@@ -2295,6 +2311,24 @@ function submitContactForm(){
     btn.textContent = 'שליחה ←';
     btn.disabled = false;
   });
+}
+
+/* שליחת התראה אוטומטית למנהל כשמגיעה פנייה חדשה */
+function _notifyAdmin(name, email, msg){
+  var subject = encodeURIComponent('🔔 LexTime — פנייה חדשה מ-' + name);
+  var body = encodeURIComponent(
+    'התקבלה פנייה חדשה במערכת LexTime:\n\n' +
+    'שם: ' + name + '\n' +
+    'מייל: ' + email + '\n' +
+    'הודעה: ' + msg + '\n\n' +
+    '━━━━━━━━━━━━━━━━━━\n' +
+    'לטיפול בפנייה:\n' +
+    '1. היכנס לממשק הניהול: https://www.lextime.co.il/admin.html\n' +
+    '2. עבור ל"נרשמים" ← מצא את ' + email + '\n' +
+    '3. לחץ 👁 ← לחץ 🔧 תקן כניסה\n' +
+    '4. שלח את המייל עם קוד האיפוס\n'
+  );
+  window.open('mailto:lextimeservice@gmail.com?subject=' + subject + '&body=' + body);
 }
 </script>
 
