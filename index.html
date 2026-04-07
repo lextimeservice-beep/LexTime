@@ -1866,12 +1866,38 @@ function showForgotPassword(){
   document.getElementById('forgotMsg').style.display='none';
   document.getElementById('resetCodePanel').style.display='none';
   document.getElementById('sendResetBtn').style.display='block';
+  /* נקה כפתור "דברו איתנו" קודם אם היה */
+  var w=document.getElementById('forgotContactWrap');
+  if(w) w.style.display='none';
   setTimeout(function(){document.getElementById('forgotEmail').focus();},100);
 }
 function hideForgotPassword(){
   document.getElementById('forgotPanel').style.display='none';
   document.getElementById('loginBtn').style.display='block';
 }
+/* מציג כפתור "דברו איתנו" בלבד במסך איפוס סיסמה */
+function _showForgotContactBtn(email){
+  var btn=document.getElementById('sendResetBtn');
+  if(btn){btn.style.display='none';}
+  var wrap=document.getElementById('forgotContactWrap');
+  if(!wrap){
+    wrap=document.createElement('div');
+    wrap.id='forgotContactWrap';
+    wrap.style.cssText='margin-top:12px;text-align:center';
+    var forgotPanel=document.getElementById('forgotPanel');
+    if(forgotPanel) forgotPanel.appendChild(wrap);
+  }
+  wrap.innerHTML='<button onclick="_contactPrefillEmail=\''+email+'\';openContactForm()" '
+    +'style="display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;'
+    +'padding:12px 16px;background:linear-gradient(135deg,#1a4fa0,#2563eb);color:#fff;'
+    +'border-radius:8px;font-size:14px;font-weight:700;border:none;cursor:pointer;'
+    +'box-shadow:0 2px 10px rgba(37,99,235,.35)">'
+    +'<span style="font-size:18px">💬</span>'
+    +'<span>דברו איתנו — נסייע להתחבר</span>'
+    +'</button>';
+  wrap.style.display='block';
+}
+
 function sendResetCode(){
   var email=document.getElementById('forgotEmail').value.trim().toLowerCase();
   var msgEl=document.getElementById('forgotMsg');
@@ -1899,13 +1925,9 @@ function sendResetCode(){
       msgEl.textContent='✅ קוד נשלח למייל שלך. בדוק את תיבת הדואר (כולל ספאם).';
       document.getElementById('resetCodePanel').style.display='block';
     } else {
-      msgEl.style.background='rgba(185,28,28,.15)';
-      msgEl.style.border='1px solid rgba(185,28,28,.35)';
-      msgEl.style.color='#f87171';
-      msgEl.innerHTML=(data.error||'כתובת הדוא"ל אינה רשומה במערכת.')+'<br><button onclick="_contactPrefillEmail=\''+email+'\';openContactForm()" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 14px;background:linear-gradient(135deg,#1a4fa0,#2563eb);color:#fff;border-radius:7px;font-size:12px;font-weight:700;border:none;cursor:pointer">💬 דברו איתנו \u2014 נסייע להתחבר</button>';
-      btn.textContent='שלח קוד לאיפוס ←';
-      btn.disabled=false;
-      btn.style.display='block';
+      /* מייל לא נמצא — רק כפתור "דברו איתנו", ללא הודעת שגיאה */
+      msgEl.style.display='none';
+      _showForgotContactBtn(email);
     }
   })
   .catch(function(){
@@ -1934,25 +1956,13 @@ function sendResetCode(){
         msgEl.textContent='⚠️ שירות המייל אינו זמין. הקוד הזמני שלך: '+localCode+' (תקף ל-10 דקות).';
         document.getElementById('resetCodePanel').style.display='block';
       } else {
-        msgEl.style.display='block';
-        msgEl.style.background='rgba(185,28,28,.15)';
-        msgEl.style.border='1px solid rgba(185,28,28,.35)';
-        msgEl.style.color='#f87171';
-        msgEl.innerHTML='כתובת הדוא"ל אינה רשומה במערכת.<br>'
-          +'<button onclick="_contactPrefillEmail=\''+email+'\';openContactForm()" style="display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:8px 14px;background:linear-gradient(135deg,#1a4fa0,#2563eb);color:#fff;border-radius:7px;font-size:12px;font-weight:700;border:none;cursor:pointer">💬 דברו איתנו — נסייע להתחבר</button>';
-        btn.textContent='שלח קוד לאיפוס ←';
-        btn.disabled=false;
-        btn.style.display='block';
+        /* מייל לא נמצא — רק כפתור "דברו איתנו" */
+        msgEl.style.display='none';
+        _showForgotContactBtn(email);
       }
     }).catch(function(){
-      msgEl.style.display='block';
-      msgEl.style.background='rgba(185,28,28,.15)';
-      msgEl.style.border='1px solid rgba(185,28,28,.35)';
-      msgEl.style.color='#f87171';
-      msgEl.textContent='שגיאת חיבור. נסה שוב.';
-      btn.textContent='שלח קוד לאיפוס ←';
-      btn.disabled=false;
-      btn.style.display='block';
+      msgEl.style.display='none';
+      _showForgotContactBtn(email);
     });
   });
 }
