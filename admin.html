@@ -1326,14 +1326,12 @@ function viewSub(id){
       sendCodeBtn.style.display='none';
     }
   }
-  // כפתור תיקון credentials
+  // כפתור תיקון credentials — מוצג תמיד לנרשמים פעילים
   var fixBtn = document.getElementById('fixCredsBtn');
   if(fixBtn){
-    var cred = getCredStatus(s.email);
-    var needsFix = !cred || !cred.exists || !cred.passHash;
-    if(needsFix){
+    if(s.status === 'active'){
       fixBtn.style.display='inline-flex';
-      fixBtn.onclick = function(){ fixCredentials(id); closeModal('modalSubView'); };
+      fixBtn.onclick = function(){ fixCredentials(id); };
     } else {
       fixBtn.style.display='none';
     }
