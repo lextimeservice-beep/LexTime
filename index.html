@@ -1945,17 +1945,13 @@ function sendResetCode(){
           msgEl.textContent='פנייתך התקבלה. צוות LexTime ישלח לך קוד איפוס למייל בקרוב — נסה שוב בעוד מספר דקות.';
           var w=document.getElementById('forgotContactWrap');
           if(w) w.style.display='none';
-          /* התראה אוטומטית למנהל */
+          /* התראה אוטומטית למנהל — גוף המייל פשוט, ללא הוראות פנימיות */
           var adminSubject=encodeURIComponent('🔔 LexTime — בקשת איפוס סיסמה: '+email);
           var adminBody=encodeURIComponent(
-            'משתמש מבקש איפוס סיסמה:\n\n'+
+            'שלום,\n\n'+
+            'משתמש מבקש עזרה באיפוס סיסמה:\n\n'+
             'מייל: '+email+'\n'+
-            'זמן: '+new Date().toLocaleString('he-IL')+'\n\n'+
-            '━━━━━━━━━━━━━━━━━━\n'+
-            'לטיפול:\n'+
-            '1. היכנס לממשק הניהול: https://www.lextime.co.il/admin.html\n'+
-            '2. נרשמים ← מצא '+email+' ← לחץ 👁\n'+
-            '3. לחץ 🔧 תקן כניסה ← שלח את המייל עם הקוד\n'
+            'זמן: '+new Date().toLocaleString('he-IL')+'\n'
           );
           window.open('mailto:lextimeservice@gmail.com?subject='+adminSubject+'&body='+adminBody);
         }
@@ -2317,16 +2313,11 @@ function submitContactForm(){
 function _notifyAdmin(name, email, msg){
   var subject = encodeURIComponent('🔔 LexTime — פנייה חדשה מ-' + name);
   var body = encodeURIComponent(
-    'התקבלה פנייה חדשה במערכת LexTime:\n\n' +
-    'שם: ' + name + '\n' +
-    'מייל: ' + email + '\n' +
-    'הודעה: ' + msg + '\n\n' +
-    '━━━━━━━━━━━━━━━━━━\n' +
-    'לטיפול בפנייה:\n' +
-    '1. היכנס לממשק הניהול: https://www.lextime.co.il/admin.html\n' +
-    '2. עבור ל"נרשמים" ← מצא את ' + email + '\n' +
-    '3. לחץ 👁 ← לחץ 🔧 תקן כניסה\n' +
-    '4. שלח את המייל עם קוד האיפוס\n'
+    'שלום,\n\n'+
+    'התקבלה פנייה חדשה:\n\n'+
+    'שם: ' + name + '\n'+
+    'מייל: ' + email + '\n'+
+    'הודעה: ' + msg + '\n'
   );
   window.open('mailto:lextimeservice@gmail.com?subject=' + subject + '&body=' + body);
 }
