@@ -1643,22 +1643,18 @@ async function fixCredentials(subId){
     var existing = await r.json();
 
     var updated;
-    var msg;
 
     if(existing && existing.passHash && existing.passHash !== 'RESET_REQUIRED'){
       /* credentials קיים עם סיסמה — רק מעדכן סטטוס ל-active */
       updated = Object.assign({}, existing, {status:'active', name: s.name || existing.name || ''});
-      msg = '✅ סטטוס עודכן — המשתמש יכול להתחבר עם הסיסמה הקיימת';
     } else {
-      /* אין credentials, או passHash חסר / ריאסט נדרש
-         → יוצר רשומה שמאפשרת "שכחתי סיסמה" לעבוד */
+      /* אין credentials — יוצר רשומה חדשה */
       updated = {
         email: s.email.toLowerCase(),
         name:  s.name || '',
         status: 'active',
-        passHash: 'RESET_REQUIRED' /* ← מאפשר זיהוי ב-forgot-password אך חוסם כניסה ישירה */
+        passHash: 'RESET_REQUIRED'
       };
-      msg = '✅ כניסה תוקנה! המשתמש צריך ללחוץ "שכחתי סיסמה" ולאפס את הסיסמה שלו';
     }
 
     /* שמירה ב-RTDB */
@@ -1669,33 +1665,41 @@ async function fixCredentials(subId){
     });
     if(!putR.ok) throw new Error('PUT failed');
 
-    /* עדכון cache מקומי */
-    _credCache[s.email.toLowerCase()] = {
-      exists: true,
-      status: 'active',
-      passHash: updated.passHash !== 'RESET_REQUIRED'
-    };
+    /* יצירת קוד איפוס ישיר ושמירתו ב-RTDB */
+    var resetCode = Math.floor(100000+Math.random()*900000).toString();
+    var resetData = {email: s.email.toLowerCase(), code: resetCode, exp: Date.now()+3600000}; /* תוקף שעה */
+    await fetch(DB_URL+'/reset_codes/'+key+'.json?auth='+DB_SECRET,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(resetData)
+    });
 
+    /* עדכון cache מקומי */
+    _credCache[s.email.toLowerCase()] = {exists:true, status:'active', passHash:false};
     renderSubs();
     _updateCredWarning();
 
-    /* שליחת מייל אוטומטי למשתמש */
-    var subject = encodeURIComponent('LexTime — הכניסה שלך תוקנה ✅');
+    /* שליחת מייל עם הקוד הישיר */
+    var subject = encodeURIComponent('LexTime — קוד איפוס סיסמה שלך 🔑');
     var body = encodeURIComponent(
       'שלום ' + (s.name||'') + ',\n\n' +
       'תיקנו את הגישה שלך למערכת LexTime.\n\n' +
-      'כעת בצע את הצעדים הבאים כדי להתחבר:\n\n' +
+      'קוד האיפוס שלך (תקף לשעה אחת):\n\n' +
+      '👉  ' + resetCode + '\n\n' +
+      'כיצד להשתמש בקוד:\n' +
       '1. היכנס לאתר: https://www.lextime.co.il\n' +
       '2. לחץ "כניסה"\n' +
       '3. לחץ "שכחתי סיסמה"\n' +
       '4. הזן את המייל שלך: ' + s.email + '\n' +
-      '5. לחץ "שלח קוד לאיפוס" — הקוד יגיע למייל שלך\n' +
-      '6. הזן את הקוד ובחר סיסמה חדשה\n\n' +
-      'מעכשיו תוכל להתחבר בכל עת.\n\n' +
+      '5. לחץ "שלח קוד לאיפוס"\n' +
+      '6. הזן את הקוד: ' + resetCode + '\n' +
+      '7. בחר סיסמה חדשה ולחץ "אפס סיסמה"\n\n' +
+      'אם הקוד לא עובד — פנה אלינו שוב ונשלח קוד חדש.\n\n' +
       'בברכה,\nצוות LexTime'
     );
     window.open('mailto:' + s.email + '?subject=' + subject + '&body=' + body);
-    toast(msg);
+    toast('✅ קוד איפוס נוצר ונשלח למשתמש!');
+    closeModal('modalSubView');
 
   }catch(e){
     console.error('fixCredentials error:', e);
