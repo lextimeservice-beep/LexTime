@@ -2005,40 +2005,58 @@ function confirmResetPassword(){
     return;
   }
   var VERIFY_URL='https://us-central1-lextime-82214.cloudfunctions.net/verifyResetCode';
+
+  /* פונקציה משותפת לשמירת סיסמה חדשה */
+  function applyNewPassword(){
+    var newHash=simpleHashLogin(newPass);
+    try{
+      var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
+      if(!creds) creds={email:email,status:'pending'};
+      creds.passHash=newHash; creds.email=email;
+      localStorage.setItem('lextime_credentials',JSON.stringify(creds));
+    }catch(e){}
+    _rtdbGet('/credentials/'+_emailKey(email)).then(function(rtdbCreds){
+      var updated=Object.assign(rtdbCreds||{},{email:email,passHash:newHash,status:'active'});
+      _rtdbPut('/credentials/'+_emailKey(email),updated);
+      _rtdbDelete('/reset_codes/'+_emailKey(email));
+    });
+    msgEl.style.display='block';
+    msgEl.style.background='rgba(26,122,74,.15)';
+    msgEl.style.border='1px solid rgba(26,122,74,.35)';
+    msgEl.style.color='#4ade80';
+    msgEl.textContent='✅ הסיסמה אופסה בהצלחה! כעת תוכל להתחבר.';
+    document.getElementById('resetCodePanel').style.display='none';
+    setTimeout(function(){
+      hideForgotPassword();
+      document.getElementById('loginEmail').value=email;
+      document.getElementById('loginPass').focus();
+    },2000);
+  }
+
   fetch(VERIFY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email,code:code})})
   .then(function(r){return r.json();})
   .then(function(data){
     if(data.valid){
-      /* עדכון סיסמה מקומית + ב-RTDB */
-      try{
-        var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
-        if(!creds) creds={email:email,status:'pending'};
-        creds.passHash=simpleHashLogin(newPass);
-        creds.email=email;
-        localStorage.setItem('lextime_credentials',JSON.stringify(creds));
-        /* עדכון ב-RTDB — מאפשר כניסה מכל מכשיר עם הסיסמה החדשה */
-        _rtdbGet('/credentials/'+_emailKey(email)).then(function(rtdbCreds){
-          var updated=Object.assign(rtdbCreds||{},{email:email,passHash:creds.passHash});
-          _rtdbPut('/credentials/'+_emailKey(email),updated);
-        });
-      }catch(e){}
-      msgEl.style.display='block';
-      msgEl.style.background='rgba(26,122,74,.15)';
-      msgEl.style.border='1px solid rgba(26,122,74,.35)';
-      msgEl.style.color='#4ade80';
-      msgEl.textContent='✅ הסיסמה אופסה בהצלחה! כעת תוכל להתחבר.';
-      document.getElementById('resetCodePanel').style.display='none';
-      setTimeout(function(){
-        hideForgotPassword();
-        document.getElementById('loginEmail').value=email;
-        document.getElementById('loginPass').focus();
-      },2000);
+      applyNewPassword();
     } else {
-      msgEl.style.display='block';
-      msgEl.style.background='rgba(185,28,28,.15)';
-      msgEl.style.border='1px solid rgba(185,28,28,.35)';
-      msgEl.style.color='#f87171';
-      msgEl.textContent='קוד שגוי או פג תוקף. נסה שוב.';
+      /* Cloud Function אומרת שגוי — בדוק קוד שנוצר ע"י מנהל ב-RTDB */
+      _rtdbGet('/reset_codes/'+_emailKey(email)).then(function(rtdbStored){
+        if(rtdbStored&&rtdbStored.email===email&&rtdbStored.code===code&&Date.now()<rtdbStored.exp){
+          applyNewPassword();
+        } else {
+          msgEl.style.display='block';
+          msgEl.style.background='rgba(185,28,28,.15)';
+          msgEl.style.border='1px solid rgba(185,28,28,.35)';
+          msgEl.style.color='#f87171';
+          msgEl.textContent='קוד שגוי או פג תוקף. נסה שוב.';
+        }
+      }).catch(function(){
+        msgEl.style.display='block';
+        msgEl.style.background='rgba(185,28,28,.15)';
+        msgEl.style.border='1px solid rgba(185,28,28,.35)';
+        msgEl.style.color='#f87171';
+        msgEl.textContent='קוד שגוי או פג תוקף. נסה שוב.';
+      });
     }
   })
   .catch(function(){
