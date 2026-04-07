@@ -1681,7 +1681,7 @@ function doLogin(){
   btn.disabled=true;
   var passHash=simpleHashLogin(pass);
 
-  function resetBtn(){btn.textContent='כניסה למערכת ←';btn.style.opacity='1';btn.disabled=false;}
+  function resetBtn(){btn.textContent='כניסת עורכי דין ←';btn.style.opacity='1';btn.disabled=false;}
 
   /* הצגת שגיאה רגילה (ללא כפתור יצירת קשר) */
   function showErr(msg){
@@ -1771,7 +1771,7 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
     <button onclick="closeLogin()" style="position:absolute;top:16px;left:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
     <div style="font-family:'Frank Ruhl Libre',serif;font-size:24px;color:#c9922a;text-align:center;margin-bottom:6px">⚖️ LexTime</div>
     <div style="text-align:center;color:rgba(255,255,255,.4);font-size:13px;margin-bottom:28px">ניהול מועדים משפטיים</div>
-    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">כניסה למערכת</div>
+    <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">כניסת עורכי דין</div>
     <div style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:24px">הזן את כתובת הדוא&quot;ל והסיסמה שבחרת בהרשמה</div>
     <div id="loginErr" style="display:none;background:rgba(185,28,28,.15);border:1px solid rgba(185,28,28,.35);border-radius:8px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:8px"></div>
     <div id="loginContactWrap" style="display:none;margin-bottom:14px">
@@ -1803,7 +1803,7 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
     </div>
     <button id="loginBtn" onclick="doLogin()"
       style="width:100%;padding:14px;background:linear-gradient(135deg,#c9922a,#e8b84b);color:#0a1628;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;margin-bottom:12px">
-      כניסה למערכת ←
+      כניסת עורכי דין ←
     </button>
     <div style="text-align:center;margin-bottom:12px">
       <a href="javascript:void(0)" onclick="showForgotPassword()"
