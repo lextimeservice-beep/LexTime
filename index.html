@@ -1946,12 +1946,12 @@ function sendResetCode(){
           var w=document.getElementById('forgotContactWrap');
           if(w) w.style.display='none';
           /* התראה אוטומטית למנהל — גוף המייל פשוט, ללא הוראות פנימיות */
-          var adminSubject=encodeURIComponent('🔔 LexTime — בקשת איפוס סיסמה: '+email);
+          var adminSubject=encodeURIComponent('בקשת איפוס סיסמה — LexTime');
           var adminBody=encodeURIComponent(
-            'שלום,\n\n'+
-            'משתמש מבקש עזרה באיפוס סיסמה:\n\n'+
-            'מייל: '+email+'\n'+
-            'זמן: '+new Date().toLocaleString('he-IL')+'\n'
+            'לכבוד צוות LexTime,\n\n'+
+            'מבקש/ת איפוס סיסמה לחשבון LexTime שלי.\n\n'+
+            'תודה,\n'+
+            'עו"ד ' + email
           );
           window.open('mailto:lextimeservice@gmail.com?subject='+adminSubject+'&body='+adminBody);
         }
@@ -2311,13 +2311,13 @@ function submitContactForm(){
 
 /* שליחת התראה אוטומטית למנהל כשמגיעה פנייה חדשה */
 function _notifyAdmin(name, email, msg){
-  var subject = encodeURIComponent('🔔 LexTime — פנייה חדשה מ-' + name);
+  var subject = encodeURIComponent('פנייה ל-LexTime — ' + name);
   var body = encodeURIComponent(
-    'שלום,\n\n'+
-    'התקבלה פנייה חדשה:\n\n'+
-    'שם: ' + name + '\n'+
-    'מייל: ' + email + '\n'+
-    'הודעה: ' + msg + '\n'
+    'לכבוד צוות LexTime,\n\n'+
+    msg + '\n\n'+
+    'תודה,\n'+
+    'עו"ד ' + name + '\n'+
+    email
   );
   window.open('mailto:lextimeservice@gmail.com?subject=' + subject + '&body=' + body);
 }
