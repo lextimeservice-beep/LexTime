@@ -5,23 +5,136 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ניהול תיקים — תקנות סדר הדין האזרחי 2018</title>
 <script>
-/* ── הגנת גישה ── */
+/* ══ הגנת גישה + בדיקת תפוגת ניסיון ══ */
 (function(){
-  if(localStorage.getItem('lextime_access') !== 'granted'){
+  var access  = localStorage.getItem('lextime_access');
+  var plan    = localStorage.getItem('lextime_plan');
+  var trialEnd= localStorage.getItem('lextime_trial_end');
+
+  /* ── בדיקת פקיעת ניסיון (client-side) ── */
+  var trialExpired = false;
+  if(access === 'granted' && plan === 'trial' && trialEnd){
+    if(new Date().toISOString() > trialEnd){
+      trialExpired = true;
+      /* ניקוי גישה מקומי */
+      localStorage.removeItem('lextime_access');
+      localStorage.removeItem('lextime_plan');
+      access = null;
+    }
+  }
+
+  if(access !== 'granted'){
     document.addEventListener('DOMContentLoaded', function(){
-      document.body.style.display='none';
+      document.body.style.display = 'none';
       var lock = document.createElement('div');
       lock.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#091e40,#0f2d5a);display:flex;align-items:center;justify-content:center;font-family:Heebo,Arial,sans-serif;direction:rtl;z-index:99999';
-      lock.innerHTML = '<div style="background:#fff;border-radius:20px;padding:48px 40px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.5)">'
+
+      if(trialExpired){
+        /* מסך תפוגת ניסיון */
+        lock.innerHTML =
+          '<div style="background:#fff;border-radius:20px;padding:48px 40px;max-width:460px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.5)">'
+        + '<div style="font-size:56px;margin-bottom:16px">⏰</div>'
+        + '<div style="font-size:22px;font-weight:900;color:#0f2d5a;margin-bottom:10px;font-family:serif">תקופת הניסיון הסתיימה</div>'
+        + '<p style="font-size:14px;color:#64748b;line-height:1.7;margin-bottom:24px">3 ימי הניסיון החינם שלך הסתיימו.<br>כדי להמשיך לנהל את התיקים שלך, בחר מסלול מתאים.</p>'
+        + '<div style="background:#fffbeb;border:1px solid #f5e6c8;border-radius:10px;padding:14px 18px;margin-bottom:24px;text-align:right">'
+        + '<div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:4px">💾 הנתונים שלך שמורים</div>'
+        + '<div style="font-size:13px;color:#64748b;line-height:1.6">כל התיקים שהזנת במהלך הניסיון שמורים ומחכים לך.<br>הם יופיעו מיד עם הרשמה למנוי.</div>'
+        + '</div>'
+        + '<a href="index.html#pricing" style="display:block;padding:14px 28px;background:linear-gradient(135deg,#b8862a,#d4a240);color:#fff;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;margin-bottom:10px">🚀 שדרג למנוי עכשיו</a>'
+        + '<a href="index.html" style="display:block;padding:12px 24px;background:#f0f4fa;color:#374151;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;border:1px solid #e2e8f0">חזרה לדף הבית</a>'
+        + '</div>';
+      } else {
+        /* מסך חסימה רגיל */
+        lock.innerHTML =
+          '<div style="background:#fff;border-radius:20px;padding:48px 40px;max-width:440px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.5)">'
         + '<div style="font-size:56px;margin-bottom:16px">🔒</div>'
         + '<div style="font-size:22px;font-weight:900;color:#0f2d5a;margin-bottom:10px;font-family:serif">הגישה מוגבלת למנויים</div>'
         + '<p style="font-size:14px;color:#64748b;line-height:1.7;margin-bottom:28px">פלטפורמת ניהול התיקים זמינה למנויי LexTime בלבד.<br>יש להירשם ולהשלים תשלום כדי לקבל גישה.</p>'
         + '<a href="index.html" style="display:block;padding:14px 28px;background:#b8862a;color:#fff;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;margin-bottom:12px">← הירשם עכשיו</a>'
         + '<a href="index.html" style="display:block;padding:12px 24px;background:#f0f4fa;color:#374151;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;border:1px solid #e2e8f0">חזרה לדף הבית</a>'
         + '</div>';
+      }
+
       document.body.appendChild(lock);
-      document.body.style.display='';
+      document.body.style.display = '';
     });
+  }
+})();
+
+/* ══ בדיקת תפוגת ניסיון מצד השרת (Firebase RTDB) ══
+   רץ אחרי טעינת הדף — לא ניתן לעקיפה ע"י שינוי localStorage */
+(function(){
+  var plan     = localStorage.getItem('lextime_plan');
+  var trialEnd = localStorage.getItem('lextime_trial_end');
+  if(plan !== 'trial' || !trialEnd) return; /* לא ניסיון — אין מה לבדוק */
+
+  var RTDB   = 'https://lextime-82214-default-rtdb.europe-west1.firebasedatabase.app';
+  var RTDB_S = 'ZRYmRM293l9TyrLs9vRt02MYRtBKMWDwNiMFirgk';
+
+  window.addEventListener('DOMContentLoaded', function(){
+    var email = '';
+    try{ email = (JSON.parse(localStorage.getItem('lextime_user')||'{}').email||'').toLowerCase(); }catch(e){}
+    if(!email) return;
+
+    var emailKey = email.replace(/[^a-z0-9]/g,'_');
+
+    /* שליפת רשומת הניסיון מ-RTDB */
+    fetch(RTDB+'/trials.json?auth='+RTDB_S+'&orderBy="email"&equalTo="'+email+'"')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(!data) return;
+        var trials = Object.values(data);
+        if(!trials.length) return;
+        /* מיין לפי trialEnd ואקח את האחרון */
+        trials.sort(function(a,b){ return (a.trialStart||'') < (b.trialStart||'') ? 1 : -1; });
+        var latest = trials[0];
+
+        var serverEnd = latest.trialEnd || trialEnd;
+        var expired   = new Date().toISOString() > serverEnd;
+        var revokedByAdmin = latest.status === 'revoked';
+
+        if(expired || revokedByAdmin){
+          /* ביטול גישה + הצגת מסך שדרוג */
+          localStorage.removeItem('lextime_access');
+          localStorage.removeItem('lextime_plan');
+          _showTrialExpiredScreen();
+        } else {
+          /* עדכון תאריך סיום המדויק מהשרת (אם שונה) */
+          localStorage.setItem('lextime_trial_end', serverEnd);
+          /* עדכון הבאנר עם ימים מדויקים */
+          _updateTrialBanner(serverEnd);
+        }
+      })
+      .catch(function(){}); /* שקט בשגיאת רשת */
+  });
+
+  function _showTrialExpiredScreen(){
+    localStorage.removeItem('lextime_access');
+    localStorage.removeItem('lextime_plan');
+    var overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;background:linear-gradient(135deg,#091e40,#0f2d5a);display:flex;align-items:center;justify-content:center;font-family:Heebo,Arial,sans-serif;direction:rtl;z-index:99999';
+    overlay.innerHTML =
+      '<div style="background:#fff;border-radius:20px;padding:48px 40px;max-width:460px;width:90%;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.5)">'
+    + '<div style="font-size:56px;margin-bottom:16px">⏰</div>'
+    + '<div style="font-size:22px;font-weight:900;color:#0f2d5a;margin-bottom:10px;font-family:serif">תקופת הניסיון הסתיימה</div>'
+    + '<p style="font-size:14px;color:#64748b;line-height:1.7;margin-bottom:24px">3 ימי הניסיון החינם שלך הסתיימו.<br>כדי להמשיך לנהל את התיקים שלך, בחר מסלול מתאים.</p>'
+    + '<div style="background:#fffbeb;border:1px solid #f5e6c8;border-radius:10px;padding:14px 18px;margin-bottom:24px;text-align:right">'
+    + '<div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:4px">💾 הנתונים שלך שמורים</div>'
+    + '<div style="font-size:13px;color:#64748b;line-height:1.6">כל התיקים שהזנת במהלך הניסיון שמורים ומחכים לך.</div>'
+    + '</div>'
+    + '<a href="index.html#pricing" style="display:block;padding:14px 28px;background:linear-gradient(135deg,#b8862a,#d4a240);color:#fff;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;margin-bottom:10px">🚀 שדרג למנוי עכשיו</a>'
+    + '<a href="index.html" style="display:block;padding:12px 24px;background:#f0f4fa;color:#374151;border-radius:10px;text-decoration:none;font-size:14px;font-weight:600;border:1px solid #e2e8f0">חזרה לדף הבית</a>'
+    + '</div>';
+    document.body.appendChild(overlay);
+  }
+
+  function _updateTrialBanner(endISO){
+    var banner = document.getElementById('trialBanner');
+    if(!banner) return;
+    var ms   = new Date(endISO) - new Date();
+    var days = Math.ceil(ms / 86400000);
+    var txt  = document.getElementById('trialBannerDays');
+    if(txt) txt.textContent = days > 0 ? days + ' ימים' : 'פחות מיום';
   }
 })();
 </script>
@@ -368,6 +481,118 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
 </style>
 </head>
 <body>
+
+<!-- ══ באנר ניסיון ══ -->
+<div id="trialBanner" style="display:none;background:linear-gradient(90deg,#92400e,#b8862a);color:#fff;font-family:Heebo,Arial,sans-serif;direction:rtl;padding:9px 20px;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;font-size:13px;font-weight:600;position:relative;z-index:300">
+  <div style="display:flex;align-items:center;gap:10px">
+    <span id="trialBannerIcon" style="font-size:16px">🎁</span>
+    <span id="trialBannerText">מצב ניסיון חינם — נותרו <strong id="trialBannerDays">3 ימים</strong> מתוך 3</span>
+  </div>
+  <a href="index.html#pricing" style="background:#fff;color:#92400e;padding:5px 14px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:700;white-space:nowrap;flex-shrink:0">שדרג עכשיו ←</a>
+</div>
+
+<!-- ══ מודל התראת 24 שעות ══ -->
+<div id="trialUrgentModal" style="display:none;position:fixed;inset:0;z-index:9000;align-items:center;justify-content:center;background:rgba(9,30,64,.88);backdrop-filter:blur(6px);font-family:Heebo,Arial,sans-serif;direction:rtl;padding:20px">
+  <div style="background:#fff;border-radius:20px;max-width:460px;width:100%;overflow:hidden;box-shadow:0 32px 80px rgba(0,0,0,.5);animation:slideUp .3s ease">
+    <!-- פס אזהרה עליון -->
+    <div style="background:linear-gradient(135deg,#92400e,#b8862a);padding:24px 28px;text-align:center">
+      <div style="font-size:48px;margin-bottom:8px">⏰</div>
+      <div style="font-size:20px;font-weight:900;color:#fff;margin-bottom:4px">הניסיון שלך מסתיים מחר!</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.75)">פחות מ-24 שעות נותרו לגישה החינמית</div>
+    </div>
+    <!-- גוף -->
+    <div style="padding:28px">
+      <div style="background:#fffbeb;border:1px solid #f5e6c8;border-radius:10px;padding:16px 18px;margin-bottom:20px">
+        <div style="font-size:12px;font-weight:700;color:#92400e;margin-bottom:6px">💾 הנתונים שלך בטוחים</div>
+        <div style="font-size:13px;color:#64748b;line-height:1.7">כל התיקים שהזנת שמורים ומחכים לך. שדרוג למנוי מבטיח שהגישה אליהם לא תיפסק.</div>
+      </div>
+      <!-- השוואת מסלולים מקוצרת -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:20px;text-align:center">
+        <div style="border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 8px">
+          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">עצמאי</div>
+          <div style="font-size:20px;font-weight:900;color:#0f2d5a">₪49</div>
+          <div style="font-size:10px;color:#94a3b8">לחודש</div>
+        </div>
+        <div style="border:2px solid #b8862a;border-radius:10px;padding:12px 8px;background:#fffaf0;position:relative">
+          <div style="position:absolute;top:-9px;right:50%;transform:translateX(50%);background:#b8862a;color:#fff;font-size:9px;font-weight:700;padding:2px 8px;border-radius:8px;white-space:nowrap">מומלץ</div>
+          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">משרד</div>
+          <div style="font-size:20px;font-weight:900;color:#0f2d5a">₪199</div>
+          <div style="font-size:10px;color:#94a3b8">לחודש</div>
+        </div>
+        <div style="border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 8px">
+          <div style="font-size:11px;font-weight:700;color:#64748b;margin-bottom:4px">גדול</div>
+          <div style="font-size:20px;font-weight:900;color:#0f2d5a">₪499</div>
+          <div style="font-size:10px;color:#94a3b8">לחודש</div>
+        </div>
+      </div>
+      <a href="index.html#pricing" style="display:block;padding:14px;background:linear-gradient(135deg,#b8862a,#d4a240);color:#fff;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;text-align:center;margin-bottom:10px">🚀 שדרג עכשיו ושמור גישה מלאה</a>
+      <button onclick="document.getElementById('trialUrgentModal').style.display='none'" style="width:100%;padding:11px;background:#f0f4fa;color:#374151;border:1px solid #e2e8f0;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:Heebo,Arial,sans-serif">המשך לפלטפורמה (אתעדכן מאוחר יותר)</button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes slideUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+</style>
+
+<script>
+/* ══ ניהול באנר + התראת 24 שעות ══ */
+(function(){
+  if(localStorage.getItem('lextime_plan') !== 'trial') return;
+  var trialEnd = localStorage.getItem('lextime_trial_end');
+  if(!trialEnd) return;
+
+  var ms   = new Date(trialEnd) - new Date();
+  if(ms <= 0) return; /* פג — הגנת הגישה בראש הדף כבר טיפלה */
+
+  var hours = ms / 3600000;
+  var days  = Math.ceil(ms / 86400000);
+
+  /* ── באנר עליון ── */
+  var banner = document.getElementById('trialBanner');
+  var daysEl = document.getElementById('trialBannerDays');
+  var iconEl = document.getElementById('trialBannerIcon');
+  var textEl = document.getElementById('trialBannerText');
+
+  if(banner){
+    if(hours < 24){
+      /* פחות מ-24 שעות — באנר אדום ודחוף */
+      banner.style.background = 'linear-gradient(90deg,#991b1b,#b91c1c)';
+      iconEl.textContent = '🚨';
+      var hoursLeft = Math.ceil(hours);
+      textEl.innerHTML = '<strong>הניסיון מסתיים בעוד ' + (hoursLeft === 1 ? 'שעה אחת' : hoursLeft + ' שעות') + '!</strong> &nbsp;שדרג כדי לשמור על הגישה לתיקים שלך.';
+    } else {
+      /* יותר מ-24 שעות — באנר רגיל */
+      daysEl.textContent = days === 1 ? 'יום אחד' : days + ' ימים';
+    }
+    banner.style.display = 'flex';
+  }
+
+  /* ── מודל התראת 24 שעות ── */
+  if(hours < 24){
+    /* מציג פעם אחת בלבד — לא מציג שוב אם כבר סגר */
+    var dismissed = localStorage.getItem('lextime_trial_warn_dismissed');
+    /* מציג רק אם לא סגר, או אם עברה שעה מאז שסגר (תזכורת) */
+    var showAgain = !dismissed || (Date.now() - parseInt(dismissed)) > 3600000;
+    if(showAgain){
+      window.addEventListener('DOMContentLoaded', function(){
+        setTimeout(function(){
+          var modal = document.getElementById('trialUrgentModal');
+          if(modal) modal.style.display = 'flex';
+        }, 1200); /* עיכוב קל — נותן לדף להיטען תחילה */
+      });
+
+      /* שמירת זמן הסגירה בלחיצה על "המשך" */
+      var btn = document.querySelector('#trialUrgentModal button');
+      if(btn){
+        btn.addEventListener('click', function(){
+          localStorage.setItem('lextime_trial_warn_dismissed', Date.now().toString());
+        });
+      }
+    }
+  }
+})();
+</script>
 
 <!-- ══════════════ STICKY HEADER ══════════════ -->
 <div id="stickyTop">

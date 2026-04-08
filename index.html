@@ -1208,6 +1208,28 @@ function toggleMenu(){
           <label class="sreg-fl">כתובת דוא"ל * <small style="color:#c9922a">(תהיה שם המשתמש שלך)</small></label>
           <input class="sreg-fi" id="regEmail" type="email" placeholder="name@lawfirm.co.il">
           <div class="sreg-fi-err" id="e-regEmail">נא להזין כתובת דוא"ל תקינה</div>
+          <!-- הודעת שמירת נתוני ניסיון — מוצגת רק למשתמשי trial -->
+          <div id="trialEmailHint" style="display:none;margin-top:8px;background:rgba(201,146,42,.1);border:1px solid rgba(201,146,42,.3);border-radius:7px;padding:9px 12px;display:flex;align-items:flex-start;gap:8px">
+            <span style="font-size:14px;flex-shrink:0">💾</span>
+            <span style="font-size:12px;color:#e8b84b;line-height:1.6">כדי לשמור את התיקים מתקופת הניסיון — הרשם עם <strong>אותה כתובת מייל</strong> שהשתמשת בה בניסיון.</span>
+          </div>
+          <script>
+          /* הצגת הרמז רק אם המשתמש הגיע מניסיון */
+          (function(){
+            if(localStorage.getItem('lextime_plan')==='trial'){
+              var hint=document.getElementById('trialEmailHint');
+              if(hint) hint.style.display='flex';
+              /* מילוי אוטומטי של המייל מהניסיון */
+              try{
+                var u=JSON.parse(localStorage.getItem('lextime_user')||'null');
+                if(u&&u.email){
+                  var inp=document.getElementById('regEmail');
+                  if(inp&&!inp.value) inp.value=u.email;
+                }
+              }catch(e){}
+            }
+          })();
+          </script>
         </div>
         <div class="sreg-fg">
           <label class="sreg-fl">מספר טלפון</label>
@@ -1558,6 +1580,8 @@ function grantFullAccess(email,plan){
   localStorage.setItem('lextime_access','granted');
   var planKey=plan==='עצמאי'?'basic':plan==='משרד'?'office':'pro';
   localStorage.setItem('lextime_plan',planKey);
+  /* ניקוי שאריות ניסיון — למניעת בלבול בבדיקות עתידיות */
+  localStorage.removeItem('lextime_trial_end');
   // עדכון סטטוס credentials ל-active
   try{
     var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
