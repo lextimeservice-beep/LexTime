@@ -893,6 +893,28 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
       <h2 class="section-title display">השקעה קטנה,<br>הגנה גדולה</h2>
       <p class="section-desc">מנוי חודשי גמיש — ביטול בכל עת, ללא התחייבות שנתית.</p>
     </div>
+    <!-- Trial Banner -->
+    <div class="reveal" style="margin-bottom:32px;background:linear-gradient(135deg,var(--ink) 0%,#0f2244 100%);border:2px solid var(--gold);border-radius:20px;padding:32px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:radial-gradient(ellipse 50% 80% at 10% 50%,rgba(201,146,42,.12) 0%,transparent 70%);pointer-events:none"></div>
+      <div style="position:relative;z-index:1">
+        <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(201,146,42,.2);border:1px solid rgba(201,146,42,.4);border-radius:20px;padding:4px 14px;margin-bottom:12px">
+          <span style="font-size:14px">🎁</span>
+          <span style="font-size:12px;font-weight:700;color:var(--gold-l);letter-spacing:.6px;text-transform:uppercase">ניסיון חינם</span>
+        </div>
+        <h3 style="font-family:'Frank Ruhl Libre',serif;font-size:clamp(20px,3vw,28px);font-weight:900;color:#fff;margin-bottom:8px;line-height:1.2">3 ימי ניסיון חינם — ללא כרטיס אשראי</h3>
+        <p style="font-size:14px;color:rgba(255,255,255,.6);line-height:1.7;max-width:520px">גישה מלאה לכל יכולות הפלטפורמה למשך 3 ימים. אחרי הניסיון תוכל לבחור מסלול מתאים, או פשוט להפסיק — ללא שום התחייבות.</p>
+        <div style="display:flex;gap:20px;margin-top:14px;flex-wrap:wrap">
+          <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:rgba(255,255,255,.5)"><span style="color:var(--gold)">✓</span>תיקים ללא הגבלה</div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:rgba(255,255,255,.5)"><span style="color:var(--gold)">✓</span>140+ תקנות מוטמעות</div>
+          <div style="display:flex;align-items:center;gap:7px;font-size:13px;color:rgba(255,255,255,.5)"><span style="color:var(--gold)">✓</span>ללא כרטיס אשראי</div>
+        </div>
+      </div>
+      <div style="position:relative;z-index:1;flex-shrink:0">
+        <button onclick="openTrial()" class="btn btn-primary" style="font-size:16px;padding:16px 36px;white-space:nowrap">🚀 &nbsp;התחל ניסיון חינם</button>
+        <div style="text-align:center;font-size:12px;color:rgba(255,255,255,.35);margin-top:8px">ללא התחייבות · ביטול בכל עת</div>
+      </div>
+    </div>
+
     <div class="pricing-grid">
       <div class="price-card reveal reveal-delay-1">
         <div class="price-name">עצמאי</div>
@@ -2169,6 +2191,83 @@ function closeLegalModal(){document.getElementById('legalModal').style.display='
 function closeLegal(){closeLegalModal();}
 </script>
 
+<!-- ══ TRIAL MODAL ══ -->
+<div id="trialModal" style="display:none;position:fixed;inset:0;z-index:4000;align-items:center;justify-content:center;background:rgba(10,22,40,.85);backdrop-filter:blur(6px);padding:20px" onclick="if(event.target===this)closeTrial()">
+  <div style="background:#0f1d35;border:1px solid rgba(201,146,42,.3);border-radius:20px;width:100%;max-width:480px;overflow:hidden;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.5)">
+
+    <!-- Header -->
+    <div style="background:linear-gradient(135deg,#0a1628,#0f2244);padding:28px 32px;border-bottom:1px solid rgba(201,146,42,.2);position:relative">
+      <div style="display:inline-flex;align-items:center;gap:7px;background:rgba(201,146,42,.15);border:1px solid rgba(201,146,42,.3);border-radius:20px;padding:3px 12px;margin-bottom:10px">
+        <span style="font-size:12px">🎁</span>
+        <span style="font-size:11px;font-weight:700;color:var(--gold-l);letter-spacing:.6px;text-transform:uppercase">3 ימי ניסיון חינם</span>
+      </div>
+      <div style="font-family:'Frank Ruhl Libre',serif;font-size:22px;font-weight:900;color:#fff;margin-bottom:4px">פתח ניסיון חינם עכשיו</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.45)">ללא כרטיס אשראי · גישה מלאה ל-3 ימים</div>
+      <button onclick="closeTrial()" style="position:absolute;top:20px;left:20px;background:rgba(255,255,255,.1);border:none;color:#fff;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center">✕</button>
+    </div>
+
+    <!-- Form body -->
+    <div id="trialFormBody" style="padding:32px">
+      <div id="trialFormErr" style="display:none;background:rgba(185,28,28,.15);border:1px solid rgba(185,28,28,.4);color:#f87171;padding:10px 14px;border-radius:8px;font-size:13px;margin-bottom:16px"></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.55);margin-bottom:5px">שם פרטי *</label>
+          <input id="trialFN" type="text" placeholder="ישראל"
+            style="width:100%;padding:10px 14px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;color:#fff;outline:none;transition:.15s"
+            onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+        </div>
+        <div>
+          <label style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.55);margin-bottom:5px">שם משפחה *</label>
+          <input id="trialLN" type="text" placeholder="ישראלי"
+            style="width:100%;padding:10px 14px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;color:#fff;outline:none;transition:.15s"
+            onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+        </div>
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.55);margin-bottom:5px">כתובת דוא"ל *</label>
+        <input id="trialEmail" type="email" placeholder="name@law.co.il" dir="ltr"
+          style="width:100%;padding:10px 14px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;color:#fff;outline:none;transition:.15s"
+          onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+      </div>
+
+      <div style="margin-bottom:14px">
+        <label style="display:block;font-size:12px;font-weight:600;color:rgba(255,255,255,.55);margin-bottom:5px">סיסמה * <small style="color:rgba(255,255,255,.3)">(לפחות 8 תווים)</small></label>
+        <div style="position:relative">
+          <input id="trialPass" type="password" placeholder="בחר סיסמה חזקה"
+            style="width:100%;padding:10px 44px 10px 14px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.15);border-radius:8px;font-size:14px;font-family:'Heebo',sans-serif;color:#fff;outline:none;transition:.15s"
+            onfocus="this.style.borderColor='#c9922a'" onblur="this.style.borderColor='rgba(255,255,255,.15)'">
+          <button onclick="sregTogglePass('trialPass',this)" type="button" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.35);cursor:pointer;font-size:15px">👁</button>
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:20px">
+        <input type="checkbox" id="trialTC" style="margin-top:3px;accent-color:#c9922a;width:15px;height:15px;flex-shrink:0">
+        <label for="trialTC" style="font-size:13px;color:rgba(255,255,255,.45);cursor:pointer;line-height:1.6">אני מסכים/ה ל<a href="javascript:void(0)" onclick="openLegal('terms')" style="color:#e8b84b">תנאי השימוש</a> ו<a href="javascript:void(0)" onclick="openLegal('privacy')" style="color:#e8b84b">מדיניות הפרטיות</a></label>
+      </div>
+
+      <button id="trialSubmitBtn" onclick="submitTrial()"
+        style="width:100%;padding:14px;background:linear-gradient(135deg,#c9922a,#e8b84b);color:#0a1628;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Heebo',sans-serif;transition:.2s">
+        🚀 &nbsp;התחל ניסיון חינם ←
+      </button>
+      <div style="text-align:center;margin-top:12px;font-size:12px;color:rgba(255,255,255,.3)">🔒 ללא כרטיס אשראי · ללא התחייבות</div>
+    </div>
+
+    <!-- Success state -->
+    <div id="trialSuccess" style="display:none;padding:44px 32px;text-align:center">
+      <div style="font-size:56px;margin-bottom:16px">🎉</div>
+      <div style="font-family:'Frank Ruhl Libre',serif;font-size:22px;font-weight:900;color:#fff;margin-bottom:8px">הניסיון שלך מוכן!</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.55);line-height:1.75;margin-bottom:24px">ניסיון חינם של 3 ימים הופעל בהצלחה.<br>שלחנו אישור לדוא"ל שלך.</div>
+      <a href="platform.html" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:linear-gradient(135deg,#c9922a,#e8b84b);color:#0a1628;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;font-family:'Heebo',sans-serif;margin-bottom:12px">🚀 פתח את הפלטפורמה →</a>
+      <div style="margin-top:16px">
+        <button onclick="closeTrial()" style="padding:10px 24px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:13px;cursor:pointer;font-family:'Heebo',sans-serif">חזרה לדף הבית</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <!-- ══ CONTACT FORM MODAL ══ -->
 <div id="contactModal" style="display:none;position:fixed;inset:0;background:rgba(10,22,40,.75);z-index:4000;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px)" onclick="if(event.target===this)closeContactForm()">
   <div style="background:#fff;border-radius:20px;width:100%;max-width:460px;box-shadow:0 32px 80px rgba(0,0,0,.4);overflow:hidden;font-family:'Heebo',sans-serif">
@@ -2323,5 +2422,82 @@ function _notifyAdmin(name, email, msg){
 }
 </script>
 
+<script>
+/* ══ TRIAL MODAL ══ */
+function openTrial(){
+  document.getElementById('trialFN').value='';
+  document.getElementById('trialLN').value='';
+  document.getElementById('trialEmail').value='';
+  document.getElementById('trialPass').value='';
+  document.getElementById('trialTC').checked=false;
+  document.getElementById('trialFormErr').style.display='none';
+  document.getElementById('trialFormBody').style.display='block';
+  document.getElementById('trialSuccess').style.display='none';
+  var m=document.getElementById('trialModal');
+  m.style.display='flex';
+  setTimeout(function(){document.getElementById('trialFN').focus();},100);
+}
+
+function closeTrial(){
+  document.getElementById('trialModal').style.display='none';
+}
+
+function submitTrial(){
+  var fn=document.getElementById('trialFN').value.trim();
+  var ln=document.getElementById('trialLN').value.trim();
+  var email=document.getElementById('trialEmail').value.trim();
+  var pass=document.getElementById('trialPass').value;
+  var tc=document.getElementById('trialTC').checked;
+  var errEl=document.getElementById('trialFormErr');
+  var btn=document.getElementById('trialSubmitBtn');
+
+  errEl.style.display='none';
+
+  if(!fn||!ln){errEl.style.display='block';errEl.textContent='נא למלא שם פרטי ושם משפחה.';return;}
+  if(!email||!/\S+@\S+\.\S+/.test(email)){errEl.style.display='block';errEl.textContent='כתובת הדוא"ל אינה תקינה.';return;}
+  if(pass.length<8){errEl.style.display='block';errEl.textContent='הסיסמה חייבת להכיל לפחות 8 תווים.';return;}
+  if(!tc){errEl.style.display='block';errEl.textContent='נא לאשר את תנאי השימוש.';return;}
+
+  btn.textContent='מפעיל ניסיון...';
+  btn.disabled=true;
+
+  var name=fn+' '+ln;
+  var hash=simpleHash(pass);
+  var trialStart=new Date().toISOString();
+  var trialEnd=new Date(Date.now()+3*24*60*60*1000).toISOString();
+
+  var payload={
+    name:name,email:email.toLowerCase(),passHash:hash,
+    plan:'trial',status:'trial',
+    trialStart:trialStart,trialEnd:trialEnd,
+    date:new Date().toISOString().slice(0,10),
+    notes:'ניסיון חינם 3 ימים'
+  };
+
+  /* שמירה מקומית */
+  localStorage.setItem('lextime_credentials',JSON.stringify({email:email.toLowerCase(),passHash:hash,name:name,status:'trial'}));
+  localStorage.setItem('lextime_access','granted');
+  localStorage.setItem('lextime_plan','trial');
+  localStorage.setItem('lextime_user',JSON.stringify({name:name,email:email,plan:'trial',date:new Date().toISOString().slice(0,10)}));
+  localStorage.setItem('lextime_trial_end',trialEnd);
+
+  /* שמירה ב-Firebase RTDB */
+  var key='trial_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+  fetch(_RTDB+'/trials/'+key+'.json?auth='+_RTDB_S,{
+    method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
+  }).catch(function(){});
+
+  /* שמירה ב-Firestore דרך הפונקציה הקיימת */
+  try{saveToFirestore(name,email,'ניסיון','0','trial','trial');}catch(e){}
+
+  /* הצגת הצלחה */
+  setTimeout(function(){
+    btn.textContent='🚀 התחל ניסיון חינם ←';
+    btn.disabled=false;
+    document.getElementById('trialFormBody').style.display='none';
+    document.getElementById('trialSuccess').style.display='block';
+  }, 900);
+}
+</script>
 </body>
 </html>
