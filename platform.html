@@ -682,6 +682,7 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
     <div class="sp pnd"><span class="n" id="sPending">0</span> ממתינים</div>
     <div class="sp don"><span class="n" id="sDone">0</span> בוצע</div>
     <div class="sp tot"><span class="n" id="sTotal">0</span> סה"כ מטלות</div>
+    <div class="sp" id="sRecess" style="display:none;background:var(--teal-l);color:var(--teal);font-size:12px;font-weight:600"></div>
   </div>
 
   <div class="tabs">
@@ -900,6 +901,87 @@ function fmtDate(s){if(!s)return '—';try{return new Date(s+'T00:00:00').toLoca
 function toInput(s){if(!s)return '';return typeof s==='string'?s.slice(0,10):'';}
 function todayStr(){return new Date().toISOString().slice(0,10);}
 
+/* ══ מנוע פגרות בתי המשפט (תקנות בתי המשפט פגרות, תשמ"ג-1983) ══
+   תקנה 1:  פגרת סוכות י"ד–כ"ב תשרי | פגרת פסח י"ד–כ"א ניסן | פגרת קיץ 21.7–5.9
+   תקנה 4:  יום שישי = פגרה אם הוא היום האחרון להגשה / ביצוע פעולה
+   תקנה 5(ג) סד"א 2018: המועד יסתיים ביום העבודה הראשון לאחר הפגרה            */
+var COURT_RECESS_PERIODS = [
+  /* פגרת פסח (י"ד–כ"א ניסן) */
+  {f:'2022-04-15',t:'2022-04-22'}, /* 5782 */
+  {f:'2023-04-05',t:'2023-04-12'}, /* 5783 */
+  {f:'2024-04-22',t:'2024-04-29'}, /* 5784 */
+  {f:'2025-04-12',t:'2025-04-19'}, /* 5785 */
+  {f:'2026-04-01',t:'2026-04-08'}, /* 5786 */
+  {f:'2027-04-21',t:'2027-04-28'}, /* 5787 */
+  {f:'2028-04-10',t:'2028-04-17'}, /* 5788 */
+  {f:'2029-03-30',t:'2029-04-06'}, /* 5789 */
+  {f:'2030-04-17',t:'2030-04-24'}, /* 5790 */
+  {f:'2031-04-07',t:'2031-04-14'}, /* 5791 */
+  {f:'2032-03-26',t:'2032-04-02'}, /* 5792 */
+  {f:'2033-04-13',t:'2033-04-20'}, /* 5793 */
+  /* פגרת סוכות (י"ד–כ"ב תשרי) */
+  {f:'2022-10-09',t:'2022-10-17'}, /* 5783 */
+  {f:'2023-09-29',t:'2023-10-07'}, /* 5784 */
+  {f:'2024-10-16',t:'2024-10-24'}, /* 5785 */
+  {f:'2025-10-06',t:'2025-10-14'}, /* 5786 */
+  {f:'2026-09-25',t:'2026-10-03'}, /* 5787 */
+  {f:'2027-10-15',t:'2027-10-23'}, /* 5788 */
+  {f:'2028-10-04',t:'2028-10-12'}, /* 5789 */
+  {f:'2029-09-23',t:'2029-10-01'}, /* 5790 */
+  {f:'2030-10-11',t:'2030-10-19'}, /* 5791 */
+  {f:'2031-10-01',t:'2031-10-09'}, /* 5792 */
+  {f:'2032-09-19',t:'2032-09-27'}  /* 5793 */
+];
+
+/* האם תאריך נתון הוא יום פגרה */
+function isRecessDay(ds){
+  if(!ds) return false;
+  var d=new Date(ds+'T12:00:00');
+  var dow=d.getDay(); /* 0=ראשון … 5=שישי … 6=שבת */
+  if(dow===6) return true; /* שבת */
+  if(dow===5) return true; /* שישי — נחשב פגרה (תקנה 4) */
+  /* פגרת קיץ: 21 ביולי עד 5 בספטמבר (תאריכים גרגוריאניים קבועים) */
+  var mm=ds.slice(5,7), dd2=ds.slice(8,10);
+  if((mm==='07'&&dd2>='21')||mm==='08'||(mm==='09'&&dd2<='05')) return true;
+  /* פגרות פסח וסוכות */
+  for(var i=0;i<COURT_RECESS_PERIODS.length;i++){
+    var p=COURT_RECESS_PERIODS[i];
+    if(ds>=p.f && ds<=p.t) return true;
+  }
+  return false;
+}
+
+/* מחזיר שם הפגרה לצורך תוויות (מחרוזת ריקה = אינו פגרה) */
+function recessName(ds){
+  if(!ds) return '';
+  var d=new Date(ds+'T12:00:00'),dow=d.getDay();
+  if(dow===6) return 'שבת';
+  if(dow===5) return 'שישי';
+  var mm=ds.slice(5,7),dd2=ds.slice(8,10);
+  if((mm==='07'&&dd2>='21')||mm==='08'||(mm==='09'&&dd2<='05')) return 'פגרת קיץ';
+  for(var i=0;i<COURT_RECESS_PERIODS.length;i++){
+    var p=COURT_RECESS_PERIODS[i];
+    if(ds>=p.f && ds<=p.t){
+      /* זהה פגרת פסח לעומת סוכות לפי החודש */
+      var fm=p.f.slice(5,7);
+      return (fm>='03'&&fm<='04')?'פגרת פסח':'פגרת סוכות';
+    }
+  }
+  return '';
+}
+
+/* מקדם את התאריך ליום עבודה הראשון שאחרי הפגרה */
+function adjustForRecess(ds){
+  if(!ds) return ds;
+  var MAX=120,d=ds;
+  while(MAX-->0 && isRecessDay(d)){
+    var dt=new Date(d+'T12:00:00');
+    dt.setDate(dt.getDate()+1);
+    d=dt.toISOString().slice(0,10);
+  }
+  return d;
+}
+
 /* ══ CASE TYPE ══ */
 function getDefenseDays(c){
   var t=(c.type||'').trim();
@@ -1104,7 +1186,8 @@ function cur(){return cases.filter(function(c){return c.id===curId;})[0]||(cases
    getOriginalDate: computed purely from service + fixed offsets (never cascades)
    getEffectiveDate: uses actualDates to cascade — if t1 actual set, t2+ cascade from it
 */
-function getOriginalDate(id,c){
+/* חישוב גולמי ללא תיקון פגרות (משמש להשוואה פנימית) */
+function _rawDate(id,c){
   var s=c.service,dd=getDefenseDays(c);
   var def=addDays(s,dd),rpl=addDays(def,14),med=addDays(rpl,45),
       disc=addDays(rpl,30),meet=addDays(med,30),req=addDays(rpl,60),
@@ -1131,41 +1214,49 @@ function getOriginalDate(id,c){
   return null;
 }
 
+/* מועד מקורי עם תיקון פגרות — מחזיר את יום העבודה הראשון אחרי הפגרה
+   (t20 = מועד דיון שנקבע ע"י ביהמ"ש, ללא תיקון) */
+function getOriginalDate(id,c){
+  var raw=_rawDate(id,c);
+  if(id==='t20') return raw;
+  return adjustForRecess(raw);
+}
+
 /* Cascade: each task's effective = actualDates[id] if set,
-   else computed from predecessor's effective date */
+   else computed from predecessor's effective date — with recess adjustment */
 function getCascadedChain(c){
   var a=c.actualDates||{},dd=getDefenseDays(c),s=c.service;
-  var def  = a.t1 || addDays(s,dd);
-  var rpl  = a.t2 || addDays(def,14);
-  var med  = a.t3 || addDays(rpl,45);
-  var disc = a.t4 || addDays(rpl,30);
-  var meet = a.t5 || addDays(med,30);
-  var req  = a.t6 || addDays(rpl,60);
-  var dComp= a.t7 || addDays(disc,30);
-  var mRep = a.t8 || addDays(meet,14);
+  var def  = a.t1 || adjustForRecess(addDays(s,dd));
+  var rpl  = a.t2 || adjustForRecess(addDays(def,14));
+  var med  = a.t3 || adjustForRecess(addDays(rpl,45));
+  var disc = a.t4 || adjustForRecess(addDays(rpl,30));
+  var meet = a.t5 || adjustForRecess(addDays(med,30));
+  var req  = a.t6 || adjustForRecess(addDays(rpl,60));
+  var dComp= a.t7 || adjustForRecess(addDays(disc,30));
+  var mRep = a.t8 || adjustForRecess(addDays(meet,14));
   // pretrial chain
   var pt   = c.pretrialActual||c.pretrial||null;
-  var t10  = a.t10|| (pt?addDays(pt,-30):null);
-  var t11  = a.t11|| (pt?addDays(pt,-20):null);
-  var t12  = a.t12|| (pt?addDays(pt,-20):null);
-  var t13  = a.t13|| (pt?addDays(pt,-14):null);
-  var t14  = a.t14|| (t11?addDays(t11,14):null);
-  var t15  = a.t15|| (t12?addDays(t12,14):null);
+  var t10  = a.t10|| (pt?adjustForRecess(addDays(pt,-30)):null);
+  var t11  = a.t11|| (pt?adjustForRecess(addDays(pt,-20)):null);
+  var t12  = a.t12|| (pt?adjustForRecess(addDays(pt,-20)):null);
+  var t13  = a.t13|| (pt?adjustForRecess(addDays(pt,-14)):null);
+  var t14  = a.t14|| (t11?adjustForRecess(addDays(t11,14)):null);
+  var t15  = a.t15|| (t12?adjustForRecess(addDays(t12,14)):null);
   // trial chain
   var tr   = c.trialActual||c.trial||null;
-  var t17  = a.t17|| (tr?addDays(tr,-30):null);
-  var t18  = a.t18|| (tr?addDays(tr,-14):null);
-  var t19  = a.t19|| (tr?addDays(tr,-3):null);
+  var t17  = a.t17|| (tr?adjustForRecess(addDays(tr,-30)):null);
+  var t18  = a.t18|| (tr?adjustForRecess(addDays(tr,-14)):null);
+  var t19  = a.t19|| (tr?adjustForRecess(addDays(tr,-3)):null);
   var t20  = a.t20|| tr;
-  var t23  = a.t23|| (tr?addDays(tr,90):null);
+  var t23  = a.t23|| (tr?adjustForRecess(addDays(tr,90)):null);
   // decision chain
   var dc   = c.decisionActual||c.decision||null;
-  var t25  = a.t25|| (dc?addDays(dc,30):null);
-  var t26  = a.t26|| (dc?addDays(dc,60):null);
-  var t27  = a.t27|| (dc?addDays(addDays(dc,60),60):null);
+  var t25  = a.t25|| (dc?adjustForRecess(addDays(dc,30)):null);
+  var t26  = a.t26|| (dc?adjustForRecess(addDays(dc,60)):null);
+  var t27  = a.t27|| (dc?adjustForRecess(addDays(addDays(dc,60),60)):null);
   // appeal chain
   var ad   = c.appealDecActual||c.appealDec||null;
-  var t29  = a.t29|| (ad?addDays(ad,60):null);
+  var t29  = a.t29|| (ad?adjustForRecess(addDays(ad,60)):null);
   return {t1:def,t2:rpl,t3:med,t4:disc,t5:meet,t6:req,t7:dComp,t8:mRep,
           t10:t10,t11:t11,t12:t12,t13:t13,t14:t14,t15:t15,
           t17:t17,t18:t18,t19:t19,t20:t20,t23:t23,
@@ -1233,9 +1324,21 @@ function anchorRowHtml(a,c,isNext){
 /* ══ TASK ROW ══ */
 function taskRowHtml(t,c,chain,isNext){
   if(t.noDate){
-    return '<tr class="task-row"><td colspan="6">'+
-      '<div class="tdesc">'+linkRegs(t.desc)+' — <span class="treg" style="display:inline">'+t.reg+'</span></div>'+
-      '</td></tr>';
+    var status=(c.statuses||{})[t.id]||'pending';
+    var actualDate=(c.actualDates||{})[t.id]||'';
+    var selOpts='';
+    STATUS_OPTS.forEach(function(o){selOpts+='<option value="'+o.v+'"'+(status===o.v?' selected':'')+'>'+o.l+'</option>';});
+    var rowBg=status==='done'?'background:#dcfce7':status==='urgent'?'background:#fee2e2':(status==='no_response'?'background:#fca5a5':'');
+    var trStyle=(status==='urgent'||status==='no_response')?'background:#fca5a5;border-right:4px solid #dc2626':(rowBg||'');
+    var effCell='<input type="date" class="date-input inp-actual" value="'+toInput(actualDate)+'" '+
+      'onchange="setActual(\''+t.id+'\',this.value)" placeholder="מועד בפועל">';
+    var daysCell=status==='done'?'<span class="dc done-badge">✓ בוצע</span>':'<span class="dc none">—</span>';
+    return '<tr class="task-row"'+(trStyle?' style="'+trStyle+'"':'')+'>'+
+      '<td style="min-width:220px" colspan="3"><div class="tdesc">'+linkRegs(t.desc)+'</div><div class="treg">'+linkRegs(t.reg)+'</div></td>'+
+      '<td style="min-width:150px">'+effCell+'</td>'+
+      '<td>'+daysCell+'</td>'+
+      '<td><select class="ss" onchange="setStatus(\''+t.id+'\',this.value)">'+selOpts+'</select></td>'+
+      '</tr>';
   }
   var tip=COMMENTS[t.id]?tipHtml(t.id):'';
   var status=(c.statuses||{})[t.id]||'pending';
@@ -1261,7 +1364,14 @@ function taskRowHtml(t,c,chain,isNext){
   }
 
   // Effective date display: if cascaded differs from original, show cascaded in teal
-  var origCell=origDate?'<span class="date-orig">'+fmtDate(origDate)+'</span>':'<span class="date-none">—</span>';
+  var rawDate=_rawDate(t.id,c);
+  var recessAdj=rawDate&&origDate&&rawDate!==origDate;
+  var recessLabel=recessAdj?recessName(rawDate):'';
+  var origCell=origDate?
+    '<span class="date-orig">'+fmtDate(origDate)+'</span>'+
+    (recessAdj?'<div style="font-size:10px;color:var(--teal);margin-top:3px;display:flex;align-items:center;gap:3px">'+
+      '<span>📅</span><span>הוזז מ'+recessLabel+' ('+fmtDate(rawDate)+')</span></div>':'')
+    :'<span class="date-none">—</span>';
   // Cascaded (effective) date cell — editable only for t1 (root), computed for others
   var effCell;
   if(t.isRoot){
@@ -1394,7 +1504,7 @@ function renderStages(){
       '<div class="stage-body"><table class="tt"><thead><tr>'+
       '<th style="min-width:220px">מטלות לביצוע על פי ציר הזמנים</th>'+
       '<th>ימים</th>'+
-      '<th class="col-orig">מועד מקורי להגשה</th>'+
+      '<th class="col-orig">מועד מקורי להגשה <span style="font-weight:400;opacity:.7">(כולל פגרות)</span></th>'+
       '<th class="col-actual">מועד ביצוע בפועל</th>'+
       '<th>ימים נותרו</th>'+
       '<th>סטטוס</th>'+
@@ -1466,6 +1576,39 @@ function renderStats(){
   });
   g('sUrgent').textContent=ur; g('sPending').textContent=pn;
   g('sDone').textContent=dn; g('sTotal').textContent=tot;
+  /* חישוב פגרה פעילה היום */
+  var today=todayStr();
+  var recessEl=g('sRecess');
+  if(recessEl){
+    if(isRecessDay(today)){
+      var nm=recessName(today);
+      recessEl.textContent='📅 '+nm+' בתוקף';
+      recessEl.style.display='';
+    } else {
+      /* מצא את הפגרה הבאה */
+      var nextRecess=null;
+      var candidates=[];
+      /* קיץ */
+      var yr=parseInt(today.slice(0,4));
+      candidates.push({f:yr+'-07-21',t:yr+'-09-05',n:'פגרת קיץ'});
+      candidates.push({f:(yr+1)+'-07-21',t:(yr+1)+'-09-05',n:'פגרת קיץ'});
+      COURT_RECESS_PERIODS.forEach(function(p){
+        var fm=p.f.slice(5,7);
+        candidates.push({f:p.f,t:p.t,n:(fm>='03'&&fm<='04')?'פגרת פסח':'פגרת סוכות'});
+      });
+      candidates.sort(function(a,b){return a.f<b.f?-1:1;});
+      for(var ci=0;ci<candidates.length;ci++){
+        if(candidates[ci].f>today){nextRecess=candidates[ci];break;}
+      }
+      if(nextRecess){
+        var daysToRecess=Math.round((new Date(nextRecess.f+'T12:00:00')-new Date(today+'T12:00:00'))/864e5);
+        recessEl.textContent='📅 '+nextRecess.n+' בעוד '+daysToRecess+' ימים ('+fmtDate(nextRecess.f)+')';
+        recessEl.style.display='';
+      } else {
+        recessEl.style.display='none';
+      }
+    }
+  }
   // Progress bar: arrow starts at RIGHT (0%) and moves LEFT (100%)
   // At pct=0: arrow at right edge. At pct=100: arrow at left edge.
   var pct=tot>0?Math.round(dn/tot*100):0;
