@@ -291,6 +291,10 @@ tr:hover td{background:#fafbfc}
         <span class="nav-icon">💬</span><span>פניות יצירת קשר</span>
         <span class="nav-badge" id="contactsBadge" style="display:none">0</span>
       </div>
+      <div class="nav-item" onclick="showPage('trials')" id="nav-trials">
+        <span class="nav-icon">🎁</span><span>ניסיונות</span>
+        <span class="nav-badge" id="trialsBadge" style="display:none">0</span>
+      </div>
       <div class="nav-item" onclick="showPage('settings')" id="nav-settings">
         <span class="nav-icon">⚙️</span><span>הגדרות מערכת</span>
       </div>
@@ -362,6 +366,12 @@ tr:hover td{background:#fafbfc}
             <div class="kpi-label">ממתינים לאישור</div>
             <div class="kpi-value" id="kpiPending">0</div>
             <div class="kpi-sub">תשלום לא אושר</div>
+          </div>
+          <div class="kpi" style="--kpi-color:#7c3aed">
+            <div class="kpi-icon">🎁</div>
+            <div class="kpi-label">ניסיונות פעילים</div>
+            <div class="kpi-value" id="kpiTrials" style="cursor:pointer;color:#7c3aed" onclick="showPage('trials')">0</div>
+            <div class="kpi-sub">3 ימי ניסיון חינם</div>
           </div>
         </div>
 
@@ -526,6 +536,51 @@ tr:hover td{background:#fafbfc}
               <tbody id="contactsTable"><tr class="empty-row"><td colspan="7">טוען פניות...</td></tr></tbody>
             </table>
           </div>
+        </div>
+      </div>
+
+      <!-- ── TRIALS PAGE ── -->
+      <div id="page-trials" style="display:none">
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:20px">
+          <div class="kpi" style="border-right:4px solid #7c3aed">
+            <div class="kpi-icon">🎁</div>
+            <div class="kpi-label">סה"כ ניסיונות</div>
+            <div class="kpi-value" id="tKpiTotal" style="color:#7c3aed">0</div>
+          </div>
+          <div class="kpi green">
+            <div class="kpi-icon">✅</div>
+            <div class="kpi-label">בתוקף כרגע</div>
+            <div class="kpi-value" id="tKpiActive">0</div>
+          </div>
+          <div class="kpi red">
+            <div class="kpi-icon">⏰</div>
+            <div class="kpi-label">פגו תוקף</div>
+            <div class="kpi-value" id="tKpiExpired">0</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🎁 משתמשי ניסיון</div>
+            <div class="search-wrap">
+              <input type="text" class="search-input" id="trialSearch" placeholder="חיפוש שם / דוא"ל..." oninput="renderTrials()">
+              <select class="filter-sel" id="trialStatusFilter" onchange="renderTrials()">
+                <option value="">כולם</option>
+                <option value="active">בתוקף</option>
+                <option value="expired">פגי תוקף</option>
+                <option value="revoked">בוטלו</option>
+              </select>
+              <button class="btn btn-gh btn-sm" onclick="loadTrials()">🔄 רענן</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr>
+                <th>#</th><th>שם</th><th>דוא"ל</th><th>תאריך הרשמה</th><th>פוקע ב</th><th>סטטוס</th><th>פעולות</th>
+              </tr></thead>
+              <tbody id="trialsTable"><tr class="empty-row"><td colspan="7">טוען...</td></tr></tbody>
+            </table>
+          </div>
+          <div style="padding:12px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--gray)" id="trialsCount"></div>
         </div>
       </div>
 
@@ -941,7 +996,7 @@ var DB_URL    = 'https://lextime-82214-default-rtdb.europe-west1.firebasedatabas
 var DB_SECRET = 'ZRYmRM293l9TyrLs9vRt02MYRtBKMWDwNiMFirgk';
 
 /* זיכרון מקומי (נטען מ-Firebase בכניסה) */
-var _cache = { subs:[], pays:[], settings:{}, deletedEmails:[] };
+var _cache = { subs:[], pays:[], settings:{}, deletedEmails:[], trials:[] };
 
 async function _fbGet(path){
   var r = await fetch(DB_URL+path+'.json?auth='+DB_SECRET);
@@ -964,20 +1019,22 @@ function _arrFromFb(d){ // Firebase מחזיר null / array / object
 /* טעינת כל הנתונים מ-Firebase בכניסה */
 async function loadFromFirebase(){
   try{
-    var [s,p,cfg,del] = await Promise.all([
+    var [s,p,cfg,del,tr] = await Promise.all([
       _fbGet('/subs'), _fbGet('/pays'),
-      _fbGet('/settings'), _fbGet('/deletedEmails')
+      _fbGet('/settings'), _fbGet('/deletedEmails'),
+      _fbGet('/trials')
     ]);
     _cache.subs          = _arrFromFb(s);
     _cache.pays          = _arrFromFb(p);
     _cache.settings      = cfg || {};
     _cache.deletedEmails = _arrFromFb(del);
+    _cache.trials        = _arrFromFb(tr);
   }catch(e){
-    /* fallback: localStorage אם אין חיבור */
     _cache.subs          = JSON.parse(localStorage.getItem('tb_subs')||'[]');
     _cache.pays          = JSON.parse(localStorage.getItem('tb_pays')||'[]');
     _cache.settings      = JSON.parse(localStorage.getItem('tb_settings')||'{}');
     _cache.deletedEmails = JSON.parse(localStorage.getItem('tb_deleted_emails')||'[]');
+    _cache.trials        = [];
     console.warn('Firebase לא זמין — נטען מ-localStorage');
   }
 }
@@ -1040,13 +1097,13 @@ function setToday(){
 /* ═══ PAGE NAVIGATION ═══ */
 var _currentFilter='all';
 function showPage(page){
-  ['dashboard','subscribers','payments','plans','contacts','settings'].forEach(function(p){
+  ['dashboard','subscribers','payments','plans','contacts','trials','settings'].forEach(function(p){
     var el=document.getElementById('page-'+p);
     if(el)el.style.display=p===page?'block':'none';
     var nav=document.getElementById('nav-'+p);
     if(nav)nav.className='nav-item'+(p===page?' active':'');
   });
-  var titles={dashboard:'לוח בקרה',subscribers:'ניהול נרשמים',payments:'ניהול תשלומים',plans:'מסלולים ומנויים',contacts:'פניות יצירת קשר',settings:'הגדרות מערכת'};
+  var titles={dashboard:'לוח בקרה',subscribers:'ניהול נרשמים',payments:'ניהול תשלומים',plans:'מסלולים ומנויים',contacts:'פניות יצירת קשר',trials:'משתמשי ניסיון',settings:'הגדרות מערכת'};
   document.getElementById('pageTitle').textContent=titles[page]||page;
   document.getElementById('pageSub').textContent='';
   if(page==='dashboard')renderDashboard();
@@ -1054,6 +1111,7 @@ function showPage(page){
   if(page==='payments')renderPayments();
   if(page==='plans')renderPlans();
   if(page==='contacts')loadContacts();
+  if(page==='trials'){loadTrials();}
 }
 
 /* ═══ DASHBOARD ═══ */
@@ -1068,6 +1126,12 @@ function renderDashboard(){
   document.getElementById('kpiPending').textContent=pending.length;
   document.getElementById('pendingBadge').textContent=pending.length;
   document.getElementById('pendingBadge').style.display=pending.length?'':'none';
+  /* ניסיונות */
+  var now=new Date().toISOString();
+  var activeTrials=_cache.trials.filter(function(t){return t&&t.status==='trial'&&t.trialEnd>now;});
+  document.getElementById('kpiTrials').textContent=activeTrials.length;
+  document.getElementById('trialsBadge').textContent=activeTrials.length;
+  document.getElementById('trialsBadge').style.display=activeTrials.length?'inline-flex':'none';
   _updateCredWarning();
 
   // Recent subs
@@ -1738,6 +1802,127 @@ async function _ensureCredentials(sub){
   }catch(e){ console.warn('_ensureCredentials failed:', e); }
 }
 /* ════════════════════════════════════════════════ */
+/* ═══ TRIALS ═══ */
+async function loadTrials(){
+  try{
+    var data = await _fbGet('/trials');
+    _cache.trials = _arrFromFb(data);
+  }catch(e){ _cache.trials=[]; }
+  renderTrials();
+}
+
+function renderTrials(){
+  var now    = new Date().toISOString();
+  var search = (document.getElementById('trialSearch')||{}).value||'';
+  var filter = (document.getElementById('trialStatusFilter')||{}).value||'';
+  var trials = _cache.trials.slice().sort(function(a,b){
+    return (b.trialStart||'') > (a.trialStart||'') ? 1 : -1;
+  });
+
+  /* KPI */
+  var activeT  = trials.filter(function(t){return t.status==='trial'&&t.trialEnd>now;});
+  var expiredT = trials.filter(function(t){return t.status!=='revoked'&&t.trialEnd<=now;});
+  var el=document.getElementById('tKpiTotal');   if(el)el.textContent=trials.length;
+  var el2=document.getElementById('tKpiActive'); if(el2)el2.textContent=activeT.length;
+  var el3=document.getElementById('tKpiExpired');if(el3)el3.textContent=expiredT.length;
+
+  /* סינון */
+  if(search){ var s=search.toLowerCase(); trials=trials.filter(function(t){return (t.name||'').toLowerCase().includes(s)||(t.email||'').toLowerCase().includes(s);}); }
+  if(filter==='active')  trials=trials.filter(function(t){return t.status==='trial'&&t.trialEnd>now;});
+  if(filter==='expired') trials=trials.filter(function(t){return t.status!=='revoked'&&t.trialEnd<=now;});
+  if(filter==='revoked') trials=trials.filter(function(t){return t.status==='revoked';});
+
+  var tb=document.getElementById('trialsTable');
+  if(!trials.length){tb.innerHTML='<tr class="empty-row"><td colspan="7">אין תוצאות</td></tr>';return;}
+
+  tb.innerHTML=trials.map(function(t,i){
+    var expired  = t.trialEnd && t.trialEnd <= now;
+    var revoked  = t.status === 'revoked';
+    var statusBadgeHtml = revoked
+      ? '<span class="badge badge-red">בוטל ⛔</span>'
+      : expired
+        ? '<span class="badge badge-gray">פג תוקף ⏰</span>'
+        : '<span class="badge badge-green">פעיל ✅</span>';
+
+    var daysLeft = '';
+    if(!expired && !revoked && t.trialEnd){
+      var ms = new Date(t.trialEnd)-new Date();
+      var d  = Math.ceil(ms/86400000);
+      daysLeft = ' <small style="color:var(--gray-l)">('+(d<=1?'פחות מיום':d+' ימים')+')</small>';
+    }
+
+    var endDate = t.trialEnd ? new Date(t.trialEnd).toLocaleDateString('he-IL') : '—';
+    var startDate = t.trialStart ? new Date(t.trialStart).toLocaleDateString('he-IL') : (t.date||'—');
+
+    var actions = '<div class="row-actions">';
+    if(!revoked){
+      actions += '<button class="btn btn-red btn-sm" onclick="revokeTrial(\''+t.email+'\')">⛔ בטל</button>';
+    }
+    if(expired||revoked){
+      actions += '<button class="btn btn-green btn-sm" onclick="convertTrialToSub(\''+t.email+'\',\''+t.name+'\')">🚀 הפוך למנוי</button>';
+    }
+    actions += '<button class="btn btn-gh btn-sm" onclick="mailTrial(\''+t.email+'\',\''+t.name+'\')">✉️ שלח מייל</button>';
+    actions += '</div>';
+
+    return '<tr>'
+      +'<td style="color:var(--gray-l)">'+(i+1)+'</td>'
+      +'<td><strong>'+(t.name||'—')+'</strong></td>'
+      +'<td style="color:var(--gray);font-size:12px">'+(t.email||'—')+'</td>'
+      +'<td style="color:var(--gray)">'+startDate+'</td>'
+      +'<td>'+endDate+daysLeft+'</td>'
+      +'<td>'+statusBadgeHtml+'</td>'
+      +'<td>'+actions+'</td>'
+      +'</tr>';
+  }).join('');
+
+  var cnt=document.getElementById('trialsCount');
+  if(cnt)cnt.textContent='מוצגים '+trials.length+' ניסיונות מתוך '+_cache.trials.length;
+}
+
+async function revokeTrial(email){
+  if(!confirm('לבטל את גישת הניסיון של '+email+'?')) return;
+  var key = email.toLowerCase().replace(/[^a-z0-9]/g,'_');
+  /* מחפש את המפתח ב-RTDB ומעדכן status */
+  try{
+    var data = await _fbGet('/trials');
+    if(!data){toast('❌ לא נמצא');return;}
+    var entries = Object.entries(data);
+    var found   = entries.find(function(e){return e[1]&&e[1].email&&e[1].email.toLowerCase()===email.toLowerCase();});
+    if(!found){toast('❌ הניסיון לא נמצא');return;}
+    var updated = Object.assign({},found[1],{status:'revoked'});
+    await _fbPut('/trials/'+found[0], updated);
+    /* עדכון cache */
+    _cache.trials = _cache.trials.map(function(t){
+      return (t.email&&t.email.toLowerCase()===email.toLowerCase()) ? updated : t;
+    });
+    renderTrials();
+    toast('✅ גישת הניסיון בוטלה');
+  }catch(e){toast('❌ שגיאה: '+e.message);}
+}
+
+function convertTrialToSub(email, name){
+  /* פותח מודל הוספת נרשם ממולא מראש */
+  openAddSub();
+  setTimeout(function(){
+    var fn = document.getElementById('aFN'); if(fn) fn.value = (name||'').split(' ')[0]||'';
+    var ln = document.getElementById('aLN'); if(ln) ln.value = (name||'').split(' ').slice(1).join(' ')||'';
+    var em = document.getElementById('aEmail'); if(em) em.value = email||'';
+    toast('💡 פרטי הניסיון מולאו — בחר מסלול ואשר');
+  }, 200);
+}
+
+function mailTrial(email, name){
+  var subject = encodeURIComponent('LexTime — תקופת הניסיון שלך');
+  var body    = encodeURIComponent(
+    'שלום עו"ד '+(name||'')+',\n\n'+
+    'תודה שניסית את מערכת LexTime.\n'+
+    'אנו מזמינים אותך לבחור מסלול מנוי ולהמשיך ליהנות מניהול תיקים חכם.\n\n'+
+    'לבחירת מסלול: https://www.lextime.co.il/#pricing\n\n'+
+    'בברכה,\nצוות LexTime'
+  );
+  window.open('mailto:'+email+'?subject='+subject+'&body='+body);
+}
+
 function planBadge(p){
   var cls={עצמאי:'badge-gold',משרד:'badge-blue','משרד גדול':'badge-green'};
   return '<span class="badge '+(cls[p]||'badge-gray')+'">'+p+'</span>';

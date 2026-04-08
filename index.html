@@ -1765,8 +1765,32 @@ function doLogin(){
       if(sub&&sub.status==='active'){
         grantAndGo(sub.name||name,sub.plan||plan);
       } else {
-        showErrWithContact('החשבון שלך ממתין לאישור. אנחנו כאן לעזור —');
+        /* לא נמצא ב-subs — בדוק אם משתמש ניסיון */
+        checkTrialUser(name,plan);
       }
+    }).catch(function(){showErr('שגיאת חיבור. נסה שוב.');});
+  }
+
+  /* בדיקת משתמש ניסיון ב-/trials/ */
+  function checkTrialUser(name,plan){
+    _rtdbGet('/trials').then(function(data){
+      if(!data){showErrWithContact('החשבון שלך ממתין לאישור. אנחנו כאן לעזור —');return;}
+      var arr=Array.isArray(data)?data.filter(Boolean):Object.values(data).filter(Boolean);
+      var trial=arr.find(function(t){return t&&t.email&&t.email.toLowerCase()===email;});
+      if(!trial){showErrWithContact('החשבון שלך ממתין לאישור. אנחנו כאן לעזור —');return;}
+      if(trial.status==='revoked'){showErrWithContact('הגישה לחשבון זה בוטלה. אנחנו כאן לעזור —');return;}
+      /* בדיקת תפוגה */
+      if(trial.trialEnd && new Date().toISOString() > trial.trialEnd){
+        showErr('תקופת הניסיון הסתיימה. בחר מסלול מתאים להמשך השימוש.');
+        /* הוסף כפתור שדרוג מתחת לשגיאה */
+        var errEl2=document.getElementById('loginErr');
+        errEl2.innerHTML='תקופת הניסיון הסתיימה. <a href="index.html#pricing" style="color:#e8b84b;font-weight:700">שדרג עכשיו ←</a>';
+        return;
+      }
+      /* ניסיון בתוקף — הענק גישה */
+      localStorage.setItem('lextime_plan','trial');
+      localStorage.setItem('lextime_trial_end', trial.trialEnd||'');
+      grantAndGo(trial.name||name,'trial');
     }).catch(function(){showErr('שגיאת חיבור. נסה שוב.');});
   }
 
@@ -2282,7 +2306,7 @@ function closeLegal(){closeLegalModal();}
     <div id="trialSuccess" style="display:none;padding:44px 32px;text-align:center">
       <div style="font-size:56px;margin-bottom:16px">🎉</div>
       <div style="font-family:'Frank Ruhl Libre',serif;font-size:22px;font-weight:900;color:#fff;margin-bottom:8px">הניסיון שלך מוכן!</div>
-      <div style="font-size:14px;color:rgba(255,255,255,.55);line-height:1.75;margin-bottom:24px">ניסיון חינם של 3 ימים הופעל בהצלחה.<br>שלחנו אישור לדוא"ל שלך.</div>
+      <div style="font-size:14px;color:rgba(255,255,255,.55);line-height:1.75;margin-bottom:24px">ניסיון חינם של 3 ימים הופעל בהצלחה.<br>לחץ על הכפתור כדי להיכנס לפלטפורמה.</div>
       <a href="platform.html" style="display:inline-flex;align-items:center;gap:8px;padding:14px 28px;background:linear-gradient(135deg,#c9922a,#e8b84b);color:#0a1628;border-radius:10px;text-decoration:none;font-size:15px;font-weight:700;font-family:'Heebo',sans-serif;margin-bottom:12px">🚀 פתח את הפלטפורמה →</a>
       <div style="margin-top:16px">
         <button onclick="closeTrial()" style="padding:10px 24px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.5);border:1px solid rgba(255,255,255,.12);border-radius:8px;font-size:13px;cursor:pointer;font-family:'Heebo',sans-serif">חזרה לדף הבית</button>
@@ -2520,8 +2544,21 @@ function submitTrial(){
     btn.disabled=false;
     document.getElementById('trialFormBody').style.display='none';
     document.getElementById('trialSuccess').style.display='block';
+    /* התראה למנהל על נרשם חדש לניסיון */
+    _notifyAdminTrial(name, email);
   }, 900);
+} /* סגירת submitTrial */
+
+function _notifyAdminTrial(name, email){
+  var subject = encodeURIComponent('נרשם לניסיון חינם ב-LexTime — ' + name);
+  var body = encodeURIComponent(
+    'נרשם חדש לניסיון חינם:\n\n'+
+    'שם: ' + name + '\n'+
+    'מייל: ' + email + '\n'+
+    'תאריך: ' + new Date().toLocaleDateString('he-IL') + '\n\n'+
+    'ניתן לראות את הרשומה ב-Firebase תחת /trials/'
+  );
+  window.open('mailto:lextimeservice@gmail.com?subject='+subject+'&body='+body);
 }
 </script>
-</body>
 </html>
