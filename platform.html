@@ -683,6 +683,18 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
     <div class="sp don"><span class="n" id="sDone">0</span> בוצע</div>
     <div class="sp tot"><span class="n" id="sTotal">0</span> סה"כ מטלות</div>
     <div class="sp" id="sRecess" style="display:none;background:var(--teal-l);color:var(--teal);font-size:12px;font-weight:600"></div>
+    <!-- טוגל מצב פגרה -->
+    <div style="margin-right:auto;display:flex;align-items:center;gap:6px;padding:3px 10px;background:var(--blue-ll);border:1.5px solid var(--blue-l);border-radius:20px;white-space:nowrap">
+      <span style="font-size:11px;font-weight:700;color:var(--blue);letter-spacing:.3px">📅 מועד מקורי:</span>
+      <button id="rmWith"
+        onclick="setRecessMode('with')"
+        style="padding:3px 10px;border-radius:12px;border:1.5px solid var(--blue);font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',Arial,sans-serif;background:var(--blue);color:#fff;transition:.15s"
+        title="חישוב מועדים תוך דחיית ימי פגרה ליום עבודה הראשון שאחריהם">כולל פגרה</button>
+      <button id="rmWithout"
+        onclick="setRecessMode('without')"
+        style="padding:3px 10px;border-radius:12px;border:1.5px solid var(--blue);font-size:11px;font-weight:700;cursor:pointer;font-family:'Heebo',Arial,sans-serif;background:transparent;color:var(--blue);transition:.15s"
+        title="חישוב לפי ספירת ימים קלנדרית ללא התחשבות בפגרות">ללא פגרה</button>
+    </div>
   </div>
 
   <div class="tabs">
@@ -982,6 +994,23 @@ function adjustForRecess(ds){
   return d;
 }
 
+/* ── מצב פגרה גלובלי: 'with' = כולל פגרה | 'without' = ללא פגרה ── */
+var recessMode = 'with';
+
+/* פונקציית עזר — מחיל תיקון פגרות רק לפי המצב הנוכחי */
+function _adj(ds){ return recessMode==='with' ? adjustForRecess(ds) : ds; }
+
+function setRecessMode(mode){
+  if(recessMode===mode) return;
+  recessMode=mode;
+  /* עדכון כפתורי הטוגל */
+  var bw=document.getElementById('rmWith');
+  var bwo=document.getElementById('rmWithout');
+  if(bw)  { bw.style.background=mode==='with'   ?'var(--blue)'  :'transparent'; bw.style.color=mode==='with'   ?'#fff':'var(--blue)'; }
+  if(bwo) { bwo.style.background=mode==='without'?'var(--blue)'  :'transparent'; bwo.style.color=mode==='without'?'#fff':'var(--blue)'; }
+  renderAll();
+}
+
 /* ══ CASE TYPE ══ */
 function getDefenseDays(c){
   var t=(c.type||'').trim();
@@ -1214,49 +1243,49 @@ function _rawDate(id,c){
   return null;
 }
 
-/* מועד מקורי עם תיקון פגרות — מחזיר את יום העבודה הראשון אחרי הפגרה
-   (t20 = מועד דיון שנקבע ע"י ביהמ"ש, ללא תיקון) */
+/* מועד מקורי — מחזיר עם או בלי תיקון פגרות לפי recessMode
+   (t20 = מועד דיון שנקבע ע"י ביהמ"ש, ללא תיקון תמיד) */
 function getOriginalDate(id,c){
   var raw=_rawDate(id,c);
   if(id==='t20') return raw;
-  return adjustForRecess(raw);
+  return _adj(raw);
 }
 
 /* Cascade: each task's effective = actualDates[id] if set,
-   else computed from predecessor's effective date — with recess adjustment */
+   else computed from predecessor's effective date — with/without recess adjustment per recessMode */
 function getCascadedChain(c){
   var a=c.actualDates||{},dd=getDefenseDays(c),s=c.service;
-  var def  = a.t1 || adjustForRecess(addDays(s,dd));
-  var rpl  = a.t2 || adjustForRecess(addDays(def,14));
-  var med  = a.t3 || adjustForRecess(addDays(rpl,45));
-  var disc = a.t4 || adjustForRecess(addDays(rpl,30));
-  var meet = a.t5 || adjustForRecess(addDays(med,30));
-  var req  = a.t6 || adjustForRecess(addDays(rpl,60));
-  var dComp= a.t7 || adjustForRecess(addDays(disc,30));
-  var mRep = a.t8 || adjustForRecess(addDays(meet,14));
+  var def  = a.t1 || _adj(addDays(s,dd));
+  var rpl  = a.t2 || _adj(addDays(def,14));
+  var med  = a.t3 || _adj(addDays(rpl,45));
+  var disc = a.t4 || _adj(addDays(rpl,30));
+  var meet = a.t5 || _adj(addDays(med,30));
+  var req  = a.t6 || _adj(addDays(rpl,60));
+  var dComp= a.t7 || _adj(addDays(disc,30));
+  var mRep = a.t8 || _adj(addDays(meet,14));
   // pretrial chain
   var pt   = c.pretrialActual||c.pretrial||null;
-  var t10  = a.t10|| (pt?adjustForRecess(addDays(pt,-30)):null);
-  var t11  = a.t11|| (pt?adjustForRecess(addDays(pt,-20)):null);
-  var t12  = a.t12|| (pt?adjustForRecess(addDays(pt,-20)):null);
-  var t13  = a.t13|| (pt?adjustForRecess(addDays(pt,-14)):null);
-  var t14  = a.t14|| (t11?adjustForRecess(addDays(t11,14)):null);
-  var t15  = a.t15|| (t12?adjustForRecess(addDays(t12,14)):null);
+  var t10  = a.t10|| (pt?_adj(addDays(pt,-30)):null);
+  var t11  = a.t11|| (pt?_adj(addDays(pt,-20)):null);
+  var t12  = a.t12|| (pt?_adj(addDays(pt,-20)):null);
+  var t13  = a.t13|| (pt?_adj(addDays(pt,-14)):null);
+  var t14  = a.t14|| (t11?_adj(addDays(t11,14)):null);
+  var t15  = a.t15|| (t12?_adj(addDays(t12,14)):null);
   // trial chain
   var tr   = c.trialActual||c.trial||null;
-  var t17  = a.t17|| (tr?adjustForRecess(addDays(tr,-30)):null);
-  var t18  = a.t18|| (tr?adjustForRecess(addDays(tr,-14)):null);
-  var t19  = a.t19|| (tr?adjustForRecess(addDays(tr,-3)):null);
+  var t17  = a.t17|| (tr?_adj(addDays(tr,-30)):null);
+  var t18  = a.t18|| (tr?_adj(addDays(tr,-14)):null);
+  var t19  = a.t19|| (tr?_adj(addDays(tr,-3)):null);
   var t20  = a.t20|| tr;
-  var t23  = a.t23|| (tr?adjustForRecess(addDays(tr,90)):null);
+  var t23  = a.t23|| (tr?_adj(addDays(tr,90)):null);
   // decision chain
   var dc   = c.decisionActual||c.decision||null;
-  var t25  = a.t25|| (dc?adjustForRecess(addDays(dc,30)):null);
-  var t26  = a.t26|| (dc?adjustForRecess(addDays(dc,60)):null);
-  var t27  = a.t27|| (dc?adjustForRecess(addDays(addDays(dc,60),60)):null);
+  var t25  = a.t25|| (dc?_adj(addDays(dc,30)):null);
+  var t26  = a.t26|| (dc?_adj(addDays(dc,60)):null);
+  var t27  = a.t27|| (dc?_adj(addDays(addDays(dc,60),60)):null);
   // appeal chain
   var ad   = c.appealDecActual||c.appealDec||null;
-  var t29  = a.t29|| (ad?adjustForRecess(addDays(ad,60)):null);
+  var t29  = a.t29|| (ad?_adj(addDays(ad,60)):null);
   return {t1:def,t2:rpl,t3:med,t4:disc,t5:meet,t6:req,t7:dComp,t8:mRep,
           t10:t10,t11:t11,t12:t12,t13:t13,t14:t14,t15:t15,
           t17:t17,t18:t18,t19:t19,t20:t20,t23:t23,
@@ -1365,7 +1394,7 @@ function taskRowHtml(t,c,chain,isNext){
 
   // Effective date display: if cascaded differs from original, show cascaded in teal
   var rawDate=_rawDate(t.id,c);
-  var recessAdj=rawDate&&origDate&&rawDate!==origDate;
+  var recessAdj=recessMode==='with'&&rawDate&&origDate&&rawDate!==origDate;
   var recessLabel=recessAdj?recessName(rawDate):'';
   var origCell=origDate?
     '<span class="date-orig">'+fmtDate(origDate)+'</span>'+
@@ -1504,7 +1533,7 @@ function renderStages(){
       '<div class="stage-body"><table class="tt"><thead><tr>'+
       '<th style="min-width:220px">מטלות לביצוע על פי ציר הזמנים</th>'+
       '<th>ימים</th>'+
-      '<th class="col-orig">מועד מקורי להגשה <span style="font-weight:400;opacity:.7">(כולל פגרות)</span></th>'+
+      '<th class="col-orig">מועד מקורי להגשה <span style="font-weight:400;opacity:.7">'+(recessMode==='with'?'(כולל פגרות)':'(ללא פגרות)')+'</span></th>'+
       '<th class="col-actual">מועד ביצוע בפועל</th>'+
       '<th>ימים נותרו</th>'+
       '<th>סטטוס</th>'+
