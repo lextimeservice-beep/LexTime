@@ -1569,7 +1569,6 @@ async function loadContacts(){
         '<td>'+sBadge+'</td>'+
         '<td><div class="row-actions">'+
         (c.status==='new'?'<button class="btn btn-green btn-sm" onclick="markContactDone(\''+c._key+'\')">✅ טופל</button>':'')+
-        '<button class="btn btn-gold btn-sm" onclick="sendResetFromContact(\''+encodeURIComponent(c.email||'')+'\',\''+encodeURIComponent(c.name||'')+'\')" title="יצירת קוד איפוס סיסמה ושליחתו לפונה">🔑 שלח קוד</button>'+
         '<button class="btn btn-gh btn-sm" onclick="replyContact(\''+encodeURIComponent(c.email||'')+'\',\''+encodeURIComponent(c.name||'')+'\')">📧 השב</button>'+
         '<button class="btn btn-red btn-sm" onclick="deleteContact(\''+c._key+'\')">🗑</button>'+
         '</div></td></tr>';
@@ -1591,62 +1590,6 @@ async function deleteContact(key){
 function replyContact(emailEnc,nameEnc){
   var email=decodeURIComponent(emailEnc), name=decodeURIComponent(nameEnc);
   window.open('mailto:'+email+'?subject='+encodeURIComponent('LexTime — בהמשך לפנייתך')+'&body='+encodeURIComponent('שלום '+name+',\n\nתודה שפנית אלינו.\n\n'));
-}
-
-/* שולח קוד איפוס סיסמה לפונה — עובד גם למשתמשי ניסיון */
-async function sendResetFromContact(emailEnc, nameEnc){
-  var email = decodeURIComponent(emailEnc);
-  var name  = decodeURIComponent(nameEnc);
-  if(!email){ toast('❌ אין כתובת מייל לפנייה זו'); return; }
-  if(!confirm('לשלוח קוד איפוס סיסמה אל ' + email + '?')) return;
-
-  toast('🔄 יוצר קוד איפוס...');
-  var key = email.toLowerCase().replace(/[^a-z0-9]/g,'_');
-
-  try{
-    /* וודא שיש רשומת credentials כדי שהאיפוס יעבוד */
-    var r = await fetch(DB_URL+'/credentials/'+key+'.json?auth='+DB_SECRET);
-    var existing = await r.json();
-    var cred = existing
-      ? Object.assign({}, existing, {status:'active'})
-      : {email: email.toLowerCase(), name: name||'', status:'active', passHash:'RESET_REQUIRED'};
-    await fetch(DB_URL+'/credentials/'+key+'.json?auth='+DB_SECRET,{
-      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cred)
-    });
-
-    /* יצירת קוד איפוס עם תוקף שעה */
-    var resetCode = Math.floor(100000+Math.random()*900000).toString();
-    await fetch(DB_URL+'/reset_codes/'+key+'.json?auth='+DB_SECRET,{
-      method:'PUT', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({email:email.toLowerCase(), code:resetCode, exp:Date.now()+3600000})
-    });
-
-    /* פתיחת מייל עם הקוד */
-    var subject = encodeURIComponent('LexTime — קוד איפוס סיסמה שלך 🔑');
-    var body = encodeURIComponent(
-      'שלום ' + (name||'') + ',\n\n' +
-      'קיבלנו את פנייתך — הנה קוד לאיפוס הסיסמה שלך.\n\n' +
-      '━━━━━━━━━━━━━━━━━━\n' +
-      'קוד האיפוס שלך: ' + resetCode + '\n' +
-      '(תקף לשעה אחת)\n' +
-      '━━━━━━━━━━━━━━━━━━\n\n' +
-      'כיצד לאפס סיסמה:\n\n' +
-      '1. היכנס לאתר: https://www.lextime.co.il\n' +
-      '2. לחץ "כניסת עורכי דין"\n' +
-      '3. לחץ "שכחתי סיסמה"\n' +
-      '4. הזן את המייל שלך: ' + email + '\n' +
-      '5. לחץ "שלח קוד לאיפוס"\n' +
-      '6. הזן את הקוד: ' + resetCode + '\n' +
-      '7. הזן סיסמה חדשה ולחץ "אפס סיסמה ✓"\n\n' +
-      'אם הקוד פג תוקף — ענה למייל זה ונשלח קוד חדש.\n\n' +
-      'בברכה,\nצוות LexTime'
-    );
-    window.open('mailto:'+email+'?subject='+subject+'&body='+body);
-    toast('✅ קוד איפוס נוצר ונשלח אל '+email);
-  }catch(e){
-    console.error('sendResetFromContact error:',e);
-    toast('❌ שגיאת חיבור ל-Firebase. נסה שוב.');
-  }
 }
 /* ════════════════════════════════════════════════ */
 
@@ -1919,6 +1862,7 @@ function renderTrials(){
       actions += '<button class="btn btn-green btn-sm" onclick="convertTrialToSub(\''+t.email+'\',\''+t.name+'\')">🚀 הפוך למנוי</button>';
     }
     actions += '<button class="btn btn-gh btn-sm" onclick="mailTrial(\''+t.email+'\',\''+t.name+'\')">✉️ שלח מייל</button>';
+    actions += '<button class="btn btn-red btn-sm" onclick="deleteTrial(\''+t.email+'\')">🗑 מחק</button>';
     actions += '</div>';
 
     return '<tr>'
@@ -1938,22 +1882,57 @@ function renderTrials(){
 
 async function revokeTrial(email){
   if(!confirm('לבטל את גישת הניסיון של '+email+'?')) return;
-  var key = email.toLowerCase().replace(/[^a-z0-9]/g,'_');
-  /* מחפש את המפתח ב-RTDB ומעדכן status */
+  try{
+    var data = await _fbGet('/trials');
+    if(!data){toast('❌ לא נמצא');return;}
+    /* מוצא את כל הרשומות התואמות — עלול להיות יותר מאחת עם אותו אימייל */
+    var entries = Object.entries(data);
+    var matched = entries.filter(function(e){
+      return e[1]&&e[1].email&&e[1].email.toLowerCase()===email.toLowerCase();
+    });
+    if(!matched.length){toast('❌ הניסיון לא נמצא');return;}
+    /* מעדכן את כולן ב-Firebase ובודק תגובה */
+    await Promise.all(matched.map(function(e){
+      var updated = Object.assign({},e[1],{status:'revoked'});
+      return fetch(DB_URL+'/trials/'+e[0]+'.json?auth='+DB_SECRET,{
+        method:'PUT',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify(updated)
+      }).then(function(r){ if(!r.ok) throw new Error('Firebase error: '+r.status); });
+    }));
+    /* עדכון cache */
+    _cache.trials = _cache.trials.map(function(t){
+      return (t.email&&t.email.toLowerCase()===email.toLowerCase())
+        ? Object.assign({},t,{status:'revoked'}) : t;
+    });
+    renderTrials();
+    var note = matched.length > 1 ? ' ('+matched.length+' רשומות עודכנו)' : '';
+    toast('✅ גישת הניסיון בוטלה'+note);
+  }catch(e){toast('❌ שגיאה: '+e.message);}
+}
+
+async function deleteTrial(email){
+  if(!confirm('למחוק לצמיתות את רשומות הניסיון של '+email+'?\nפעולה זו אינה הפיכה.')) return;
   try{
     var data = await _fbGet('/trials');
     if(!data){toast('❌ לא נמצא');return;}
     var entries = Object.entries(data);
-    var found   = entries.find(function(e){return e[1]&&e[1].email&&e[1].email.toLowerCase()===email.toLowerCase();});
-    if(!found){toast('❌ הניסיון לא נמצא');return;}
-    var updated = Object.assign({},found[1],{status:'revoked'});
-    await _fbPut('/trials/'+found[0], updated);
+    var matched = entries.filter(function(e){
+      return e[1]&&e[1].email&&e[1].email.toLowerCase()===email.toLowerCase();
+    });
+    if(!matched.length){toast('❌ הניסיון לא נמצא');return;}
+    /* מוחק את כל הרשומות התואמות */
+    await Promise.all(matched.map(function(e){
+      return fetch(DB_URL+'/trials/'+e[0]+'.json?auth='+DB_SECRET,{method:'DELETE'})
+        .then(function(r){ if(!r.ok) throw new Error('DELETE failed: '+r.status); });
+    }));
     /* עדכון cache */
-    _cache.trials = _cache.trials.map(function(t){
-      return (t.email&&t.email.toLowerCase()===email.toLowerCase()) ? updated : t;
+    _cache.trials = _cache.trials.filter(function(t){
+      return !(t.email&&t.email.toLowerCase()===email.toLowerCase());
     });
     renderTrials();
-    toast('✅ גישת הניסיון בוטלה');
+    var note = matched.length > 1 ? ' ('+matched.length+' רשומות)' : '';
+    toast('🗑 הרשומה נמחקה'+note);
   }catch(e){toast('❌ שגיאה: '+e.message);}
 }
 
