@@ -1010,10 +1010,21 @@ async function _fbPut(path,data){
     body:JSON.stringify(data)
   });
 }
+
+/* ── המרת מערך לאובייקט עם מפתחות id לשמירה ב-Firebase ──
+   Firebase מוחק צומת כשמקבל [] ריק — שימוש באובייקט מונע זאת */
+function _arrToFbObj(arr){
+  if(!arr||!arr.length) return {'_empty':true};
+  var obj={};
+  arr.forEach(function(item,i){ obj[item.id||('item_'+i)]=item; });
+  return obj;
+}
+
 function _arrFromFb(d){ // Firebase מחזיר null / array / object
   if(!d) return [];
   if(Array.isArray(d)) return d.filter(Boolean);
-  return Object.values(d).filter(Boolean);
+  // מסנן את placeholder _empty
+  return Object.values(d).filter(function(v){ return v&&typeof v==='object'; });
 }
 
 /* טעינת כל הנתונים מ-Firebase בכניסה */
@@ -1029,12 +1040,16 @@ async function loadFromFirebase(){
     _cache.settings      = cfg || {};
     _cache.deletedEmails = _arrFromFb(del);
     _cache.trials        = _arrFromFb(tr);
+    /* גיבוי מיידי ל-localStorage לאחר טעינה מוצלחת מ-Firebase */
+    localStorage.setItem('tb_subs',   JSON.stringify(_cache.subs));
+    localStorage.setItem('tb_pays',   JSON.stringify(_cache.pays));
+    localStorage.setItem('tb_trials', JSON.stringify(_cache.trials));
   }catch(e){
     _cache.subs          = JSON.parse(localStorage.getItem('tb_subs')||'[]');
     _cache.pays          = JSON.parse(localStorage.getItem('tb_pays')||'[]');
     _cache.settings      = JSON.parse(localStorage.getItem('tb_settings')||'{}');
     _cache.deletedEmails = JSON.parse(localStorage.getItem('tb_deleted_emails')||'[]');
-    _cache.trials        = [];
+    _cache.trials        = JSON.parse(localStorage.getItem('tb_trials')||'[]'); /* ← תוקן: גיבוי localStorage */
     console.warn('Firebase לא זמין — נטען מ-localStorage');
   }
 }
@@ -1044,16 +1059,17 @@ function loadSubs()    { return _cache.subs.slice(); }
 function loadPays()    { return _cache.pays.slice(); }
 function loadSettings(){ return Object.assign({}, _cache.settings); }
 
-/* פונקציות כתיבה — מעדכנות cache + Firebase + localStorage (fallback) */
+/* פונקציות כתיבה — מעדכנות cache + Firebase (כאובייקט בטוח) + localStorage */
 function saveSubs(d){
   _cache.subs = d;
   localStorage.setItem('tb_subs', JSON.stringify(d));
-  _fbPut('/subs', d).catch(function(){ console.warn('שגיאת שמירת נרשמים ל-Firebase'); });
+  /* ← תיקון באג: שומר כאובייקט עם מפתחות — מונע מחיקת צומת ב-Firebase */
+  _fbPut('/subs', _arrToFbObj(d)).catch(function(){ console.warn('שגיאת שמירת נרשמים ל-Firebase'); });
 }
 function savePays(d){
   _cache.pays = d;
   localStorage.setItem('tb_pays', JSON.stringify(d));
-  _fbPut('/pays', d).catch(function(){ console.warn('שגיאת שמירת תשלומים ל-Firebase'); });
+  _fbPut('/pays', _arrToFbObj(d)).catch(function(){ console.warn('שגיאת שמירת תשלומים ל-Firebase'); });
 }
 function saveSettingsObj(d){
   _cache.settings = d;
@@ -1064,7 +1080,7 @@ function _loadDeletedEmails(){ return _cache.deletedEmails.slice(); }
 function _saveDeletedEmails(d){
   _cache.deletedEmails = d;
   localStorage.setItem('tb_deleted_emails', JSON.stringify(d));
-  _fbPut('/deletedEmails', d).catch(function(){});
+  _fbPut('/deletedEmails', _arrToFbObj(d)).catch(function(){});
 }
 function genId(){return 'id_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);}
 function fmtDate(s){if(!s)return '—';try{return new Date(s+'T00:00:00').toLocaleDateString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric'});}catch(e){return s;}}
@@ -1913,6 +1929,7 @@ async function revokeTrial(email){
 
 async function deleteTrial(email){
   if(!confirm('למחוק לצמיתות את רשומות הניסיון של '+email+'?\nפעולה זו אינה הפיכה.')) return;
+  if(!confirm('אישור סופי — האם אתה בטוח?\nלחץ אישור רק אם ברצונך למחוק לצמיתות.')) return;
   try{
     var data = await _fbGet('/trials');
     if(!data){toast('❌ לא נמצא');return;}
@@ -1926,10 +1943,11 @@ async function deleteTrial(email){
       return fetch(DB_URL+'/trials/'+e[0]+'.json?auth='+DB_SECRET,{method:'DELETE'})
         .then(function(r){ if(!r.ok) throw new Error('DELETE failed: '+r.status); });
     }));
-    /* עדכון cache */
+    /* עדכון cache + גיבוי localStorage */
     _cache.trials = _cache.trials.filter(function(t){
       return !(t.email&&t.email.toLowerCase()===email.toLowerCase());
     });
+    localStorage.setItem('tb_trials', JSON.stringify(_cache.trials)); /* ← גיבוי לאחר מחיקה */
     renderTrials();
     var note = matched.length > 1 ? ' ('+matched.length+' רשומות)' : '';
     toast('🗑 הרשומה נמחקה'+note);
