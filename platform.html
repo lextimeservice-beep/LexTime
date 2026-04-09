@@ -1001,10 +1001,10 @@ var recessMode=(function(){
 })();
 
 /* בדיקה האם יום אינו נספר בחישוב "ללא פגרה" (שבת + פגרות רשמיות, לא שישי) */
-function isNonWorkingForCount(ds){
+/* בדיקה האם יום הוא פגרה רשמית בלבד (ללא שבת/שישי) — לשימוש בספירת "ללא פגרה"
+   שבת נספרת כיום רגיל, בהתאם למחשבוני נבו ותקדין               */
+function isOfficialRecessOnly(ds){
   if(!ds) return false;
-  var dow=new Date(ds+'T12:00:00').getDay();
-  if(dow===6) return true; /* שבת */
   var mm=ds.slice(5,7),dd2=ds.slice(8,10);
   if((mm==='07'&&dd2>='21')||mm==='08'||(mm==='09'&&dd2<='05')) return true;
   for(var i=0;i<COURT_RECESS_PERIODS.length;i++){
@@ -1014,8 +1014,8 @@ function isNonWorkingForCount(ds){
   return false;
 }
 
-/* ספירת N ימי עבודה (ללא שבת ופגרות רשמיות) — לשימוש במצב "ללא פגרה"
-   שישי נספר, אך אם הוא היום האחרון — ידחה לראשון (תקנה 4)            */
+/* ספירת N ימים תוך דילוג על פגרות רשמיות בלבד (שבת נספרת כרגיל!)
+   בתום הספירה: תקנה 4 — אם המועד חל בשישי/שבת/פגרה → נדחה לראשון   */
 function addWorkDays(startDate,n){
   if(!startDate||n===null||n===undefined) return null;
   var sign=n>=0?1:-1,rem=Math.abs(n),d=startDate,guard=600;
@@ -1023,16 +1023,15 @@ function addWorkDays(startDate,n){
     var dt=new Date(d+'T12:00:00');
     dt.setDate(dt.getDate()+sign);
     d=dt.toISOString().slice(0,10);
-    if(!isNonWorkingForCount(d)) rem--;
+    if(!isOfficialRecessOnly(d)) rem--;
   }
-  var fd=new Date(d+'T12:00:00');
-  if(fd.getDay()===5){fd.setDate(fd.getDate()+2);d=fd.toISOString().slice(0,10);}
-  return d;
+  /* דחיית המועד הסופי מעבר לשישי/שבת/פגרה (תקנה 4 + adjustForRecess) */
+  return adjustForRecess(d);
 }
 
 /* פונקציית חישוב מרכזית לפי recessMode:
-   'with'    → addDays + adjustForRecess  (קלנדרי, דוחה נקודת סיום בלבד)
-   'without' → addWorkDays               (מדלג על שבת ופגרות בתוך הספירה) */
+   'with'    → addDays + adjustForRecess  (ספירה קלנדרית רגילה, כולל שבת וימי פגרה)
+   'without' → addWorkDays               (פגרות רשמיות לא נספרות; שבת נספרת) */
 function _c(startDate,n){
   if(!startDate) return null;
   if(recessMode==='without') return addWorkDays(startDate,n);
