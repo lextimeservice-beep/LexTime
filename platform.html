@@ -380,7 +380,26 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
   margin-bottom:12px;padding-bottom:10px;border-bottom:2px solid var(--gold);
 }
 
-/* ── TOAST ── */
+/* ── DISCLAIMER FOOTER ── */
+#disclaimerFooter{
+  position:fixed;bottom:0;right:0;left:0;z-index:100;
+  background:var(--navy-d);
+  border-top:2px solid var(--gold);
+  padding:9px 24px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  font-size:12px;font-weight:600;color:rgba(255,255,255,.75);
+  direction:rtl;text-align:center;
+  box-shadow:0 -2px 12px rgba(0,0,0,.2);
+  line-height:1.5;
+}
+#disclaimerFooter .df-icon{font-size:14px;flex-shrink:0}
+#disclaimerFooter strong{color:var(--gold-l)}
+body{padding-bottom:46px}
+@media(max-width:600px){
+  #disclaimerFooter{font-size:11px;padding:8px 14px}
+  body{padding-bottom:52px}
+}
+
 .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--navy-d);color:#fff;padding:11px 22px;border-radius:10px;font-size:13px;font-weight:600;z-index:2000;opacity:0;transition:opacity .3s;pointer-events:none;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 .toast.show{opacity:1}
 .empty-state{text-align:center;padding:60px 20px;color:var(--gray-l)}
@@ -707,6 +726,10 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
 <div class="content" id="viewCS" style="display:none"><div class="case-grid" id="caseGrid"></div></div>
 
 <!-- ══ REGULATION MODAL ══ -->
+<div id="disclaimerFooter">
+  <span class="df-icon">📋</span>
+  <span><strong>לתשומת לבך:</strong> מועד זה מחושב באופן אוטומטי. האחריות על וידוא המועד על פי התקנות והדין חלה על עורך הדין בלבד.</span>
+</div>
 <div class="mo hidden" id="modalReg">
   <div class="modal modal-wide">
     <div class="mh">
