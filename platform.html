@@ -682,8 +682,8 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
     <div class="sp pnd"><span class="n" id="sPending">0</span> ממתינים</div>
     <div class="sp don"><span class="n" id="sDone">0</span> בוצע</div>
     <div class="sp tot"><span class="n" id="sTotal">0</span> סה"כ מטלות</div>
-    <div class="sp" id="sRecess" style="display:none;background:var(--teal-l);color:var(--teal);font-size:12px;font-weight:600"></div>
     <div style="margin-right:auto;display:flex;align-items:center;gap:6px;padding:3px 10px;background:var(--blue-ll);border:1.5px solid var(--blue-l);border-radius:20px;white-space:nowrap">
+      <span id="sRecess" style="font-size:11px;font-weight:700;color:var(--teal);display:none;padding-left:6px;border-left:1.5px solid var(--blue-l)"></span>
       <span style="font-size:11px;font-weight:700;color:var(--blue)">📅 מועד מקורי:</span>
       <button id="rmWith"
         onclick="setRecessMode('with')"
@@ -996,7 +996,9 @@ function adjustForRecess(ds){
 /* ══ מצב חישוב פגרה ══
    'with'    = כולל פגרה:  ספירה קלנדרית רגילה — ימי פגרה נכללים בספירה
    'without' = ללא פגרה:   ימי שבת ופגרות רשמיות לא נספרים — המועד מוארך   */
-var recessMode='with';
+var recessMode=(function(){
+  try{return localStorage.getItem('lextime_recessMode')||'with';}catch(e){return 'with';}
+})();
 
 /* בדיקה האם יום אינו נספר בחישוב "ללא פגרה" (שבת + פגרות רשמיות, לא שישי) */
 function isNonWorkingForCount(ds){
@@ -1040,11 +1042,17 @@ function _c(startDate,n){
 function setRecessMode(mode){
   if(recessMode===mode) return;
   recessMode=mode;
+  try{localStorage.setItem('lextime_recessMode',mode);}catch(e){}
+  _syncRecessButtons();
+  renderAll();
+}
+
+/* סנכרון מצב הכפתורים לפי recessMode הנוכחי (גם בטעינה ראשונית) */
+function _syncRecessButtons(){
   var bw=document.getElementById('rmWith');
   var bwo=document.getElementById('rmWithout');
-  if(bw) {bw.style.background=mode==='with'?'var(--blue)':'transparent';bw.style.color=mode==='with'?'#fff':'var(--blue)';}
-  if(bwo){bwo.style.background=mode==='without'?'var(--blue)':'transparent';bwo.style.color=mode==='without'?'#fff':'var(--blue)';}
-  renderAll();
+  if(bw) {bw.style.background=recessMode==='with'?'var(--blue)':'transparent';bw.style.color=recessMode==='with'?'#fff':'var(--blue)';}
+  if(bwo){bwo.style.background=recessMode==='without'?'var(--blue)':'transparent';bwo.style.color=recessMode==='without'?'#fff':'var(--blue)';}
 }
 
 /* ══ CASE TYPE ══ */
@@ -1657,19 +1665,17 @@ function renderStats(){
   });
   g('sUrgent').textContent=ur; g('sPending').textContent=pn;
   g('sDone').textContent=dn; g('sTotal').textContent=tot;
-  /* חישוב פגרה פעילה היום */
+  /* חישוב פגרה פעילה / קרובה — מוצג בתוך בלוק הטוגל */
   var today=todayStr();
   var recessEl=g('sRecess');
   if(recessEl){
     if(isRecessDay(today)){
       var nm=recessName(today);
       recessEl.textContent='📅 '+nm+' בתוקף';
-      recessEl.style.display='';
+      recessEl.style.display='inline';
     } else {
-      /* מצא את הפגרה הבאה */
       var nextRecess=null;
       var candidates=[];
-      /* קיץ */
       var yr=parseInt(today.slice(0,4));
       candidates.push({f:yr+'-07-21',t:yr+'-09-05',n:'פגרת קיץ'});
       candidates.push({f:(yr+1)+'-07-21',t:(yr+1)+'-09-05',n:'פגרת קיץ'});
@@ -1684,7 +1690,7 @@ function renderStats(){
       if(nextRecess){
         var daysToRecess=Math.round((new Date(nextRecess.f+'T12:00:00')-new Date(today+'T12:00:00'))/864e5);
         recessEl.textContent='📅 '+nextRecess.n+' בעוד '+daysToRecess+' ימים ('+fmtDate(nextRecess.f)+')';
-        recessEl.style.display='';
+        recessEl.style.display='inline';
       } else {
         recessEl.style.display='none';
       }
@@ -1901,6 +1907,7 @@ document.addEventListener('DOMContentLoaded', async function(){
       }
     }
 
+    _syncRecessButtons();
     renderAll();
   }catch(err){
     console.error('TimeBar init error:',err);
