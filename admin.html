@@ -1576,7 +1576,12 @@ async function loadContacts(){
       var d = c.date ? new Date(c.date).toLocaleString('he-IL',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
       var sBadge = c.status==='new' ? '<span class="badge badge-amber">חדש 🔔</span>' : '<span class="badge badge-green">טופל ✅</span>';
       var shortMsg = (c.msg||'').length>60 ? c.msg.slice(0,60)+'...' : (c.msg||'—');
-      return '<tr style="'+(c.status==='new'?'background:#fffbeb;':'')+'">'+
+      /* כפתור קוד איפוס — מוצג רק לבקשות איפוס/סיוע בכניסה */
+      var isResetReq = (c.type==='reset_password'||c.type==='login_help') && c.email;
+      var resetBtn = isResetReq
+        ? '<button class="btn btn-sm" style="background:#7c3aed;color:#fff;white-space:nowrap" onclick="sendResetCodeFromContact(\''+encodeURIComponent(c.email||'')+'\',\''+encodeURIComponent(c.name||'')+'\',\''+c._key+'\')">🔑 שלח קוד</button>'
+        : '';
+      return '<tr style="'+(c.status==='new'?'background:#fffbeb;':'')+(isResetReq&&c.status==='new'?'border-right:3px solid #7c3aed;':'')+'">'+
         '<td style="color:var(--gray-l)">'+(i+1)+'</td>'+
         '<td><strong>'+(c.name||'—')+'</strong></td>'+
         '<td style="color:var(--gray);direction:ltr">'+(c.email||'—')+'</td>'+
@@ -1585,6 +1590,7 @@ async function loadContacts(){
         '<td>'+sBadge+'</td>'+
         '<td><div class="row-actions">'+
         (c.status==='new'?'<button class="btn btn-green btn-sm" onclick="markContactDone(\''+c._key+'\')">✅ טופל</button>':'')+
+        resetBtn+
         '<button class="btn btn-gh btn-sm" onclick="replyContact(\''+encodeURIComponent(c.email||'')+'\',\''+encodeURIComponent(c.name||'')+'\')">📧 השב</button>'+
         '<button class="btn btn-red btn-sm" onclick="deleteContact(\''+c._key+'\')">🗑</button>'+
         '</div></td></tr>';
@@ -1606,6 +1612,70 @@ async function deleteContact(key){
 function replyContact(emailEnc,nameEnc){
   var email=decodeURIComponent(emailEnc), name=decodeURIComponent(nameEnc);
   window.open('mailto:'+email+'?subject='+encodeURIComponent('LexTime — בהמשך לפנייתך')+'&body='+encodeURIComponent('שלום '+name+',\n\nתודה שפנית אלינו.\n\n'));
+}
+
+/* ── שליחת קוד איפוס ישירות מפנייה בממשק הניהול ── */
+async function sendResetCodeFromContact(emailEnc, nameEnc, contactKey){
+  var email = decodeURIComponent(emailEnc);
+  var name  = decodeURIComponent(nameEnc);
+  if(!email){ toast('❌ אין כתובת מייל בפנייה'); return; }
+  if(!confirm('לשלוח קוד איפוס סיסמה ל-'+email+'?')) return;
+
+  toast('🔄 יוצר קוד איפוס...');
+
+  try{
+    /* יצירת קוד 6 ספרות ושמירה ב-RTDB */
+    var code    = Math.floor(100000 + Math.random()*900000).toString();
+    var emailKey = email.toLowerCase().replace(/[^a-z0-9]/g,'_');
+    var resetData = { email: email.toLowerCase(), code: code, exp: Date.now() + 3600000 }; /* תוקף שעה */
+
+    /* ודא שיש credentials ב-RTDB */
+    var existing = await _fbGet('/credentials/'+emailKey);
+    if(!existing){
+      await _fbPut('/credentials/'+emailKey, {
+        email: email.toLowerCase(),
+        name:  name || email,
+        status: 'active',
+        passHash: 'RESET_REQUIRED'
+      });
+    }
+
+    /* שמור את קוד האיפוס */
+    await _fbPut('/reset_codes/'+emailKey, resetData);
+
+    /* סמן את הפנייה כטופלה */
+    var contactData = await _fbGet('/contact_requests/'+contactKey);
+    if(contactData) await _fbPut('/contact_requests/'+contactKey, Object.assign(contactData,{status:'done'}));
+
+    /* פתח מייל מוכן עם הקוד */
+    var subject = encodeURIComponent('LexTime — קוד איפוס סיסמה שלך 🔑');
+    var body = encodeURIComponent(
+      'שלום'+(name?' עו"ד '+name:'')+',\n\n'+
+      'קיבלנו את בקשתך לאיפוס סיסמה ב-LexTime.\n\n'+
+      '━━━━━━━━━━━━━━━━━━\n'+
+      'קוד האיפוס שלך: ' + code + '\n'+
+      '(תקף לשעה אחת)\n'+
+      '━━━━━━━━━━━━━━━━━━\n\n'+
+      'כיצד לאפס סיסמה:\n\n'+
+      '1. היכנס לאתר: https://www.lextime.co.il\n'+
+      '2. לחץ על "כניסת עורכי דין"\n'+
+      '3. לחץ על "שכחתי סיסמה"\n'+
+      '4. הזן את המייל שלך: '+email+'\n'+
+      '5. לחץ "שלח קוד לאיפוס"\n'+
+      '6. הזן את הקוד: '+code+'\n'+
+      '7. הזן סיסמה חדשה ולחץ "אפס סיסמה ✓"\n\n'+
+      'אם הקוד פג תוקף — פנה אלינו שוב ונשלח קוד חדש.\n\n'+
+      'בברכה,\nצוות LexTime'
+    );
+    window.open('mailto:'+email+'?subject='+subject+'&body='+body);
+
+    loadContacts();
+    toast('✅ קוד איפוס נשלח ל-'+email+'!');
+
+  }catch(e){
+    console.error('sendResetCodeFromContact error:',e);
+    toast('❌ שגיאה: '+e.message);
+  }
 }
 /* ════════════════════════════════════════════════ */
 
