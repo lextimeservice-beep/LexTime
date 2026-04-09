@@ -1030,12 +1030,26 @@ function addWorkDays(startDate,n){
 }
 
 /* פונקציית חישוב מרכזית לפי recessMode:
-   'with'    → addDays + adjustForRecess  (ספירה קלנדרית רגילה, כולל שבת וימי פגרה)
+   'with'    → addDays + adjustFriSat    (ספירה קלנדרית; דחייה רק לשישי/שבת — תקנה 4)
    'without' → addWorkDays               (פגרות רשמיות לא נספרות; שבת נספרת) */
+
+/* דחיית המועד הסופי מעבר לשישי/שבת בלבד (תקנה 4) — ללא דחייה בגין ימי פגרה */
+function adjustFriSat(ds){
+  if(!ds) return ds;
+  var d=ds,guard=10;
+  while(guard-->0){
+    var dow=new Date(d+'T12:00:00').getDay();
+    if(dow!==5&&dow!==6) break;
+    var dt=new Date(d+'T12:00:00');dt.setDate(dt.getDate()+1);
+    d=dt.toISOString().slice(0,10);
+  }
+  return d;
+}
+
 function _c(startDate,n){
   if(!startDate) return null;
   if(recessMode==='without') return addWorkDays(startDate,n);
-  return adjustForRecess(addDays(startDate,n));
+  return adjustFriSat(addDays(startDate,n));
 }
 
 function setRecessMode(mode){
