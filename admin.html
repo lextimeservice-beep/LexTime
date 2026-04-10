@@ -1938,37 +1938,20 @@ async function fixTrialCredentials(email, name){
         method:'PUT', headers:{'Content-Type':'application/json'},
         body:JSON.stringify({email:email.toLowerCase(), code:resetCode, exp:Date.now()+3600000})
       });
-      var subject = encodeURIComponent('LexTime — קוד איפוס סיסמה 🔑');
+      var subject = encodeURIComponent('LexTime — קוד איפוס סיסמא 🔑');
       var body = encodeURIComponent(
-        'שלום '+(name||'')+',
-
-'+
-        'תיקנו את הגישה שלך.
-
-'+
-        '━━━━━━━━━━━━━━━━━━
-'+
-        'קוד איפוס: '+resetCode+'
-(תקף לשעה)
-'+
-        '━━━━━━━━━━━━━━━━━━
-
-'+
-        '1. כנס לאתר: https://www.lextime.co.il
-'+
-        '2. לחץ "כניסת עורכי דין"
-'+
-        '3. לחץ "שכחתי סיסמה"
-'+
-        '4. הזן מייל: '+email+'
-'+
-        '5. הזן קוד: '+resetCode+'
-'+
-        '6. הזן סיסמה חדשה
-
-'+
-        'בברכה,
-צוות LexTime'
+        'שלום '+(name||'')+',\n\n'+
+        'תיקנו את הגישה שלך.\n\n'+
+        '━━━━━━━━━━━━━━━━━━\n'+
+        'קוד איפוס: '+resetCode+'\n(תקף לשעה)\n'+
+        '━━━━━━━━━━━━━━━━━━\n\n'+
+        '1. כנס לאתר: https://www.lextime.co.il\n'+
+        '2. לחץ "כניסת עורכי דין"\n'+
+        '3. לחץ "שכחתי סיסמא"\n'+
+        '4. הזן מייל: '+email+'\n'+
+        '5. הזן קוד: '+resetCode+'\n'+
+        '6. הזן סיסמא חדשה\n\n'+
+        'בברכה,\nצוות LexTime'
       );
       window.open('mailto:'+email+'?subject='+subject+'&body='+body);
       toast('📩 קוד איפוס נשלח — המשתמש יוכל להתחבר מכל מכשיר');
