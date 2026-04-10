@@ -2549,6 +2549,12 @@ function submitTrial(){
     method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
   }).catch(function(){});
 
+  /* שמירת credentials ב-Firebase — מאפשרת כניסה מכל מכשיר */
+  fetch(_RTDB+'/credentials/'+_emailKey(email)+'.json?auth='+_RTDB_S,{
+    method:'PUT',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({email:email.toLowerCase(),passHash:hash,name:name,status:'trial'})
+  }).catch(function(){});
+
   /* שמירה ב-Firestore דרך הפונקציה הקיימת */
   try{saveToFirestore(name,email,'ניסיון','0','trial','trial');}catch(e){}
 
