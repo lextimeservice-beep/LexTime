@@ -557,59 +557,86 @@ body{padding-bottom:46px}
 <script>
 /* ══ ניהול באנר + התראת 24 שעות ══ */
 (function(){
-  if(localStorage.getItem('lextime_plan') !== 'trial') return;
+  var plan     = localStorage.getItem('lextime_plan');
   var trialEnd = localStorage.getItem('lextime_trial_end');
-  if(!trialEnd) return;
 
-  var ms   = new Date(trialEnd) - new Date();
-  if(ms <= 0) return; /* פג — הגנת הגישה בראש הדף כבר טיפלה */
+  /* ── אם localStorage חסר — נסה לשחזר מ-Firebase ── */
+  if(plan !== 'trial' || !trialEnd){
+    var RTDB   = 'https://lextime-82214-default-rtdb.europe-west1.firebasedatabase.app';
+    var RTDB_S = 'ZRYmRM293l9TyrLs9vRt02MYRtBKMWDwNiMFirgk';
+    var email  = '';
+    try{ email = (JSON.parse(localStorage.getItem('lextime_user')||'{}').email||'').toLowerCase(); }catch(e){}
 
-  var hours = ms / 3600000;
-  var days  = Math.ceil(ms / 86400000);
-
-  /* ── באנר עליון ── */
-  var banner = document.getElementById('trialBanner');
-  var daysEl = document.getElementById('trialBannerDays');
-  var iconEl = document.getElementById('trialBannerIcon');
-  var textEl = document.getElementById('trialBannerText');
-
-  if(banner){
-    if(hours < 24){
-      /* פחות מ-24 שעות — באנר אדום ודחוף */
-      banner.style.background = 'linear-gradient(90deg,#991b1b,#b91c1c)';
-      iconEl.textContent = '🚨';
-      var hoursLeft = Math.ceil(hours);
-      textEl.innerHTML = '<strong>הניסיון מסתיים בעוד ' + (hoursLeft === 1 ? 'שעה אחת' : hoursLeft + ' שעות') + '!</strong> &nbsp;שדרג כדי לשמור על הגישה לתיקים שלך.';
-    } else {
-      /* יותר מ-24 שעות — באנר רגיל */
-      daysEl.textContent = days === 1 ? 'יום אחד' : days + ' ימים';
+    if(email){
+      fetch(RTDB+'/trials.json?auth='+RTDB_S+'&orderBy="email"&equalTo="'+email+'"')
+        .then(function(r){ return r.json(); })
+        .then(function(data){
+          if(!data) return;
+          var trials = Object.values(data).filter(Boolean);
+          if(!trials.length) return;
+          /* מיין לפי הניסיון האחרון */
+          trials.sort(function(a,b){ return (a.trialStart||'') < (b.trialStart||'') ? 1 : -1; });
+          var t = trials[0];
+          if(t.status === 'revoked') return; /* בוטל ידנית */
+          var end = t.trialEnd || '';
+          if(!end) return;
+          /* שחזור localStorage */
+          localStorage.setItem('lextime_plan', 'trial');
+          localStorage.setItem('lextime_trial_end', end);
+          localStorage.setItem('lextime_access', 'granted');
+          /* הצג באנר */
+          _showTrialBanner(end);
+        })
+        .catch(function(){});
     }
-    banner.style.display = 'flex';
+    return; /* ממתין לתשובת Firebase */
   }
 
-  /* ── מודל התראת 24 שעות ── */
-  if(hours < 24){
-    /* מציג פעם אחת בלבד — לא מציג שוב אם כבר סגר */
-    var dismissed = localStorage.getItem('lextime_trial_warn_dismissed');
-    /* מציג רק אם לא סגר, או אם עברה שעה מאז שסגר (תזכורת) */
-    var showAgain = !dismissed || (Date.now() - parseInt(dismissed)) > 3600000;
-    if(showAgain){
-      window.addEventListener('DOMContentLoaded', function(){
-        setTimeout(function(){
-          var modal = document.getElementById('trialUrgentModal');
-          if(modal) modal.style.display = 'flex';
-        }, 1200); /* עיכוב קל — נותן לדף להיטען תחילה */
-      });
+  _showTrialBanner(trialEnd);
 
-      /* שמירת זמן הסגירה בלחיצה על "המשך" */
-      var btn = document.querySelector('#trialUrgentModal button');
-      if(btn){
-        btn.addEventListener('click', function(){
-          localStorage.setItem('lextime_trial_warn_dismissed', Date.now().toString());
+  function _showTrialBanner(trialEnd){
+    var ms   = new Date(trialEnd) - new Date();
+    if(ms <= 0) return;
+
+    var hours = ms / 3600000;
+    var days  = Math.ceil(ms / 86400000);
+
+    var banner = document.getElementById('trialBanner');
+    var daysEl = document.getElementById('trialBannerDays');
+    var iconEl = document.getElementById('trialBannerIcon');
+    var textEl = document.getElementById('trialBannerText');
+
+    if(banner){
+      if(hours < 24){
+        banner.style.background = 'linear-gradient(90deg,#991b1b,#b91c1c)';
+        iconEl.textContent = '🚨';
+        var hoursLeft = Math.ceil(hours);
+        textEl.innerHTML = '<strong>הניסיון מסתיים בעוד ' + (hoursLeft === 1 ? 'שעה אחת' : hoursLeft + ' שעות') + '!</strong> &nbsp;שדרג כדי לשמור על הגישה לתיקים שלך.';
+      } else {
+        daysEl.textContent = days === 1 ? 'יום אחד' : days + ' ימים';
+      }
+      banner.style.display = 'flex';
+    }
+
+    if(hours < 24){
+      var dismissed = localStorage.getItem('lextime_trial_warn_dismissed');
+      var showAgain = !dismissed || (Date.now() - parseInt(dismissed)) > 3600000;
+      if(showAgain){
+        window.addEventListener('DOMContentLoaded', function(){
+          setTimeout(function(){
+            var modal = document.getElementById('trialUrgentModal');
+            if(modal) modal.style.display = 'flex';
+          }, 1200);
         });
+        var btn = document.querySelector('#trialUrgentModal button');
+        if(btn){
+          btn.addEventListener('click', function(){
+            localStorage.setItem('lextime_trial_warn_dismissed', Date.now().toString());
+          });
+        }
       }
     }
-  }
+  } /* סוף _showTrialBanner */
 })();
 </script>
 
