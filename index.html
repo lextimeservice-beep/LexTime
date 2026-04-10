@@ -1501,11 +1501,17 @@ function savePendingCredentials(name,email){
 // פתיחת גישה מלאה — רק לאחר אימות תשלום
 function grantFullAccess(email,plan){
   localStorage.setItem('lextime_access','granted');
-  var planKey=plan==='עצמאי'?'basic':plan==='משרד'?'office':'pro';
-  localStorage.setItem('lextime_plan',planKey);
-  /* ניקוי שאריות ניסיון — למניעת בלבול בבדיקות עתידיות */
-  localStorage.removeItem('lextime_trial_end');
-  // עדכון סטטוס credentials ל-active
+  if(plan === 'trial'){
+    /* משתמש ניסיון — שמור plan ו-trial_end ללא שינוי */
+    localStorage.setItem('lextime_plan','trial');
+    /* trial_end כבר הוגדר לפני הקריאה לפונקציה זו — אל תמחק */
+  } else {
+    /* מנוי רגיל — המר שם מסלול למפתח ונקה שאריות ניסיון */
+    var planKey = plan==='עצמאי' ? 'basic' : plan==='משרד' ? 'office' : 'pro';
+    localStorage.setItem('lextime_plan', planKey);
+    localStorage.removeItem('lextime_trial_end');
+  }
+  /* עדכון סטטוס credentials ל-active */
   try{
     var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'null');
     if(creds){creds.status='active';localStorage.setItem('lextime_credentials',JSON.stringify(creds));}
@@ -1554,6 +1560,8 @@ function verifyPayPalPayment(){
     document.getElementById('sregProcessing').style.display='none';
     document.getElementById('sregPending').style.display='none';
     document.getElementById('sregSuccess').style.display='block';
+    /* ── יצירת חשבונית מס אוטומטית בענן ── */
+    _createInvoiceRTDB({name:name, email:email, plan:plan, payMethod:_payTab||'paypal'});
   }
 
   /* בדיקת אישור מנהל ב-RTDB — fallback אחרי Cloud Function */
@@ -1634,6 +1642,44 @@ function simpleHashLogin(str){
   for(var i=0;i<str.length;i++){hash=((hash<<5)-hash)+str.charCodeAt(i);hash|=0;}
   return Math.abs(hash).toString(16);
 }
+/* ── יוצר רשומת חשבונית ב-Firebase כאשר תשלום אומת בצד המשתמש ── */
+function _createInvoiceRTDB(sub){
+  if(!sub || !sub.email || !sub.plan) return;
+  var PRICES = {'עצמאי':49,'משרד':199,'משרד גדול':499};
+  var VAT = 0.18;
+  var total = PRICES[sub.plan] || 0;
+  if(!total) return;
+  var vat = Math.round(total / (1+VAT) * VAT * 100) / 100;
+  var beforeVat = Math.round((total - vat) * 100) / 100;
+
+  /* מספר חשבונית — קריאה + עדכון counter */
+  _rtdbGet('/invoice_counter').then(function(counter){
+    var next = (counter && counter.value ? counter.value : 0) + 1;
+    var year = new Date().getFullYear();
+    var num  = 'INV-' + year + '-' + String(next).padStart(4,'0');
+    _rtdbPut('/invoice_counter', {value:next, updatedAt:new Date().toISOString()});
+
+    var invoice = {
+      num:      num,
+      date:     new Date().toISOString().slice(0,10),
+      name:     sub.name  || '',
+      email:    sub.email.toLowerCase(),
+      plan:     sub.plan  || '',
+      beforeVat:beforeVat,
+      vat:      vat,
+      total:    total,
+      method:   sub.payMethod || 'paypal',
+      status:   'pending_send',
+      subId:    '',
+      payRef:   '',
+      createdAt:new Date().toISOString()
+    };
+    var key = 'inv_' + Date.now() + '_' + Math.random().toString(36).slice(2,5);
+    _rtdbPut('/invoices/'+key, invoice);
+    console.log('Invoice created:', num);
+  }).catch(function(e){ console.warn('Invoice creation failed:', e); });
+}
+
 function doLogin(){
   var email=document.getElementById('loginEmail').value.trim().toLowerCase();
   var pass=document.getElementById('loginPass').value;
@@ -2547,12 +2593,6 @@ function submitTrial(){
   var key='trial_'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
   fetch(_RTDB+'/trials/'+key+'.json?auth='+_RTDB_S,{
     method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
-  }).catch(function(){});
-
-  /* שמירת credentials ב-Firebase — מאפשרת כניסה מכל מכשיר */
-  fetch(_RTDB+'/credentials/'+_emailKey(email)+'.json?auth='+_RTDB_S,{
-    method:'PUT',headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({email:email.toLowerCase(),passHash:hash,name:name,status:'trial'})
   }).catch(function(){});
 
   /* שמירה ב-Firestore דרך הפונקציה הקיימת */
