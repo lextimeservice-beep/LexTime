@@ -564,35 +564,80 @@ body{padding-bottom:46px}
   if(plan !== 'trial' || !trialEnd){
     var RTDB   = 'https://lextime-82214-default-rtdb.europe-west1.firebasedatabase.app';
     var RTDB_S = 'ZRYmRM293l9TyrLs9vRt02MYRtBKMWDwNiMFirgk';
-    var email  = '';
-    try{ email = (JSON.parse(localStorage.getItem('lextime_user')||'{}').email||'').toLowerCase(); }catch(e){}
+
+    /* נסה לשלוף מייל מכל מקום אפשרי ב-localStorage */
+    var email = '';
+    try{
+      /* ניסיון 1: lextime_user */
+      email = (JSON.parse(localStorage.getItem('lextime_user')||'{}').email||'').toLowerCase();
+    }catch(e){}
+    if(!email){
+      try{
+        /* ניסיון 2: lextime_credentials */
+        email = (JSON.parse(localStorage.getItem('lextime_credentials')||'{}').email||'').toLowerCase();
+      }catch(e){}
+    }
 
     if(email){
-      fetch(RTDB+'/trials.json?auth='+RTDB_S+'&orderBy="email"&equalTo="'+email+'"')
+      /* יש מייל — חפש לפיו */
+      _fetchTrialByEmail(email, RTDB, RTDB_S);
+    } else {
+      /* אין מייל בכלל — שלוף את כל הניסיונות ונסה למצוא לפי access */
+      fetch(RTDB+'/trials.json?auth='+RTDB_S)
         .then(function(r){ return r.json(); })
         .then(function(data){
           if(!data) return;
           var trials = Object.values(data).filter(Boolean);
-          if(!trials.length) return;
-          /* מיין לפי הניסיון האחרון */
-          trials.sort(function(a,b){ return (a.trialStart||'') < (b.trialStart||'') ? 1 : -1; });
-          var t = trials[0];
-          if(t.status === 'revoked') return; /* בוטל ידנית */
-          var end = t.trialEnd || '';
-          if(!end) return;
-          /* שחזור localStorage */
-          localStorage.setItem('lextime_plan', 'trial');
-          localStorage.setItem('lextime_trial_end', end);
-          localStorage.setItem('lextime_access', 'granted');
-          /* הצג באנר */
-          _showTrialBanner(end);
+          /* בדוק כל ניסיון שסטטוסו trial ועדיין בתוקף */
+          var now = new Date().toISOString();
+          var active = trials.filter(function(t){
+            return t.status==='trial' && t.trialEnd > now;
+          });
+          if(!active.length) return;
+          /* קח את האחרון — סביר שזה המשתמש הנוכחי */
+          active.sort(function(a,b){ return (a.trialStart||'')<(b.trialStart||'')?1:-1; });
+          var t = active[0];
+          _applyTrialLocally(t);
         })
         .catch(function(){});
     }
-    return; /* ממתין לתשובת Firebase */
+    return;
   }
 
   _showTrialBanner(trialEnd);
+
+  function _fetchTrialByEmail(email, RTDB, RTDB_S){
+    fetch(RTDB+'/trials.json?auth='+RTDB_S+'&orderBy="email"&equalTo="'+email+'"')
+      .then(function(r){ return r.json(); })
+      .then(function(data){
+        if(!data) return;
+        var trials = Object.values(data).filter(Boolean);
+        if(!trials.length) return;
+        trials.sort(function(a,b){ return (a.trialStart||'')<(b.trialStart||'')?1:-1; });
+        var t = trials[0];
+        if(t.status === 'revoked') return;
+        _applyTrialLocally(t);
+      })
+      .catch(function(){});
+  }
+
+  function _applyTrialLocally(t){
+    var end = t.trialEnd || '';
+    if(!end) return;
+    var now = new Date().toISOString();
+    if(end <= now) return; /* פג תוקף */
+    /* שחזור localStorage */
+    localStorage.setItem('lextime_plan', 'trial');
+    localStorage.setItem('lextime_trial_end', end);
+    localStorage.setItem('lextime_access', 'granted');
+    if(t.email && !localStorage.getItem('lextime_user')){
+      localStorage.setItem('lextime_user', JSON.stringify({
+        name: t.name||'', email: t.email, plan:'trial',
+        date: (t.trialStart||'').slice(0,10)
+      }));
+    }
+    _showTrialBanner(end);
+  }
 
   function _showTrialBanner(trialEnd){
     var ms   = new Date(trialEnd) - new Date();
