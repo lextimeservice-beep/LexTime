@@ -2137,12 +2137,18 @@ function renderInvoices(){
           : '<span class="badge badge-amber">ממתינה 📤</span>';
     var d = inv.date ? new Date(inv.date+'T00:00:00').toLocaleDateString('he-IL') : '—';
     var actions = '<div class="row-actions">';
-    if(!isCancelled){
+    if(!isCancelled && !isCreditNote){
       if(inv.status==='pending_send'){
         actions += '<button class="btn btn-gold btn-sm" onclick="sendInvoice(\''+inv._key+'\')">📧 שלח</button>';
       }
+      if(inv.status==='sent'){
+        actions += '<button class="btn btn-sm" style="background:#ede9fe;color:#5b21b6;border:none;cursor:pointer" onclick="createCreditNote(\''+inv._key+'\')">🔄 זיכוי</button>';
+      }
       actions += '<button class="btn btn-gh btn-sm" onclick="openEditInvoice(\''+inv._key+'\')">✏️ ערוך</button>';
       actions += '<button class="btn btn-sm" style="background:#fee2e2;color:#b91c1c;border:none;cursor:pointer" onclick="cancelInvoice(\''+inv._key+'\')">❌ בטל</button>';
+    }
+    if(isCreditNote){
+      actions += '<button class="btn btn-gh btn-sm" onclick="sendCreditNote(\''+inv._key+'\')">📧 שלח</button>';
     }
     actions += isCreditNote ? '<button class="btn btn-gh btn-sm" onclick="previewCreditNote(\''+inv._key+'\')">👁 צפה</button>' : '<button class="btn btn-gh btn-sm" onclick="previewInvoice(\''+inv._key+'\')">👁 צפה</button>';
     actions += '</div>';
