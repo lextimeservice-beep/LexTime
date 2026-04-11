@@ -1300,7 +1300,10 @@ var STAGES=[
     {id:'t14',desc:'הגשת רשימת עדים על ידי הנתבע — תקנה 62',reg:'תקנה 62'},
     {id:'t15',desc:'תגובת בעל הדין שכנגד לרשימת הבקשות — תקנה 49(ה)',reg:'תקנה 49(ה)'}
    ],
-   postAnchors:[{key:'pretrialFinal',actualKey:'pretrialFinalActual',label:'ישיבת קדם משפט מסכמת',commentKey:'pretrial_final_hdr'}]
+   postAnchors:[
+    {key:'pretrialExtra',actualKey:'pretrialExtraActual',label:'מועד ישיבת קדם משפט נוספת — תקנה 63(א)',commentKey:'pretrial_extra_hdr',reg:'תקנה 63(א)'},
+    {key:'pretrialFinal',actualKey:'pretrialFinalActual',label:'ישיבת קדם משפט מסכמת',commentKey:'pretrial_final_hdr'}
+   ]
   },
   {id:'trial',name:'דיון הוכחות',color:'#854f0b',
    anchors:[{key:'trial',actualKey:'trialActual',label:'דיון הוכחות',commentKey:null}],
@@ -1503,17 +1506,21 @@ function anchorRowHtml(a,c,isNext){
   var nextBadge=isNext?'<span class="next-badge">▶ מטלה הבאה</span>':'';
   var rowCls='anchor-row'+(isNext?' next-task':'');
   var compChip=actualVal&&origVal?comparisonChip(actualVal,origVal):'';
+  var regLine=a.reg?'<div class="treg" style="margin-top:4px">'+linkRegs(a.reg)+'</div>':'';
   return '<tr class="'+rowCls+'">'+
-    '<td colspan="6"><div class="anchor-label" style="flex-wrap:wrap;gap:10px">'+
+    '<td colspan="6">'+
+    '<div class="anchor-label" style="flex-wrap:wrap;gap:10px">'+
       nextBadge+
       '<span class="anchor-tag">מועד</span>'+
-      '<span style="font-size:13px;font-weight:700;color:var(--navy-d)">'+a.label+'</span>'+
+      '<span style="font-size:13px;font-weight:700;color:var(--navy-d)">'+linkRegs(a.label)+'</span>'+
       tip+
       '<span style="font-size:11px;color:var(--gray-l)">— מועד הדיון:</span>'+
       '<input type="date" class="date-input inp-orig" value="'+origVal+'" '+
       'onchange="updateAnchor(\''+a.key+'\',this.value)" title="מועד מקורי" style="width:140px">'+
       (compChip?'<span style="margin-right:6px">'+compChip+'</span>':'')+
-    '</div></td>'+
+    '</div>'+
+    regLine+
+    '</td>'+
     '</tr>';
 }
 
@@ -1929,7 +1936,7 @@ function createCase(){
     judge:g('nJudge').value,lawyer:g('nLawyer').value,
     notes:g('nNotes').value,counter:g('nCounter').value,
     filing:filing,service:service,
-    pretrial:'',pretrialActual:'',pretrialFinal:'',pretrialFinalActual:'',
+    pretrial:'',pretrialActual:'',pretrialExtra:'',pretrialExtraActual:'',pretrialFinal:'',pretrialFinalActual:'',
     trial:'',trialActual:'',decision:'',decisionActual:'',
     appealDec:'',appealDecActual:'',appealHr:'',appealHrActual:'',
     verdict:'',verdictActual:'',
