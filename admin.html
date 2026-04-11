@@ -653,6 +653,7 @@ tr:hover td{background:#fafbfc}
                 <option value="">הכל</option>
                 <option value="pending_send">ממתינות לשליחה</option>
                 <option value="sent">נשלחו</option>
+                <option value="cancelled">מבוטלות</option>
               </select>
               <button class="btn btn-gh btn-sm" onclick="loadInvoices()">🔄 רענן</button>
               <button class="btn btn-blue btn-sm" onclick="createMonthlyInvoices()" style="background:var(--blue);color:#fff">📊 צור חשבוניות חודשיות</button>
@@ -2107,7 +2108,8 @@ function renderInvoices(){
   var pending = invs.filter(function(i){ return i.status==='pending_send'; });
   var sentMonth = invs.filter(function(i){ return i.status==='sent' && (i.date||'').slice(0,7)===thisMonth; });
   var mrr = sentMonth.reduce(function(a,i){ return a+(i.total||0); }, 0);
-  var el1=document.getElementById('invKpiTotal');   if(el1) el1.textContent=invs.length;
+  var activeInvs = invs.filter(function(i){ return i.status !== 'cancelled'; });
+  var el1=document.getElementById('invKpiTotal');   if(el1) el1.textContent=activeInvs.length;
   var el2=document.getElementById('invKpiPending'); if(el2) el2.textContent=pending.length;
   var el3=document.getElementById('invKpiSent');    if(el3) el3.textContent=sentMonth.length;
   var el4=document.getElementById('invKpiMRR');     if(el4) el4.textContent='₪'+mrr.toLocaleString();
@@ -2123,17 +2125,25 @@ function renderInvoices(){
 
   var methodLabels = {paypal:'PayPal', card:'כ. אשראי', bank:'העברה בנקאית'};
   tb.innerHTML = invs.map(function(inv){
-    var sBadge = inv.status==='sent'
-      ? '<span class="badge badge-green">נשלחה ✅</span>'
-      : '<span class="badge badge-amber">ממתינה 📤</span>';
+    var isCancelled = inv.status === 'cancelled';
+    var sBadge = isCancelled
+      ? '<span class="badge" style="background:#fee2e2;color:#b91c1c">מבוטלת 🚫</span>'
+      : inv.status==='sent'
+        ? '<span class="badge badge-green">נשלחה ✅</span>'
+        : '<span class="badge badge-amber">ממתינה 📤</span>';
     var d = inv.date ? new Date(inv.date+'T00:00:00').toLocaleDateString('he-IL') : '—';
     var actions = '<div class="row-actions">';
-    if(inv.status==='pending_send'){
-      actions += '<button class="btn btn-gold btn-sm" onclick="sendInvoice(\''+inv._key+'\')">📧 שלח</button>';
+    if(!isCancelled){
+      if(inv.status==='pending_send'){
+        actions += '<button class="btn btn-gold btn-sm" onclick="sendInvoice(\''+inv._key+'\')">📧 שלח</button>';
+      }
+      actions += '<button class="btn btn-gh btn-sm" onclick="openEditInvoice(\''+inv._key+'\')">✏️ ערוך</button>';
+      actions += '<button class="btn btn-sm" style="background:#fee2e2;color:#b91c1c;border:none;cursor:pointer" onclick="cancelInvoice(\''+inv._key+'\')">❌ בטל</button>';
     }
     actions += '<button class="btn btn-gh btn-sm" onclick="previewInvoice(\''+inv._key+'\')">👁 צפה</button>';
     actions += '</div>';
-    return '<tr>'
+    var rowStyle = isCancelled ? ' style="opacity:0.45;text-decoration:line-through"' : '';
+    return '<tr'+rowStyle+'>'
       +'<td style="font-family:monospace;font-weight:700;color:var(--gold)">'+(inv.num||'—')+'</td>'
       +'<td style="white-space:nowrap;color:var(--gray)">'+d+'</td>'
       +'<td><strong>'+(inv.name||'—')+'</strong><br><span style="font-size:11px;color:var(--gray-l)">'+(inv.email||'')+'</span></td>'
@@ -2368,6 +2378,130 @@ function generateInvoiceHTML(inv, s){
 /* ═══ MODAL & TOAST ═══ */
 function closeModal(id){document.getElementById(id).classList.add('hidden');}
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);}
+
+/* ═══ EDIT INVOICE ═══ */
+function openEditInvoice(key){
+  var inv = (_cache.invoices||[]).find(function(i){ return i._key===key; });
+  if(!inv){ toast('❌ חשבונית לא נמצאה'); return; }
+  document.getElementById('editInvKey').value   = key;
+  document.getElementById('editInvNum').textContent = inv.num || '—';
+  document.getElementById('editInvName').value   = inv.name  || '';
+  document.getElementById('editInvEmail').value  = inv.email || '';
+  document.getElementById('editInvDate').value   = inv.date  || '';
+  document.getElementById('editInvTotal').value  = inv.total || '';
+  document.getElementById('editInvPlan').value   = inv.plan  || '';
+  document.getElementById('editInvMethod').value = inv.method|| '';
+  document.getElementById('editInvNotes').value  = inv.notes || '';
+  document.getElementById('modalEditInv').classList.remove('hidden');
+}
+
+async function saveEditInvoice(){
+  var key    = document.getElementById('editInvKey').value;
+  var inv    = (_cache.invoices||[]).find(function(i){ return i._key===key; });
+  if(!inv){ toast('❌ שגיאה'); return; }
+
+  var total  = parseFloat(document.getElementById('editInvTotal').value) || 0;
+  var vatRate= 0.18;
+  var beforeVat = parseFloat((total / (1 + vatRate)).toFixed(2));
+  var vat       = parseFloat((total - beforeVat).toFixed(2));
+
+  var updated = Object.assign({}, inv, {
+    name     : document.getElementById('editInvName').value.trim(),
+    email    : document.getElementById('editInvEmail').value.trim(),
+    date     : document.getElementById('editInvDate').value,
+    total    : total,
+    beforeVat: beforeVat,
+    vat      : vat,
+    plan     : document.getElementById('editInvPlan').value,
+    method   : document.getElementById('editInvMethod').value,
+    notes    : document.getElementById('editInvNotes').value.trim(),
+    editedAt : new Date().toISOString()
+  });
+
+  try{
+    await _fbPut('/invoices/'+key, updated);
+    _cache.invoices = _cache.invoices.map(function(i){ return i._key===key ? Object.assign({},i,updated) : i; });
+    closeModal('modalEditInv');
+    renderInvoices();
+    toast('✅ החשבונית עודכנה בהצלחה');
+  }catch(e){ toast('❌ שגיאת שמירה: '+e.message); }
+}
+
+/* ═══ CANCEL INVOICE ═══ */
+async function cancelInvoice(key){
+  var inv = (_cache.invoices||[]).find(function(i){ return i._key===key; });
+  if(!inv){ toast('❌ חשבונית לא נמצאה'); return; }
+  if(!confirm('לבטל את חשבונית מס ' + (inv.num||'') + '?\n\nהחשבונית תסומן כמבוטלת ולא תימחק מהמערכת.')) return;
+  var updated = Object.assign({}, inv, { status:'cancelled', cancelledAt: new Date().toISOString() });
+  try{
+    await _fbPut('/invoices/'+key, updated);
+    _cache.invoices = _cache.invoices.map(function(i){ return i._key===key ? Object.assign({},i,{status:'cancelled'}) : i; });
+    _updateInvoiceBadge();
+    renderInvoices();
+    toast('🚫 חשבונית ' + (inv.num||'') + ' בוטלה');
+  }catch(e){ toast('❌ שגיאת ביטול: '+e.message); }
+}
 </script>
+
+<!-- ══ מודל עריכת חשבונית ══ -->
+<div id="modalEditInv" class="hidden modal-overlay" onclick="if(event.target===this)closeModal('modalEditInv')">
+  <div class="modal-box" style="max-width:480px;direction:rtl">
+    <div class="modal-header">
+      <div class="modal-title">✏️ עריכת חשבונית מס <span id="editInvNum" style="color:var(--gold)"></span></div>
+      <button class="modal-close" onclick="closeModal('modalEditInv')">✕</button>
+    </div>
+    <div class="modal-body" style="display:grid;gap:14px">
+      <input type="hidden" id="editInvKey">
+      <div class="fg">
+        <label class="fl">שם לקוח</label>
+        <input class="fi" id="editInvName" placeholder="שם מלא">
+      </div>
+      <div class="fg">
+        <label class="fl">אימייל</label>
+        <input class="fi" id="editInvEmail" type="email" placeholder="email@example.com">
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="fg">
+          <label class="fl">תאריך חשבונית</label>
+          <input class="fi" id="editInvDate" type="date">
+        </div>
+        <div class="fg">
+          <label class="fl">סכום כולל מע"מ (₪)</label>
+          <input class="fi" id="editInvTotal" type="number" min="0" step="0.01" placeholder="0.00">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div class="fg">
+          <label class="fl">מסלול</label>
+          <select class="fi" id="editInvPlan">
+            <option value="basic">Basic</option>
+            <option value="professional">Professional</option>
+            <option value="enterprise">Enterprise</option>
+          </select>
+        </div>
+        <div class="fg">
+          <label class="fl">אמצעי תשלום</label>
+          <select class="fi" id="editInvMethod">
+            <option value="paypal">PayPal</option>
+            <option value="card">כרטיס אשראי</option>
+            <option value="bank">העברה בנקאית</option>
+          </select>
+        </div>
+      </div>
+      <div class="fg">
+        <label class="fl">הערות (לשימוש פנימי)</label>
+        <input class="fi" id="editInvNotes" placeholder="הערה אופציונלית...">
+      </div>
+      <div style="font-size:12px;color:var(--gray);background:var(--bg);padding:10px 14px;border-radius:8px">
+        💡 מע"מ יחושב מחדש אוטומטית (18%) על בסיס הסכום הכולל שהזנת.
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-gh" onclick="closeModal('modalEditInv')">ביטול</button>
+      <button class="btn btn-blue" onclick="saveEditInvoice()">💾 שמור שינויים</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>
