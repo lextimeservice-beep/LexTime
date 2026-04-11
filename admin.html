@@ -2336,7 +2336,6 @@ function generateInvoiceHTML(inv, s){
   (bizAddr ? bizAddr + '<br>' : '') +
   (bizPhone ? 'טל׳: ' + bizPhone + ' | פקס: ' + bizFax + '<br>' : '') +
   (bizEmail ? bizEmail : '') +
-  '28 HaNevi\'im St., Haifa 3310407 | Tel: +972-4-875-8355' +
   '</div></div>' +
   '<div class="inv-badge">' +
   '<div class="inv-badge-title">חשבונית מס</div>' +
@@ -2444,43 +2443,28 @@ async function cancelInvoice(key){
 </script>
 
 <!-- ══ מודל עריכת חשבונית ══ -->
-<div id="modalEditInv" class="hidden modal-overlay" onclick="if(event.target===this)closeModal('modalEditInv')">
-  <div class="modal-box" style="max-width:480px;direction:rtl">
-    <div class="modal-header">
-      <div class="modal-title">✏️ עריכת חשבונית מס <span id="editInvNum" style="color:var(--gold)"></span></div>
-      <button class="modal-close" onclick="closeModal('modalEditInv')">✕</button>
-    </div>
-    <div class="modal-body" style="display:grid;gap:14px">
+<div class="mo hidden" id="modalEditInv" onclick="if(event.target===this)closeModal('modalEditInv')">
+  <div class="modal" style="max-width:480px;direction:rtl">
+    <div class="mh"><div class="mt">✏️ עריכת חשבונית מס <span id="editInvNum" style="color:var(--gold)"></span></div><button class="mc" onclick="closeModal('modalEditInv')">✕</button></div>
+    <div class="mb" style="display:grid;gap:14px">
       <input type="hidden" id="editInvKey">
-      <div class="fg">
-        <label class="fl">שם לקוח</label>
-        <input class="fi" id="editInvName" placeholder="שם מלא">
+      <div class="fgrid">
+        <div class="fg"><label class="fl">שם לקוח</label><input class="fi" id="editInvName" placeholder="שם מלא"></div>
+        <div class="fg"><label class="fl">אימייל</label><input class="fi" id="editInvEmail" type="email" placeholder="email@example.com"></div>
       </div>
-      <div class="fg">
-        <label class="fl">אימייל</label>
-        <input class="fi" id="editInvEmail" type="email" placeholder="email@example.com">
+      <div class="fgrid">
+        <div class="fg"><label class="fl">תאריך חשבונית</label><input class="fi" id="editInvDate" type="date"></div>
+        <div class="fg"><label class="fl">סכום כולל מע״מ (₪)</label><input class="fi" id="editInvTotal" type="number" min="0" step="0.01" placeholder="0.00"></div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="fg">
-          <label class="fl">תאריך חשבונית</label>
-          <input class="fi" id="editInvDate" type="date">
-        </div>
-        <div class="fg">
-          <label class="fl">סכום כולל מע"מ (₪)</label>
-          <input class="fi" id="editInvTotal" type="number" min="0" step="0.01" placeholder="0.00">
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div class="fg">
-          <label class="fl">מסלול</label>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">מסלול</label>
           <select class="fi" id="editInvPlan">
-            <option value="basic">Basic</option>
-            <option value="professional">Professional</option>
-            <option value="enterprise">Enterprise</option>
+            <option value="עצמאי">עצמאי</option>
+            <option value="משרד">משרד</option>
+            <option value="משרד גדול">משרד גדול</option>
           </select>
         </div>
-        <div class="fg">
-          <label class="fl">אמצעי תשלום</label>
+        <div class="fg"><label class="fl">אמצעי תשלום</label>
           <select class="fi" id="editInvMethod">
             <option value="paypal">PayPal</option>
             <option value="card">כרטיס אשראי</option>
@@ -2488,17 +2472,12 @@ async function cancelInvoice(key){
           </select>
         </div>
       </div>
-      <div class="fg">
-        <label class="fl">הערות (לשימוש פנימי)</label>
-        <input class="fi" id="editInvNotes" placeholder="הערה אופציונלית...">
-      </div>
-      <div style="font-size:12px;color:var(--gray);background:var(--bg);padding:10px 14px;border-radius:8px">
-        💡 מע"מ יחושב מחדש אוטומטית (18%) על בסיס הסכום הכולל שהזנת.
-      </div>
+      <div class="fg"><label class="fl">הערות (לשימוש פנימי)</label><input class="fi" id="editInvNotes" placeholder="הערה אופציונלית..."></div>
+      <div style="font-size:12px;color:var(--gray);background:var(--bg);padding:10px 14px;border-radius:8px">💡 מע״מ יחושב מחדש אוטומטית (18%) על בסיס הסכום הכולל שהזנת.</div>
     </div>
-    <div class="modal-footer">
+    <div class="mf">
       <button class="btn btn-gh" onclick="closeModal('modalEditInv')">ביטול</button>
-      <button class="btn btn-blue" onclick="saveEditInvoice()">💾 שמור שינויים</button>
+      <button class="btn btn-gold" onclick="saveEditInvoice()">💾 שמור שינויים</button>
     </div>
   </div>
 </div>
