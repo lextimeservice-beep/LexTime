@@ -2106,10 +2106,11 @@ function renderInvoices(){
 
   /* KPI */
   var thisMonth = new Date().toISOString().slice(0,7);
-  var pending = invs.filter(function(i){ return i.status==='pending_send'; });
-  var sentMonth = invs.filter(function(i){ return i.status==='sent' && (i.date||'').slice(0,7)===thisMonth; });
-  var mrr = sentMonth.reduce(function(a,i){ return a+(i.total||0); }, 0);
-  var activeInvs = invs.filter(function(i){ return i.status !== 'cancelled'; });
+  var realInvs  = invs.filter(function(i){ return i.type !== 'credit_note'; });
+  var pending   = realInvs.filter(function(i){ return i.status==='pending_send'; });
+  var sentMonth = realInvs.filter(function(i){ return i.status==='sent' && (i.date||'').slice(0,7)===thisMonth; });
+  var mrr       = sentMonth.reduce(function(a,i){ return a+(i.total||0); }, 0);
+  var activeInvs= realInvs.filter(function(i){ return i.status !== 'cancelled'; });
   var el1=document.getElementById('invKpiTotal');   if(el1) el1.textContent=activeInvs.length;
   var el2=document.getElementById('invKpiPending'); if(el2) el2.textContent=pending.length;
   var el3=document.getElementById('invKpiSent');    if(el3) el3.textContent=sentMonth.length;
@@ -2457,9 +2458,9 @@ async function saveEditInvoice(){
 async function devResetInvoices(){
   if(!confirm('למחוק את כל החשבוניות והמונים לצורך בדיקה?')) return;
   try{
-    await fetch(DB_URL+'/invoices.json',       {method:'DELETE'});
-    await fetch(DB_URL+'/invoice_counter.json',{method:'DELETE'});
-    await fetch(DB_URL+'/credit_counter.json', {method:'DELETE'});
+    await _fbPut('/invoices', null);
+    await _fbPut('/invoice_counter', null);
+    await _fbPut('/credit_counter', null);
     _cache.invoices = [];
     _updateInvoiceBadge();
     renderInvoices();
