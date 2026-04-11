@@ -295,6 +295,10 @@ tr:hover td{background:#fafbfc}
         <span class="nav-icon">🎁</span><span>ניסיונות</span>
         <span class="nav-badge" id="trialsBadge" style="display:none">0</span>
       </div>
+      <div class="nav-item" onclick="showPage('invoices')" id="nav-invoices">
+        <span class="nav-icon">🧾</span><span>חשבוניות מס</span>
+        <span class="nav-badge" id="invoicesBadge" style="display:none">0</span>
+      </div>
       <div class="nav-item" onclick="showPage('settings')" id="nav-settings">
         <span class="nav-icon">⚙️</span><span>הגדרות מערכת</span>
       </div>
@@ -616,8 +620,55 @@ tr:hover td{background:#fafbfc}
             <div class="fdiv"></div>
             <div class="slbl">PayPal</div>
             <div class="fg"><label class="fl">כתובת PayPal לקבלת תשלומים</label><input class="fi" id="settingPaypal" placeholder="payments@timebar.co.il"></div>
+            <div class="fdiv"></div>
+            <div class="slbl">פרטי עסק לחשבוניות מס</div>
+            <div class="fgrid">
+              <div class="fg"><label class="fl">שם העסק בחשבונית</label><input class="fi" id="settingBizName" placeholder="LexTime בע״מ"></div>
+              <div class="fg"><label class="fl">מספר עוסק מורשה / ח.פ.</label><input class="fi" id="settingVatNum" placeholder="515XXXXXXX"></div>
+            </div>
+            <div class="fg"><label class="fl">כתובת העסק</label><input class="fi" id="settingBizAddr" placeholder="רח׳ הרצל 1, תל אביב"></div>
+            <div class="fgrid">
+              <div class="fg"><label class="fl">טלפון עסקי</label><input class="fi" id="settingBizPhone" placeholder="04-875-8355"></div>
+              <div class="fg"><label class="fl">פקס</label><input class="fi" id="settingBizFax" placeholder="077-555-8894"></div>
+            </div>
             <button class="btn btn-gold" onclick="saveSettings()" style="margin-top:6px">שמור הגדרות</button>
           </div>
+        </div>
+      </div>
+
+      <!-- ── INVOICES PAGE ── -->
+      <div id="page-invoices" style="display:none">
+        <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
+          <div class="kpi gold"><div class="kpi-icon">🧾</div><div class="kpi-label">סה"כ חשבוניות</div><div class="kpi-value" id="invKpiTotal">0</div></div>
+          <div class="kpi red"><div class="kpi-icon">📤</div><div class="kpi-label">ממתינות לשליחה</div><div class="kpi-value" id="invKpiPending">0</div></div>
+          <div class="kpi green"><div class="kpi-icon">✅</div><div class="kpi-label">נשלחו החודש</div><div class="kpi-value" id="invKpiSent">0</div></div>
+          <div class="kpi blue"><div class="kpi-icon">💰</div><div class="kpi-label">הכנסות החודש</div><div class="kpi-value" id="invKpiMRR" style="font-size:22px">₪0</div></div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <div class="card-title">🧾 חשבוניות מס</div>
+            <div class="search-wrap">
+              <input type="text" class="search-input" id="invSearch" placeholder="חיפוש שם / מספר..." oninput="renderInvoices()">
+              <select class="filter-sel" id="invStatusFilter" onchange="renderInvoices()">
+                <option value="">הכל</option>
+                <option value="pending_send">ממתינות לשליחה</option>
+                <option value="sent">נשלחו</option>
+              </select>
+              <button class="btn btn-gh btn-sm" onclick="loadInvoices()">🔄 רענן</button>
+              <button class="btn btn-blue btn-sm" onclick="createMonthlyInvoices()" style="background:var(--blue);color:#fff">📊 צור חשבוניות חודשיות</button>
+              <button class="btn btn-gold btn-sm" onclick="sendAllPendingInvoices()">📤 שלח את כולן</button>
+            </div>
+          </div>
+          <div style="overflow-x:auto">
+            <table>
+              <thead><tr>
+                <th>מספר חשבונית</th><th>תאריך</th><th>לקוח</th><th>מסלול</th>
+                <th>לפני מע"מ</th><th>מע"מ 18%</th><th>סה"כ</th><th>אמצעי תשלום</th><th>סטטוס</th><th>פעולות</th>
+              </tr></thead>
+              <tbody id="invoicesTable"><tr class="empty-row"><td colspan="10">טוען...</td></tr></tbody>
+            </table>
+          </div>
+          <div style="padding:12px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--gray)" id="invoicesCount"></div>
         </div>
       </div>
 
@@ -996,7 +1047,7 @@ var DB_URL    = 'https://lextime-82214-default-rtdb.europe-west1.firebasedatabas
 var DB_SECRET = 'ZRYmRM293l9TyrLs9vRt02MYRtBKMWDwNiMFirgk';
 
 /* זיכרון מקומי (נטען מ-Firebase בכניסה) */
-var _cache = { subs:[], pays:[], settings:{}, deletedEmails:[], trials:[] };
+var _cache = { subs:[], pays:[], settings:{}, deletedEmails:[], trials:[], invoices:[] };
 
 async function _fbGet(path){
   var r = await fetch(DB_URL+path+'.json?auth='+DB_SECRET);
@@ -1019,22 +1070,24 @@ function _arrFromFb(d){ // Firebase מחזיר null / array / object
 /* טעינת כל הנתונים מ-Firebase בכניסה */
 async function loadFromFirebase(){
   try{
-    var [s,p,cfg,del,tr] = await Promise.all([
+    var [s,p,cfg,del,tr,inv] = await Promise.all([
       _fbGet('/subs'), _fbGet('/pays'),
       _fbGet('/settings'), _fbGet('/deletedEmails'),
-      _fbGet('/trials')
+      _fbGet('/trials'), _fbGet('/invoices')
     ]);
     _cache.subs          = _arrFromFb(s);
     _cache.pays          = _arrFromFb(p);
     _cache.settings      = cfg || {};
     _cache.deletedEmails = _arrFromFb(del);
     _cache.trials        = _arrFromFb(tr);
+    _cache.invoices      = inv ? Object.entries(inv).map(function(e){ return Object.assign({_key:e[0]},e[1]); }) : [];
   }catch(e){
     _cache.subs          = JSON.parse(localStorage.getItem('tb_subs')||'[]');
     _cache.pays          = JSON.parse(localStorage.getItem('tb_pays')||'[]');
     _cache.settings      = JSON.parse(localStorage.getItem('tb_settings')||'{}');
     _cache.deletedEmails = JSON.parse(localStorage.getItem('tb_deleted_emails')||'[]');
     _cache.trials        = [];
+    _cache.invoices      = [];
     console.warn('Firebase לא זמין — נטען מ-localStorage');
   }
 }
@@ -1086,6 +1139,7 @@ async function initApp(){
   await loadAllCredentials(); /* ← בודק credentials לכל נרשם */
   setToday();
   fillSettingsForm();
+  _updateInvoiceBadge();
   showPage('dashboard');
 }
 
@@ -1097,13 +1151,13 @@ function setToday(){
 /* ═══ PAGE NAVIGATION ═══ */
 var _currentFilter='all';
 function showPage(page){
-  ['dashboard','subscribers','payments','plans','contacts','trials','settings'].forEach(function(p){
+  ['dashboard','subscribers','payments','plans','contacts','trials','invoices','settings'].forEach(function(p){
     var el=document.getElementById('page-'+p);
     if(el)el.style.display=p===page?'block':'none';
     var nav=document.getElementById('nav-'+p);
     if(nav)nav.className='nav-item'+(p===page?' active':'');
   });
-  var titles={dashboard:'לוח בקרה',subscribers:'ניהול נרשמים',payments:'ניהול תשלומים',plans:'מסלולים ומנויים',contacts:'פניות יצירת קשר',trials:'משתמשי ניסיון',settings:'הגדרות מערכת'};
+  var titles={dashboard:'לוח בקרה',subscribers:'ניהול נרשמים',payments:'ניהול תשלומים',plans:'מסלולים ומנויים',contacts:'פניות יצירת קשר',trials:'משתמשי ניסיון',invoices:'חשבוניות מס',settings:'הגדרות מערכת'};
   document.getElementById('pageTitle').textContent=titles[page]||page;
   document.getElementById('pageSub').textContent='';
   if(page==='dashboard')renderDashboard();
@@ -1111,6 +1165,7 @@ function showPage(page){
   if(page==='payments')renderPayments();
   if(page==='plans')renderPlans();
   if(page==='contacts')loadContacts();
+  if(page==='invoices'){loadInvoices();}
   if(page==='trials'){loadTrials();}
 }
 
@@ -1424,8 +1479,12 @@ function approveSub(id){
   if(!exists){pays.push({id:genId(),subId:id,subName:s.name,plan:s.plan,amount:PLAN_PRICES[s.plan]||0,method:s.payMethod,month:todayMonth(),status:'approved',ref:'',notes:'אושר ידנית'});savePays(pays);}
   /* ── תיקון אוטומטי של credentials בענן ── */
   _ensureCredentials(s);
+  /* ── יצירת חשבונית מס אוטומטית ── */
+  createInvoice(s,'').then(function(inv){
+    if(inv) toast('המנוי אושר ✅ | חשבונית '+inv.num+' נוצרה — עבור לחשבוניות לשליחה');
+    else toast('המנוי אושר ✅');
+  });
   renderSubs();renderDashboard();renderPayments();
-  toast('המנוי אושר ✅');
 }
 function suspendSub(id){
   if(!confirm('להשהות מנוי זה?'))return;
@@ -1498,11 +1557,20 @@ function savePayment(){
 }
 
 /* ═══ SETTINGS ═══ */
+var _BIZ_DEFAULTS = {
+  bizName:  'LexTime',
+  bizAddr:  'הנביאים 28, חיפה 3310407',
+  bizPhone: '04-875-8355',
+  bizFax:   '077-555-8894'
+};
+
 function fillSettingsForm(){
   var s=loadSettings();
-  ['adminName','adminEmail','bankName','bankBank','bankBranch','bankAccount','paypal'].forEach(function(k){
+  ['adminName','adminEmail','bankName','bankBank','bankBranch','bankAccount','paypal','bizName','vatNum','bizAddr','bizPhone','bizFax'].forEach(function(k){
     var el=document.getElementById('setting'+k.charAt(0).toUpperCase()+k.slice(1));
-    if(el&&s[k])el.value=s[k];
+    if(!el) return;
+    /* אם הערך נשמר בענן — השתמש בו; אחרת ברירת מחדל */
+    el.value = s[k] || _BIZ_DEFAULTS[k] || '';
   });
   var un=document.getElementById('settingUser');if(un)un.value=s.adminUser||'admin';
 }
@@ -1515,6 +1583,11 @@ function saveSettings(){
   s.bankBranch=document.getElementById('settingBankBranch').value;
   s.bankAccount=document.getElementById('settingBankAccount').value;
   s.paypal=document.getElementById('settingPaypal').value;
+  var bizNameEl=document.getElementById('settingBizName'); if(bizNameEl) s.bizName=bizNameEl.value;
+  var vatNumEl=document.getElementById('settingVatNum'); if(vatNumEl) s.vatNum=vatNumEl.value;
+  var bizAddrEl=document.getElementById('settingBizAddr'); if(bizAddrEl) s.bizAddr=bizAddrEl.value;
+  var bizPhoneEl=document.getElementById('settingBizPhone'); if(bizPhoneEl) s.bizPhone=bizPhoneEl.value;
+  var bizFaxEl=document.getElementById('settingBizFax'); if(bizFaxEl) s.bizFax=bizFaxEl.value;
   var newUser=document.getElementById('settingUser').value.trim();
   var newPass=document.getElementById('settingPass').value;
   if(newUser){s.adminUser=newUser;ADMIN_USER=newUser;}
@@ -1862,7 +1935,6 @@ function renderTrials(){
       actions += '<button class="btn btn-green btn-sm" onclick="convertTrialToSub(\''+t.email+'\',\''+t.name+'\')">🚀 הפוך למנוי</button>';
     }
     actions += '<button class="btn btn-gh btn-sm" onclick="mailTrial(\''+t.email+'\',\''+t.name+'\')">✉️ שלח מייל</button>';
-    actions += '<button class="btn btn-sm" style="background:#f59e0b;color:#fff" onclick="fixTrialCredentials(\''+t.email+'\',\''+t.name+'\')">🔧 תקן כניסה</button>';
     actions += '</div>';
 
     return '<tr>'
@@ -1899,68 +1971,6 @@ async function revokeTrial(email){
     renderTrials();
     toast('✅ גישת הניסיון בוטלה');
   }catch(e){toast('❌ שגיאה: '+e.message);}
-}
-
-/* מעביר את ה-passHash של משתמש ניסיון מ-/trials ל-/credentials
-   כדי שיוכל להתחבר מכל מחשב/טלפון */
-async function fixTrialCredentials(email, name){
-  toast('🔄 מתחבר ל-Firebase...');
-  try{
-    /* מצא את רשומת הניסיון כדי לשלוף passHash */
-    var data = await _fbGet('/trials');
-    var entries = data ? Object.entries(data) : [];
-    var matched = entries.filter(function(e){
-      return e[1]&&e[1].email&&e[1].email.toLowerCase()===email.toLowerCase();
-    });
-    var passHash = null;
-    matched.forEach(function(e){ if(e[1].passHash && !passHash) passHash = e[1].passHash; });
-
-    var key = _emailKeyAdmin(email);
-
-    /* בדוק אם כבר יש credentials */
-    var existing = await _fbGet('/credentials/'+key);
-    var cred = Object.assign(
-      {email: email.toLowerCase(), name: name||'', status:'trial'},
-      existing || {},
-      passHash ? {passHash: passHash} : {}
-    );
-    if(!cred.passHash) cred.passHash = 'RESET_REQUIRED';
-
-    var r = await fetch(DB_URL+'/credentials/'+key+'.json?auth='+DB_SECRET,{
-      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(cred)
-    });
-    if(!r.ok) throw new Error('PUT failed: '+r.status);
-
-    if(cred.passHash === 'RESET_REQUIRED'){
-      /* אין סיסמה — שלח קוד איפוס */
-      var resetCode = Math.floor(100000+Math.random()*900000).toString();
-      await fetch(DB_URL+'/reset_codes/'+key+'.json?auth='+DB_SECRET,{
-        method:'PUT', headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email:email.toLowerCase(), code:resetCode, exp:Date.now()+3600000})
-      });
-      var subject = encodeURIComponent('LexTime — קוד איפוס סיסמא 🔑');
-      var body = encodeURIComponent(
-        'שלום '+(name||'')+',\n\n'+
-        'תיקנו את הגישה שלך.\n\n'+
-        '━━━━━━━━━━━━━━━━━━\n'+
-        'קוד איפוס: '+resetCode+'\n(תקף לשעה)\n'+
-        '━━━━━━━━━━━━━━━━━━\n\n'+
-        '1. כנס לאתר: https://www.lextime.co.il\n'+
-        '2. לחץ "כניסת עורכי דין"\n'+
-        '3. לחץ "שכחתי סיסמא"\n'+
-        '4. הזן מייל: '+email+'\n'+
-        '5. הזן קוד: '+resetCode+'\n'+
-        '6. הזן סיסמא חדשה\n\n'+
-        'בברכה,\nצוות LexTime'
-      );
-      window.open('mailto:'+email+'?subject='+subject+'&body='+body);
-      toast('📩 קוד איפוס נשלח — המשתמש יוכל להתחבר מכל מכשיר');
-    } else {
-      toast('✅ הכניסה תוקנה — המשתמש יכול להתחבר מכל מכשיר');
-    }
-  }catch(e){
-    toast('❌ שגיאה: '+e.message);
-  }
 }
 
 function convertTrialToSub(email, name){
@@ -2001,6 +2011,358 @@ function payStatusBadge(s){
 function methodBadge(m){
   var labels={paypal:'PayPal',card:'כ. אשראי',bank:'בנקאית'};
   return '<span class="badge badge-blue">'+(labels[m]||m)+'</span>';
+}
+
+/* ═══════════════════════════════════════════════════
+   ═══ INVOICE SYSTEM — חשבוניות מס                ═══
+   ═══════════════════════════════════════════════════ */
+
+var VAT_RATE = 0.18; /* מע"מ 18% */
+
+/* מחזיר את מספר החשבונית הבא — מ-Firebase */
+async function _nextInvoiceNum(){
+  var counter = await _fbGet('/invoice_counter');
+  var next = (counter && counter.value ? counter.value : 0) + 1;
+  var year = new Date().getFullYear();
+  await _fbPut('/invoice_counter', {value: next, updatedAt: new Date().toISOString()});
+  return 'INV-' + year + '-' + String(next).padStart(4,'0');
+}
+
+/* יוצר רשומת חשבונית ב-Firebase ומחזיר אותה */
+async function createInvoice(sub, payRef){
+  if(!sub || !sub.email) return null;
+  /* בדוק אם כבר יש חשבונית לנרשם זה החודש */
+  var thisMonth = new Date().toISOString().slice(0,7);
+  var existing = (_cache.invoices||[]).find(function(i){
+    return i.email && i.email.toLowerCase() === sub.email.toLowerCase() &&
+           i.date && i.date.slice(0,7) === thisMonth;
+  });
+  if(existing){ console.log('Invoice already exists for this month:', existing.num); return existing; }
+
+  var total    = PLAN_PRICES[sub.plan] || 0;
+  var vat      = Math.round(total / (1 + VAT_RATE) * VAT_RATE * 100) / 100;
+  var beforeVat= Math.round((total - vat) * 100) / 100;
+
+  var num = await _nextInvoiceNum();
+  var invoice = {
+    num:      num,
+    date:     new Date().toISOString().slice(0,10),
+    name:     sub.name  || '',
+    email:    sub.email.toLowerCase(),
+    plan:     sub.plan  || '',
+    beforeVat:beforeVat,
+    vat:      vat,
+    total:    total,
+    method:   sub.payMethod || '',
+    status:   'pending_send',
+    subId:    sub.id    || '',
+    payRef:   payRef    || '',
+    createdAt:new Date().toISOString()
+  };
+
+  var key = 'inv_' + Date.now() + '_' + Math.random().toString(36).slice(2,5);
+  try{
+    await _fbPut('/invoices/'+key, invoice);
+    if(!_cache.invoices) _cache.invoices = [];
+    _cache.invoices.push(Object.assign({_key:key}, invoice));
+    _updateInvoiceBadge();
+    return invoice;
+  }catch(e){
+    console.error('createInvoice error:', e);
+    return null;
+  }
+}
+
+/* טוען חשבוניות מ-Firebase */
+async function loadInvoices(){
+  try{
+    var data = await _fbGet('/invoices');
+    _cache.invoices = data
+      ? Object.entries(data).map(function(e){ return Object.assign({_key:e[0]},e[1]); })
+      : [];
+  }catch(e){ _cache.invoices = []; }
+  _updateInvoiceBadge();
+  renderInvoices();
+}
+
+/* מעדכן את הבאדג' בסרגל הצד */
+function _updateInvoiceBadge(){
+  var pending = (_cache.invoices||[]).filter(function(i){ return i.status==='pending_send'; }).length;
+  var badge = document.getElementById('invoicesBadge');
+  if(!badge) return;
+  badge.textContent = pending;
+  badge.style.display = pending ? '' : 'none';
+}
+
+/* מרנדר את טבלת החשבוניות */
+function renderInvoices(){
+  var search = (document.getElementById('invSearch')||{}).value||'';
+  var filter = (document.getElementById('invStatusFilter')||{}).value||'';
+  var invs = (_cache.invoices||[]).slice().sort(function(a,b){
+    return (b.createdAt||'') > (a.createdAt||'') ? 1 : -1;
+  });
+
+  /* KPI */
+  var thisMonth = new Date().toISOString().slice(0,7);
+  var pending = invs.filter(function(i){ return i.status==='pending_send'; });
+  var sentMonth = invs.filter(function(i){ return i.status==='sent' && (i.date||'').slice(0,7)===thisMonth; });
+  var mrr = sentMonth.reduce(function(a,i){ return a+(i.total||0); }, 0);
+  var el1=document.getElementById('invKpiTotal');   if(el1) el1.textContent=invs.length;
+  var el2=document.getElementById('invKpiPending'); if(el2) el2.textContent=pending.length;
+  var el3=document.getElementById('invKpiSent');    if(el3) el3.textContent=sentMonth.length;
+  var el4=document.getElementById('invKpiMRR');     if(el4) el4.textContent='₪'+mrr.toLocaleString();
+
+  /* סינון */
+  if(search){ var s=search.toLowerCase(); invs=invs.filter(function(i){
+    return (i.name||'').toLowerCase().includes(s)||(i.num||'').toLowerCase().includes(s)||(i.email||'').toLowerCase().includes(s);
+  });}
+  if(filter) invs=invs.filter(function(i){ return i.status===filter; });
+
+  var tb = document.getElementById('invoicesTable');
+  if(!invs.length){ tb.innerHTML='<tr class="empty-row"><td colspan="10">אין חשבוניות</td></tr>'; return; }
+
+  var methodLabels = {paypal:'PayPal', card:'כ. אשראי', bank:'העברה בנקאית'};
+  tb.innerHTML = invs.map(function(inv){
+    var sBadge = inv.status==='sent'
+      ? '<span class="badge badge-green">נשלחה ✅</span>'
+      : '<span class="badge badge-amber">ממתינה 📤</span>';
+    var d = inv.date ? new Date(inv.date+'T00:00:00').toLocaleDateString('he-IL') : '—';
+    var actions = '<div class="row-actions">';
+    if(inv.status==='pending_send'){
+      actions += '<button class="btn btn-gold btn-sm" onclick="sendInvoice(\''+inv._key+'\')">📧 שלח</button>';
+    }
+    actions += '<button class="btn btn-gh btn-sm" onclick="previewInvoice(\''+inv._key+'\')">👁 צפה</button>';
+    actions += '</div>';
+    return '<tr>'
+      +'<td style="font-family:monospace;font-weight:700;color:var(--gold)">'+(inv.num||'—')+'</td>'
+      +'<td style="white-space:nowrap;color:var(--gray)">'+d+'</td>'
+      +'<td><strong>'+(inv.name||'—')+'</strong><br><span style="font-size:11px;color:var(--gray-l)">'+(inv.email||'')+'</span></td>'
+      +'<td>'+planBadge(inv.plan)+'</td>'
+      +'<td style="font-weight:600">₪'+(inv.beforeVat||0).toFixed(2)+'</td>'
+      +'<td style="color:var(--gray)">₪'+(inv.vat||0).toFixed(2)+'</td>'
+      +'<td style="font-weight:700;color:var(--ink)">₪'+(inv.total||0)+'</td>'
+      +'<td>'+methodBadge(inv.method)+'</td>'
+      +'<td>'+sBadge+'</td>'
+      +'<td>'+actions+'</td>'
+      +'</tr>';
+  }).join('');
+
+  var cnt = document.getElementById('invoicesCount');
+  var monthLabel = new Date().toLocaleDateString('he-IL',{month:'long',year:'numeric'});
+  if(cnt) cnt.textContent = 'מוצגות ' + invs.length + ' חשבוניות | חודש נוכחי: ' + monthLabel;
+}
+
+/* שולח חשבונית — פותח mailto ומסמן כנשלחה */
+async function sendInvoice(key){
+  var inv = (_cache.invoices||[]).find(function(i){ return i._key===key; });
+  if(!inv){ toast('❌ חשבונית לא נמצאה'); return; }
+  var s = loadSettings();
+  _openInvoiceMailto(inv, s);
+  /* סמן כנשלחה */
+  var updated = Object.assign({}, inv, {status:'sent', sentAt: new Date().toISOString()});
+  try{
+    await _fbPut('/invoices/'+key, updated);
+    _cache.invoices = _cache.invoices.map(function(i){ return i._key===key ? Object.assign({},i,{status:'sent'}) : i; });
+    _updateInvoiceBadge();
+    renderInvoices();
+    toast('✅ החשבונית נשלחה וסומנה');
+  }catch(e){ toast('❌ שגיאת עדכון: '+e.message); }
+}
+
+/* יוצר חשבוניות חודשיות לכל המנויים הפעילים שעדיין אין להם חשבונית החודש */
+async function createMonthlyInvoices(){
+  var subs = loadSubs().filter(function(s){ return s.status === 'active'; });
+  if(!subs.length){ toast('❌ אין מנויים פעילים'); return; }
+
+  var thisMonth = new Date().toISOString().slice(0,7);
+  var monthLabel = new Date().toLocaleDateString('he-IL',{month:'long',year:'numeric'});
+
+  /* מצא מנויים שכבר יש להם חשבונית החודש */
+  var existingEmails = (_cache.invoices||[])
+    .filter(function(i){ return i.date && i.date.slice(0,7) === thisMonth; })
+    .map(function(i){ return (i.email||'').toLowerCase(); });
+
+  var toCreate = subs.filter(function(s){
+    return s.email && existingEmails.indexOf(s.email.toLowerCase()) === -1;
+  });
+
+  if(!toCreate.length){
+    toast('✅ כל המנויים כבר קיבלו חשבונית לחודש ' + monthLabel);
+    return;
+  }
+
+  if(!confirm('ליצור ' + toCreate.length + ' חשבוניות חדשות לחודש ' + monthLabel + '?\n\n' +
+    toCreate.map(function(s){ return '\u2022 ' + s.name + ' \u2014 ' + s.plan + ' (\u20aa' + (PLAN_PRICES[s.plan]||0) + ')'; }).join('\n')
+  )) return;
+
+  var created = 0;
+  var errors  = 0;
+  var btn = document.querySelector('[onclick="createMonthlyInvoices()"]');
+  if(btn){ btn.textContent = '⏳ יוצר חשבוניות...'; btn.disabled = true; }
+
+  for(var i=0; i<toCreate.length; i++){
+    var s = toCreate[i];
+    try{
+      var inv = await createInvoice(s, '');
+      if(inv) created++;
+    }catch(e){
+      errors++;
+      console.error('Failed to create invoice for', s.email, e);
+    }
+  }
+
+  if(btn){ btn.textContent = '📊 צור חשבוניות חודשיות'; btn.disabled = false; }
+  renderInvoices();
+
+  if(errors){
+    toast('⚠️ נוצרו ' + created + ' חשבוניות. ' + errors + ' נכשלו — בדוק Console');
+  } else {
+    toast('✅ נוצרו ' + created + ' חשבוניות לחודש ' + monthLabel + ' — לחץ "שלח את כולן"');
+  }
+}
+
+/* שולח את כל החשבוניות הממתינות */
+async function sendAllPendingInvoices(){
+  var pending = (_cache.invoices||[]).filter(function(i){ return i.status==='pending_send'; });
+  if(!pending.length){ toast('אין חשבוניות ממתינות לשליחה'); return; }
+  if(!confirm('לשלוח '+pending.length+' חשבוניות ממתינות?')) return;
+  var s = loadSettings();
+  for(var i=0; i<pending.length; i++){
+    var inv = pending[i];
+    _openInvoiceMailto(inv, s);
+    await new Promise(function(r){ setTimeout(r, 800); }); /* עיכוב בין מיילים */
+    var updated = Object.assign({},inv,{status:'sent',sentAt:new Date().toISOString()});
+    await _fbPut('/invoices/'+inv._key, updated).catch(function(){});
+    _cache.invoices = _cache.invoices.map(function(x){ return x._key===inv._key ? Object.assign({},x,{status:'sent'}) : x; });
+  }
+  _updateInvoiceBadge();
+  renderInvoices();
+  toast('✅ '+pending.length+' חשבוניות נשלחו');
+}
+
+/* פותח חלון תצוגה מקדימה + הדפסה של החשבונית */
+function previewInvoice(key){
+  var inv = (_cache.invoices||[]).find(function(i){ return i._key===key; });
+  if(!inv){ toast('❌ חשבונית לא נמצאה'); return; }
+  var s = loadSettings();
+  var w = window.open('','_blank','width=800,height=900');
+  w.document.write(generateInvoiceHTML(inv, s));
+  w.document.close();
+}
+
+/* פותח mailto עם פרטי החשבונית */
+function _openInvoiceMailto(inv, s){
+  var bizName = (s && s.bizName) ? s.bizName : 'LexTime';
+  var methodLabel = {paypal:'PayPal', card:'כרטיס אשראי', bank:'העברה בנקאית'}[inv.method] || inv.method || '';
+  var d = inv.date ? new Date(inv.date+'T00:00:00').toLocaleDateString('he-IL') : '';
+  var subject = encodeURIComponent('חשבונית מס ' + inv.num + ' — ' + bizName);
+  var body = encodeURIComponent(
+    'שלום ' + (inv.name||'') + ',\n\n' +
+    'מצורפת חשבונית המס עבור המנוי שלך.\n\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    'חשבונית מס מספר: ' + inv.num + '\n' +
+    'תאריך: ' + d + '\n' +
+    'עסק: ' + bizName + (s && s.vatNum ? ' | ע.מ. ' + s.vatNum : '') + '\n' +
+    'כתובת: הנביאים 28, חיפה | טל: 04-875-8355 | פקס: 077-555-8894\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
+    'שירות: מנוי LexTime — מסלול ' + (inv.plan||'') + '\n' +
+    'מחיר לפני מע"מ:  ₪' + (inv.beforeVat||0).toFixed(2) + '\n' +
+    'מע"מ 18%:         ₪' + (inv.vat||0).toFixed(2) + '\n' +
+    'סה"כ לתשלום:     ₪' + (inv.total||0) + '\n' +
+    'אמצעי תשלום:     ' + methodLabel + '\n' +
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
+    'לשאלות — ענה למייל זה.\n\n' +
+    'בברכה,\nצוות ' + bizName
+  );
+  window.open('mailto:' + inv.email + '?subject=' + subject + '&body=' + body);
+}
+
+/* יוצר HTML מלא של חשבונית מס להדפסה */
+function generateInvoiceHTML(inv, s){
+  var bizName  = (s && s.bizName)  ? s.bizName  : 'LexTime';
+  var bizFax   = (s && s.bizFax)   ? s.bizFax   : '077-555-8894';
+  var vatNum   = (s && s.vatNum)   ? s.vatNum   : '';
+  var bizAddr  = (s && s.bizAddr)  ? s.bizAddr  : 'הנביאים 28, חיפה 3310407';
+  var bizPhone = (s && s.bizPhone) ? s.bizPhone : '04-875-8355';
+  var bizEmail = (s && s.adminEmail) ? s.adminEmail : '';
+  var methodLabel = {paypal:'PayPal', card:'כרטיס אשראי', bank:'העברה בנקאית'}[inv.method] || inv.method || '';
+  var d = inv.date ? new Date(inv.date+'T00:00:00').toLocaleDateString('he-IL') : '';
+
+  return '<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="UTF-8">' +
+  '<title>חשבונית מס ' + inv.num + '</title>' +
+  '<style>' +
+  '*{box-sizing:border-box;margin:0;padding:0}' +
+  'body{font-family:Arial,sans-serif;color:#1a202c;background:#f7fafc;padding:32px;direction:rtl}' +
+  '.page{background:#fff;max-width:720px;margin:0 auto;padding:48px;box-shadow:0 4px 24px rgba(0,0,0,.1);border-radius:12px}' +
+  '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:24px;border-bottom:3px solid #c9922a}' +
+  '.biz-name{font-size:28px;font-weight:900;color:#0a1628;margin-bottom:4px}' +
+  '.biz-detail{font-size:13px;color:#64748b;line-height:1.8}' +
+  '.inv-badge{background:#0a1628;color:#fff;padding:12px 20px;border-radius:10px;text-align:center}' +
+  '.inv-badge-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.6;margin-bottom:4px}' +
+  '.inv-badge-num{font-size:22px;font-weight:900;color:#e8b84b}' +
+  '.inv-badge-date{font-size:12px;opacity:.7;margin-top:4px}' +
+  '.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#94a3b8;margin-bottom:8px}' +
+  '.client-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 20px;margin-bottom:32px}' +
+  '.client-name{font-size:18px;font-weight:700;color:#0a1628;margin-bottom:4px}' +
+  '.client-email{font-size:13px;color:#64748b}' +
+  'table{width:100%;border-collapse:collapse;margin-bottom:0}' +
+  'thead th{background:#0a1628;color:#fff;padding:11px 16px;font-size:12px;font-weight:700;text-align:right;letter-spacing:.4px}' +
+  'tbody td{padding:13px 16px;border-bottom:1px solid #f1f5f9;font-size:14px;vertical-align:middle}' +
+  'tbody tr:last-child td{border-bottom:none}' +
+  '.totals{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px 24px;margin-top:24px}' +
+  '.total-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;color:#475569}' +
+  '.total-row.grand{border-top:2px solid #0a1628;margin-top:10px;padding-top:14px;font-size:18px;font-weight:900;color:#0a1628}' +
+  '.total-row.grand span:last-child{color:#c9922a}' +
+  '.badge{display:inline-flex;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#dcf4e8;color:#1a7a4a}' +
+  '.footer{margin-top:40px;padding-top:20px;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#94a3b8;line-height:1.8}' +
+  '.stamp{display:inline-block;border:2px solid #c9922a;color:#c9922a;padding:6px 18px;border-radius:50px;font-size:13px;font-weight:700;margin-bottom:16px;transform:rotate(-3deg)}' +
+  '@media print{body{padding:0;background:#fff}.page{box-shadow:none;border-radius:0;padding:32px}button{display:none}}' +
+  '</style></head><body>' +
+  '<div class="page">' +
+  '<div class="header">' +
+  '<div><div class="biz-name">' + bizName + '</div>' +
+  '<div class="biz-detail">' +
+  (vatNum ? 'עוסק מורשה: ' + vatNum + '<br>' : '') +
+  (bizAddr ? bizAddr + '<br>' : '') +
+  (bizPhone ? 'טל׳: ' + bizPhone + ' | פקס: ' + bizFax + '<br>' : '') +
+  (bizEmail ? bizEmail : '') +
+  '28 HaNevi\'im St., Haifa 3310407 | Tel: +972-4-875-8355' +
+  '</div></div>' +
+  '<div class="inv-badge">' +
+  '<div class="inv-badge-title">חשבונית מס</div>' +
+  '<div class="inv-badge-num">' + inv.num + '</div>' +
+  '<div class="inv-badge-date">תאריך: ' + d + '</div>' +
+  '</div></div>' +
+
+  '<div class="section-title">פרטי לקוח</div>' +
+  '<div class="client-box"><div class="client-name">' + (inv.name||'') + '</div>' +
+  '<div class="client-email">' + (inv.email||'') + '</div></div>' +
+
+  '<div class="section-title">פירוט שירות</div>' +
+  '<table><thead><tr><th>תיאור</th><th>אמצעי תשלום</th><th>מחיר לפני מע"מ</th><th>מע"מ 18%</th><th>סה"כ</th></tr></thead>' +
+  '<tbody><tr>' +
+  '<td><strong>מנוי LexTime</strong><br><span style="font-size:12px;color:#64748b">מסלול ' + (inv.plan||'') + ' — חיוב חודשי</span></td>' +
+  '<td><span class="badge">' + methodLabel + '</span></td>' +
+  '<td style="font-weight:600">₪' + (inv.beforeVat||0).toFixed(2) + '</td>' +
+  '<td style="color:#64748b">₪' + (inv.vat||0).toFixed(2) + '</td>' +
+  '<td style="font-weight:700">₪' + (inv.total||0) + '</td>' +
+  '</tr></tbody></table>' +
+
+  '<div class="totals">' +
+  '<div class="total-row"><span>מחיר לפני מע"מ</span><span>₪' + (inv.beforeVat||0).toFixed(2) + '</span></div>' +
+  '<div class="total-row"><span>מע"מ (18%)</span><span>₪' + (inv.vat||0).toFixed(2) + '</span></div>' +
+  '<div class="total-row grand"><span>סה"כ לתשלום</span><span>₪' + (inv.total||0) + '</span></div>' +
+  '</div>' +
+
+  '<div class="footer">' +
+  '<div class="stamp">שולם ✓</div><br>' +
+  bizName + (vatNum ? ' | ע.מ. ' + vatNum : '') + '<br>' +
+  'חשבונית זו מהווה מסמך חשבונאי לצרכי מס בהתאם לחוק מע"מ, תשל"ו-1975' +
+  '</div>' +
+  '<div style="text-align:center;margin-top:24px">' +
+  '<button onclick="window.print()" style="background:#c9922a;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:Arial">🖨️ הדפס / שמור PDF</button>' +
+  '</div>' +
+  '</div></body></html>';
 }
 
 /* ═══ MODAL & TOAST ═══ */
