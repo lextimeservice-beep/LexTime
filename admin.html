@@ -2379,6 +2379,19 @@ function closeModal(id){document.getElementById(id).classList.add('hidden');}
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);}
 
 /* ═══ EDIT INVOICE ═══ */
+function recalcEditInvTotal(){
+  var before  = parseFloat(document.getElementById('editInvBeforeVat').value) || 0;
+  var vatRate = parseFloat(document.getElementById('editInvVatRate').value)   || 0;
+  var total   = parseFloat((before * (1 + vatRate/100)).toFixed(2));
+  document.getElementById('editInvTotal').value = before ? total : '';
+}
+function recalcEditInvFromTotal(){
+  var total   = parseFloat(document.getElementById('editInvTotal').value)   || 0;
+  var vatRate = parseFloat(document.getElementById('editInvVatRate').value) || 0;
+  var before  = parseFloat((total / (1 + vatRate/100)).toFixed(2));
+  document.getElementById('editInvBeforeVat').value = total ? before : '';
+}
+
 function openEditInvoice(key){
   var inv = (_cache.invoices||[]).find(function(i){ return i._key===key; });
   if(!inv){ toast('❌ חשבונית לא נמצאה'); return; }
@@ -2386,8 +2399,11 @@ function openEditInvoice(key){
   document.getElementById('editInvNum').textContent = inv.num || '—';
   document.getElementById('editInvName').value   = inv.name  || '';
   document.getElementById('editInvEmail').value  = inv.email || '';
-  document.getElementById('editInvDate').value   = inv.date  || '';
-  document.getElementById('editInvTotal').value  = inv.total || '';
+  document.getElementById('editInvDate').value       = inv.date  || '';
+  var vr = inv.vatRate != null ? inv.vatRate : 18;
+  document.getElementById('editInvVatRate').value    = vr;
+  document.getElementById('editInvBeforeVat').value  = inv.beforeVat != null ? inv.beforeVat : '';
+  document.getElementById('editInvTotal').value      = inv.total || '';
   document.getElementById('editInvPlan').value   = inv.plan  || '';
   document.getElementById('editInvMethod').value = inv.method|| '';
   document.getElementById('editInvNotes').value  = inv.notes || '';
@@ -2399,10 +2415,10 @@ async function saveEditInvoice(){
   var inv    = (_cache.invoices||[]).find(function(i){ return i._key===key; });
   if(!inv){ toast('❌ שגיאה'); return; }
 
-  var total  = parseFloat(document.getElementById('editInvTotal').value) || 0;
-  var vatRate= 0.18;
-  var beforeVat = parseFloat((total / (1 + vatRate)).toFixed(2));
-  var vat       = parseFloat((total - beforeVat).toFixed(2));
+  var beforeVat = parseFloat(document.getElementById('editInvBeforeVat').value) || 0;
+  var vatRate   = parseFloat(document.getElementById('editInvVatRate').value) || 0;
+  var vat       = parseFloat((beforeVat * vatRate / 100).toFixed(2));
+  var total     = parseFloat((beforeVat + vat).toFixed(2));
 
   var updated = Object.assign({}, inv, {
     name     : document.getElementById('editInvName').value.trim(),
@@ -2411,6 +2427,7 @@ async function saveEditInvoice(){
     total    : total,
     beforeVat: beforeVat,
     vat      : vat,
+    vatRate  : vatRate,
     plan     : document.getElementById('editInvPlan').value,
     method   : document.getElementById('editInvMethod').value,
     notes    : document.getElementById('editInvNotes').value.trim(),
@@ -2454,8 +2471,13 @@ async function cancelInvoice(key){
       </div>
       <div class="fgrid">
         <div class="fg"><label class="fl">תאריך חשבונית</label><input class="fi" id="editInvDate" type="date"></div>
-        <div class="fg"><label class="fl">סכום כולל מע״מ (₪)</label><input class="fi" id="editInvTotal" type="number" min="0" step="0.01" placeholder="0.00"></div>
+        <div class="fg"><label class="fl">שיעור מע״מ (%)</label><input class="fi" id="editInvVatRate" type="number" min="0" max="100" step="0.1" placeholder="18" oninput="recalcEditInvTotal()"></div>
       </div>
+      <div class="fgrid">
+        <div class="fg"><label class="fl">סכום לפני מע״מ (₪)</label><input class="fi" id="editInvBeforeVat" type="number" min="0" step="0.01" placeholder="0.00" oninput="recalcEditInvTotal()"></div>
+        <div class="fg"><label class="fl">סה״כ כולל מע״מ (₪)</label><input class="fi" id="editInvTotal" type="number" min="0" step="0.01" placeholder="0.00" oninput="recalcEditInvFromTotal()" style="background:var(--bg-alt,#f8fafc)"></div>
+      </div>
+      <div style="font-size:11px;color:var(--gray);padding:2px 2px">↑ שינוי בכל אחד מהשדות יעדכן את האחר אוטומטית</div>
       <div class="fgrid">
         <div class="fg"><label class="fl">מסלול</label>
           <select class="fi" id="editInvPlan">
@@ -2473,7 +2495,7 @@ async function cancelInvoice(key){
         </div>
       </div>
       <div class="fg"><label class="fl">הערות (לשימוש פנימי)</label><input class="fi" id="editInvNotes" placeholder="הערה אופציונלית..."></div>
-      <div style="font-size:12px;color:var(--gray);background:var(--bg);padding:10px 14px;border-radius:8px">💡 מע״מ יחושב מחדש אוטומטית (18%) על בסיס הסכום הכולל שהזנת.</div>
+
     </div>
     <div class="mf">
       <button class="btn btn-gh" onclick="closeModal('modalEditInv')">ביטול</button>
