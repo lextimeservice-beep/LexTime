@@ -656,7 +656,6 @@ tr:hover td{background:#fafbfc}
                 <option value="cancelled">מבוטלות</option>
               </select>
               <button class="btn btn-gh btn-sm" onclick="loadInvoices()">🔄 רענן</button>
-              <button class="btn btn-sm" onclick="devResetInvoices()" style="background:#fef3c7;color:#92400e;border:1px solid #f59e0b;font-size:11px">🧪 אפס בדיקה</button>
               <button class="btn btn-blue btn-sm" onclick="createMonthlyInvoices()" style="background:var(--blue);color:#fff">📊 צור חשבוניות חודשיות</button>
               <button class="btn btn-gold btn-sm" onclick="sendAllPendingInvoices()">📤 שלח את כולן</button>
             </div>
@@ -2455,19 +2454,6 @@ async function saveEditInvoice(){
 }
 
 /* ═══ CREDIT NOTE ═══ */
-async function devResetInvoices(){
-  if(!confirm('למחוק את כל החשבוניות והמונים לצורך בדיקה?')) return;
-  try{
-    await _fbPut('/invoices', null);
-    await _fbPut('/invoice_counter', null);
-    await _fbPut('/credit_counter', null);
-    _cache.invoices = [];
-    _updateInvoiceBadge();
-    renderInvoices();
-    toast('🧪 אופס — מוכן לבדיקה חדשה');
-  }catch(e){ toast('❌ שגיאה: '+e.message); }
-}
-
 async function _nextCreditNum(){
   var counter = await _fbGet('/credit_counter');
   var next = (counter && counter.value ? counter.value : 0) + 1;
