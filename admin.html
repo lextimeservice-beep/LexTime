@@ -1936,6 +1936,7 @@ function renderTrials(){
       actions += '<button class="btn btn-green btn-sm" onclick="convertTrialToSub(\''+t.email+'\',\''+t.name+'\')">🚀 הפוך למנוי</button>';
     }
     actions += '<button class="btn btn-gh btn-sm" onclick="mailTrial(\''+t.email+'\',\''+t.name+'\')">✉️ שלח מייל</button>';
+    actions += '<button class="btn btn-sm" style="background:#ede9fe;color:#5b21b6;border:none;cursor:pointer" onclick="resetTrialPassword(\''+t.email+'\',\''+t.name+'\')">🔑 אפס סיסמה</button>';
     actions += '</div>';
 
     return '<tr>'
@@ -1951,6 +1952,68 @@ function renderTrials(){
 
   var cnt=document.getElementById('trialsCount');
   if(cnt)cnt.textContent='מוצגים '+trials.length+' ניסיונות מתוך '+_cache.trials.length;
+}
+
+async function resetTrialPassword(email, name){
+  if(!confirm('לאפס סיסמה למשתמש ניסיון ' + email + '?')) return;
+  var key = _emailKeyAdmin(email);
+  toast('🔄 מתחבר ל-Firebase...');
+  try{
+    /* בדיקת credentials קיימים */
+    var r = await fetch(DB_URL+'/credentials/'+key+'.json?auth='+DB_SECRET);
+    var existing = await r.json();
+    var updated;
+    if(existing && existing.passHash && existing.passHash !== 'RESET_REQUIRED'){
+      updated = Object.assign({}, existing, {status:'active', name: name || existing.name || ''});
+    } else {
+      updated = { email: email.toLowerCase(), name: name || '', status: 'active', passHash: 'RESET_REQUIRED' };
+    }
+    var putR = await fetch(DB_URL+'/credentials/'+key+'.json?auth='+DB_SECRET,{
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(updated)
+    });
+    if(!putR.ok) throw new Error('PUT failed');
+
+    /* יצירת קוד איפוס */
+    var resetCode = Math.floor(100000+Math.random()*900000).toString();
+    var resetData = {email: email.toLowerCase(), code: resetCode, exp: Date.now()+3600000};
+    await fetch(DB_URL+'/reset_codes/'+key+'.json?auth='+DB_SECRET,{
+      method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify(resetData)
+    });
+
+    /* שליחת מייל */
+    var subject = encodeURIComponent('LexTime — קוד איפוס סיסמה שלך 🔑');
+    var lines = [
+      'שלום ' + (name||'') + ',',
+      '',
+      'תיקנו את הגישה שלך למערכת LexTime.',
+      '',
+      '━━━━━━━━━━━━━━━━━━',
+      'קוד האיפוס שלך: ' + resetCode,
+      '(תקף לשעה אחת)',
+      '━━━━━━━━━━━━━━━━━━',
+      '',
+      'כיצד לאפס סיסמה:',
+      '',
+      '1. היכנס לאתר: https://www.lextime.co.il',
+      '2. לחץ "כניסת עורכי דין"',
+      '3. לחץ "שכחתי סיסמה"',
+      '4. הזן את המייל שלך: ' + email,
+      '5. לחץ "שלח קוד לאיפוס"',
+      '6. הזן את הקוד: ' + resetCode,
+      '7. הזן סיסמה חדשה ולחץ "אפס סיסמה ✓"',
+      '',
+      'אם הקוד פג תוקף — ענה למייל זה ונשלח קוד חדש.',
+      '',
+      'בברכה,',
+      'צוות LexTime'
+    ];
+    var body = encodeURIComponent(lines.join('\n'));
+    window.open('mailto:' + email + '?subject=' + subject + '&body=' + body);
+    toast('✅ קוד איפוס נוצר ונשלח למשתמש הניסיון!');
+  }catch(e){
+    console.error('resetTrialPassword error:', e);
+    toast('❌ שגיאת חיבור ל-Firebase. נסה שוב.');
+  }
 }
 
 async function revokeTrial(email){
