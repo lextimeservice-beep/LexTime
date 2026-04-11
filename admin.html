@@ -2126,11 +2126,14 @@ function renderInvoices(){
   var methodLabels = {paypal:'PayPal', card:'כ. אשראי', bank:'העברה בנקאית'};
   tb.innerHTML = invs.map(function(inv){
     var isCancelled = inv.status === 'cancelled';
-    var sBadge = isCancelled
-      ? '<span class="badge" style="background:#fee2e2;color:#b91c1c">מבוטלת 🚫</span>'
-      : inv.status==='sent'
-        ? '<span class="badge badge-green">נשלחה ✅</span>'
-        : '<span class="badge badge-amber">ממתינה 📤</span>';
+    var isCreditNote = inv.type === 'credit_note';
+    var sBadge = isCreditNote
+      ? '<span class="badge" style="background:#ede9fe;color:#5b21b6">זיכוי 🔄</span>'
+      : isCancelled
+        ? '<span class="badge" style="background:#fee2e2;color:#b91c1c">מבוטלת 🚫</span>'
+        : inv.status==='sent'
+          ? '<span class="badge badge-green">נשלחה ✅</span>'
+          : '<span class="badge badge-amber">ממתינה 📤</span>';
     var d = inv.date ? new Date(inv.date+'T00:00:00').toLocaleDateString('he-IL') : '—';
     var actions = '<div class="row-actions">';
     if(!isCancelled){
@@ -2140,11 +2143,11 @@ function renderInvoices(){
       actions += '<button class="btn btn-gh btn-sm" onclick="openEditInvoice(\''+inv._key+'\')">✏️ ערוך</button>';
       actions += '<button class="btn btn-sm" style="background:#fee2e2;color:#b91c1c;border:none;cursor:pointer" onclick="cancelInvoice(\''+inv._key+'\')">❌ בטל</button>';
     }
-    actions += '<button class="btn btn-gh btn-sm" onclick="previewInvoice(\''+inv._key+'\')">👁 צפה</button>';
+    actions += isCreditNote ? '<button class="btn btn-gh btn-sm" onclick="previewCreditNote(\''+inv._key+'\')">👁 צפה</button>' : '<button class="btn btn-gh btn-sm" onclick="previewInvoice(\''+inv._key+'\')">👁 צפה</button>';
     actions += '</div>';
-    var rowStyle = isCancelled ? ' style="opacity:0.45;text-decoration:line-through"' : '';
+    var rowStyle = isCancelled ? ' style="opacity:0.45;text-decoration:line-through"' : isCreditNote ? ' style="background:rgba(139,92,246,0.05)"' : '';
     return '<tr'+rowStyle+'>'
-      +'<td style="font-family:monospace;font-weight:700;color:var(--gold)">'+(inv.num||'—')+'</td>'
+      +'<td style="font-family:monospace;font-weight:700;color:'+(isCreditNote?'#7c3aed':'var(--gold)')+'">'+(inv.num||'—')+'</td>'
       +'<td style="white-space:nowrap;color:var(--gray)">'+d+'</td>'
       +'<td><strong>'+(inv.name||'—')+'</strong><br><span style="font-size:11px;color:var(--gray-l)">'+(inv.email||'')+'</span></td>'
       +'<td>'+planBadge(inv.plan)+'</td>'
@@ -2268,7 +2271,7 @@ function _openInvoiceMailto(inv, s){
   var subject = encodeURIComponent('חשבונית מס ' + inv.num + ' — ' + bizName);
   var body = encodeURIComponent(
     'שלום ' + (inv.name||'') + ',\n\n' +
-    'מצורפת חשבונית המס עבור המנוי שלך.\n\n' +
+    'להלן פרטי חשבונית המס עבור המנוי שלך.\n\n' +
     '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
     'חשבונית מס מספר: ' + inv.num + '\n' +
     'תאריך: ' + d + '\n' +
@@ -2441,6 +2444,175 @@ async function saveEditInvoice(){
     renderInvoices();
     toast('✅ החשבונית עודכנה בהצלחה');
   }catch(e){ toast('❌ שגיאת שמירה: '+e.message); }
+}
+
+/* ═══ CREDIT NOTE ═══ */
+async function _nextCreditNum(){
+  var counter = await _fbGet('/credit_counter');
+  var next = (counter && counter.value ? counter.value : 0) + 1;
+  var year = new Date().getFullYear();
+  await _fbPut('/credit_counter', {value: next, updatedAt: new Date().toISOString()});
+  return 'ZIK-' + year + '-' + String(next).padStart(4,'0');
+}
+
+async function createCreditNote(key){
+  var inv = (_cache.invoices||[]).find(function(i){ return i._key===key; });
+  if(!inv){ toast('❌ חשבונית לא נמצאה'); return; }
+  if((_cache.invoices||[]).find(function(i){ return i.type==='credit_note' && i.originalInvKey===key; })){
+    toast('⚠️ כבר קיימת הודעת זיכוי לחשבונית זו'); return;
+  }
+  if(!confirm('ליצור הודעת זיכוי עבור חשבונית ' + inv.num + '?\n\nהזיכוי יקזז את החשבונית המקורית לצורכי דיווח מעִ׳מ.')) return;
+  try{
+    var num = await _nextCreditNum();
+    var credit = {
+      type:         'credit_note',
+      num:          num,
+      date:         new Date().toISOString().slice(0,10),
+      name:         inv.name,
+      email:        inv.email,
+      plan:         inv.plan,
+      beforeVat:    -Math.abs(inv.beforeVat||0),
+      vat:          -Math.abs(inv.vat||0),
+      total:        -Math.abs(inv.total||0),
+      method:       inv.method,
+      status:       'pending_send',
+      originalInvKey: key,
+      originalInvNum: inv.num,
+      createdAt:    new Date().toISOString()
+    };
+    var ckey = 'credit_' + Date.now() + '_' + Math.random().toString(36).slice(2,5);
+    await _fbPut('/invoices/'+ckey, credit);
+    _cache.invoices.push(Object.assign({_key:ckey}, credit));
+    /* סמן חשבונית מקורית כמבוטלת */
+    var updOrig = Object.assign({}, inv, {status:'cancelled', cancelledAt: new Date().toISOString(), creditNoteKey: ckey});
+    await _fbPut('/invoices/'+key, updOrig);
+    _cache.invoices = _cache.invoices.map(function(i){ return i._key===key ? Object.assign({},i,{status:'cancelled'}) : i; });
+    _updateInvoiceBadge();
+    renderInvoices();
+    toast('✅ הודעת זיכוי ' + num + ' נוצרה — שלח ללקוח');
+  }catch(e){ toast('❌ שגיאה: '+e.message); }
+}
+
+async function sendCreditNote(key){
+  var cr = (_cache.invoices||[]).find(function(i){ return i._key===key; });
+  if(!cr){ toast('❌ לא נמצא'); return; }
+  var s = loadSettings();
+  var bizName = (s && s.bizName) ? s.bizName : 'LexTime';
+  var d = cr.date ? new Date(cr.date+'T00:00:00').toLocaleDateString('he-IL') : '';
+  var subject = encodeURIComponent('הודעת זיכוי ' + cr.num + ' — ' + bizName);
+  var lines = [
+    'שלום ' + (cr.name||'') + ',',
+    '',
+    'להלן פרטי הודעת הזיכוי עבור ביטול חשבונית ' + (cr.originalInvNum||'') + '.',
+    '',
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    'הודעת זיכוי מספר: ' + cr.num,
+    'תאריך: ' + d,
+    'מתייחס לחשבונית: ' + (cr.originalInvNum||''),
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    'סכום לפני מעִ׳מ:  ₪' + Math.abs(cr.beforeVat||0).toFixed(2) + ' (זיכוי)',
+    'מעִ׳מ:             ₪' + Math.abs(cr.vat||0).toFixed(2) + ' (זיכוי)',
+    'סה׳כ זיכוי:      ₪' + Math.abs(cr.total||0),
+    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    '',
+    'לשאלות — ענה למייל זה.',
+    '',
+    'בברכה,',
+    'צוות ' + bizName
+  ];
+  var body = encodeURIComponent(lines.join('\n'));
+  window.open('mailto:' + cr.email + '?subject=' + subject + '&body=' + body);
+  var updated = Object.assign({}, cr, {status:'sent', sentAt: new Date().toISOString()});
+  await _fbPut('/invoices/'+key, updated).catch(function(){});
+  _cache.invoices = _cache.invoices.map(function(i){ return i._key===key ? Object.assign({},i,{status:'sent'}) : i; });
+  renderInvoices();
+  toast('✅ הודעת הזיכוי נשלחה');
+}
+
+function previewCreditNote(key){
+  var cr = (_cache.invoices||[]).find(function(i){ return i._key===key; });
+  if(!cr){ toast('❌ לא נמצא'); return; }
+  var s = loadSettings();
+  var w = window.open('','_blank','width=800,height=900');
+  w.document.write(generateCreditNoteHTML(cr, s));
+  w.document.close();
+}
+
+function generateCreditNoteHTML(cr, s){
+  var bizName  = (s && s.bizName)  ? s.bizName  : 'LexTime';
+  var bizFax   = (s && s.bizFax)   ? s.bizFax   : '';
+  var vatNum   = (s && s.vatNum)   ? s.vatNum   : '';
+  var bizAddr  = (s && s.bizAddr)  ? s.bizAddr  : '';
+  var bizPhone = (s && s.bizPhone) ? s.bizPhone : '';
+  var bizEmail = (s && s.adminEmail) ? s.adminEmail : '';
+  var d = cr.date ? new Date(cr.date+'T00:00:00').toLocaleDateString('he-IL') : '';
+  var absBeforeVat = Math.abs(cr.beforeVat||0).toFixed(2);
+  var absVat       = Math.abs(cr.vat||0).toFixed(2);
+  var absTotal     = Math.abs(cr.total||0);
+  return '<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="UTF-8">'+
+  '<title>הודעת זיכוי ' + cr.num + '</title>'+
+  '<style>*{box-sizing:border-box;margin:0;padding:0}'+
+  'body{font-family:Arial,sans-serif;color:#1a202c;background:#f7fafc;padding:32px;direction:rtl}'+
+  '.page{background:#fff;max-width:720px;margin:0 auto;padding:48px;box-shadow:0 4px 24px rgba(0,0,0,.1);border-radius:12px}'+
+  '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:24px;border-bottom:3px solid #7c3aed}'+
+  '.biz-name{font-size:28px;font-weight:900;color:#0a1628;margin-bottom:4px}'+
+  '.biz-detail{font-size:13px;color:#64748b;line-height:1.8}'+
+  '.inv-badge{background:#5b21b6;color:#fff;padding:12px 20px;border-radius:10px;text-align:center}'+
+  '.inv-badge-title{font-size:11px;letter-spacing:1px;opacity:.7;margin-bottom:4px}'+
+  '.inv-badge-num{font-size:22px;font-weight:900;color:#ddd6fe}'+
+  '.inv-badge-date{font-size:12px;opacity:.7;margin-top:4px}'+
+  '.ref-box{background:#faf5ff;border:1px solid #ddd6fe;border-radius:8px;padding:10px 16px;margin-bottom:24px;font-size:13px;color:#5b21b6}'+
+  '.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#94a3b8;margin-bottom:8px}'+
+  '.client-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 20px;margin-bottom:32px}'+
+  '.client-name{font-size:18px;font-weight:700;color:#0a1628;margin-bottom:4px}'+
+  '.client-email{font-size:13px;color:#64748b}'+
+  'table{width:100%;border-collapse:collapse;margin-bottom:0}'+
+  'thead th{background:#5b21b6;color:#fff;padding:11px 16px;font-size:12px;font-weight:700;text-align:right}'+
+  'tbody td{padding:13px 16px;border-bottom:1px solid #f1f5f9;font-size:14px}'+
+  '.totals{background:#faf5ff;border:1px solid #ddd6fe;border-radius:8px;padding:20px 24px;margin-top:24px}'+
+  '.total-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;color:#475569}'+
+  '.total-row.grand{border-top:2px solid #5b21b6;margin-top:10px;padding-top:14px;font-size:18px;font-weight:900;color:#0a1628}'+
+  '.total-row.grand span:last-child{color:#7c3aed}'+
+  '.footer{margin-top:40px;padding-top:20px;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#94a3b8;line-height:1.8}'+
+  '@media print{body{padding:0;background:#fff}.page{box-shadow:none;padding:32px}button{display:none}}'+
+  '</style></head><body>'+
+  '<div class="page">'+
+  '<div class="header">'+
+  '<div><div class="biz-name">' + bizName + '</div>'+
+  '<div class="biz-detail">'+
+  (vatNum ? 'עוסק מורשה: ' + vatNum + '<br>' : '')+
+  (bizAddr ? bizAddr + '<br>' : '')+
+  (bizPhone ? 'טל׳: ' + bizPhone + (bizFax ? ' | פקס: ' + bizFax : '') + '<br>' : '')+
+  (bizEmail ? bizEmail : '')+
+  '</div></div>'+
+  '<div class="inv-badge"><div class="inv-badge-title">הודעת זיכוי</div>'+
+  '<div class="inv-badge-num">' + cr.num + '</div>'+
+  '<div class="inv-badge-date">תאריך: ' + d + '</div></div></div>'+
+  '<div class="ref-box">🔗 מתייחס לחשבונית מס מספר: <strong>' + (cr.originalInvNum||'') + '</strong></div>'+
+  '<div class="section-title">פרטי לקוח</div>'+
+  '<div class="client-box"><div class="client-name">' + (cr.name||'') + '</div>'+
+  '<div class="client-email">' + (cr.email||'') + '</div></div>'+
+  '<div class="section-title">פירוט זיכוי</div>'+
+  '<table><thead><tr><th>תיאור</th><th>לפני מע״מ</th><th>מע״מ</th><th>סה״כ זיכוי</th></tr></thead>'+
+  '<tbody><tr>'+
+  '<td><strong>ביטול מנוי LexTime</strong><br><span style="font-size:12px;color:#64748b">מסלול ' + (cr.plan||'') + ' — זיכוי מלא</span></td>'+
+  '<td style="color:#7c3aed;font-weight:600">−₪' + absBeforeVat + '</td>'+
+  '<td style="color:#64748b">−₪' + absVat + '</td>'+
+  '<td style="font-weight:700;color:#7c3aed">−₪' + absTotal + '</td>'+
+  '</tr></tbody></table>'+
+  '<div class="totals">'+
+  '<div class="total-row"><span>זיכוי לפני מע״מ</span><span>−₪' + absBeforeVat + '</span></div>'+
+  '<div class="total-row"><span>מע״מ מוחזר</span><span>−₪' + absVat + '</span></div>'+
+  '<div class="total-row grand"><span>סה״כ זיכוי</span><span>−₪' + absTotal + '</span></div>'+
+  '</div>'+
+  '<div class="footer">'+
+  bizName + (vatNum ? ' | ע.מ. ' + vatNum : '') + '<br>'+
+  'מסמך זה מהווה הודעת זיכוי לצורכי מע״מ בהתאם לסעיף 23 לחוק מע״מ, תשל״ו-1975'+
+  '</div>'+
+  '<div style="text-align:center;margin-top:24px">'+
+  '<button onclick="window.print()" style="background:#7c3aed;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:Arial">🖨️ הדפס / שמור PDF</button>'+
+  '</div>'+
+  '</div></body></html>';
 }
 
 /* ═══ CANCEL INVOICE ═══ */
