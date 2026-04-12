@@ -424,7 +424,74 @@ body.a11y-contrast{filter:contrast(1.5) brightness(1.05)}
 body.a11y-links a{text-decoration:underline !important}
 body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{animation-duration:.001s !important;transition-duration:.001s !important}
 #a11y-guide{position:fixed;left:0;width:100%;height:38px;background:rgba(184,134,42,.15);border-top:2px solid rgba(184,134,42,.45);border-bottom:2px solid rgba(184,134,42,.45);pointer-events:none;z-index:9997;display:none}
-</style>
+<script>
+// === פונקציות נגישות ===
+
+function allyOpen() {
+  var panel = document.getElementById('ally-panel');
+  var toggle = document.getElementById('ally-toggle');
+  var isOpen = panel.style.display === 'flex';
+  panel.style.display = isOpen ? 'none' : 'flex';
+  toggle.setAttribute('aria-expanded', !isOpen);
+}
+
+var allyFontSize = 100;
+function allyFont(dir) {
+  if (dir === 0) {
+    allyFontSize = 100;
+  } else {
+    allyFontSize = Math.min(Math.max(allyFontSize + dir * 10, 80), 130);
+  }
+  document.body.style.fontSize = allyFontSize + '%';
+  var el = document.getElementById('ally-fval');
+  if (el) el.textContent = allyFontSize + '%';
+}
+
+function allyContrast() {
+  document.body.classList.toggle('ally-contrast');
+  var btn = document.querySelector('[onclick="allyContrast()"]');
+  if (btn) btn.classList.toggle('active');
+}
+
+function allyLinks() {
+  document.body.classList.toggle('ally-links');
+  var btn = document.querySelector('[onclick="allyLinks()"]');
+  if (btn) btn.classList.toggle('active');
+}
+
+function allyAnim() {
+  document.body.classList.toggle('ally-no-anim');
+  var btn = document.querySelector('[onclick="allyAnim()"]');
+  if (btn) btn.classList.toggle('active');
+}
+
+function allyGuide() {
+  var guide = document.getElementById('ally-guide');
+  if (!guide) return;
+  var isVisible = guide.style.display === 'block';
+  guide.style.display = isVisible ? 'none' : 'block';
+  var btn = document.querySelector('[onclick="allyGuide()"]');
+  if (btn) btn.classList.toggle('active');
+  if (!isVisible) {
+    document.addEventListener('mousemove', function(e) {
+      guide.style.top = e.clientY + 'px';
+    });
+  }
+}
+
+function allyReset() {
+  allyFontSize = 100;
+  document.body.style.fontSize = '100%';
+  document.body.classList.remove('ally-contrast','ally-links','ally-no-anim');
+  var guide = document.getElementById('ally-guide');
+  if (guide) guide.style.display = 'none';
+  var el = document.getElementById('ally-fval');
+  if (el) el.textContent = '100%';
+  document.querySelectorAll('.ally-btn').forEach(function(b) {
+    b.classList.remove('active');
+  });
+}
+</script></style>
 </head>
 <body>
 <!-- ══ סרגל נגישות ══ -->
