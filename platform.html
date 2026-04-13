@@ -261,6 +261,7 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
   text-transform:uppercase;letter-spacing:.5px;white-space:nowrap
 }
 .tt th.col-orig{color:var(--blue);background:var(--blue-ll)}
+.tt th.col-judge{color:#7c3aed;background:#f5f3ff}
 .tt th.col-actual{color:var(--teal);background:var(--teal-ll)}
 .tt td{padding:9px 12px;border-bottom:1px solid var(--gray-ll);vertical-align:middle}
 .tt tr:last-child td{border-bottom:none}
@@ -314,6 +315,8 @@ body{font-family:'Heebo','Arial',sans-serif;background:#f0f4fa;color:#1e293b;fon
 .inp-orig:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(26,79,160,.12)}
 .inp-actual{border-color:var(--teal);color:var(--teal)}
 .inp-actual:focus{border-color:var(--teal);box-shadow:0 0 0 3px rgba(15,118,110,.12)}
+.inp-judge{border-color:#7c3aed;color:#7c3aed}
+.inp-judge:focus{border-color:#7c3aed;box-shadow:0 0 0 3px rgba(124,58,237,.12)}
 
 /* ── CHIPS ── */
 .dc{display:inline-flex;align-items:center;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap}
@@ -465,7 +468,7 @@ body{padding-bottom:46px}
 
   /* Table — horizontal scroll */
   .stage-body{overflow-x:auto;-webkit-overflow-scrolling:touch}
-  .tt{min-width:600px}
+  .tt{min-width:750px}
   .tt th,.tt td{padding:7px 8px;font-size:11px}
   .tdesc{font-size:12px}
   .treg{font-size:10px}
@@ -1428,34 +1431,34 @@ function getOriginalDate(id,c){
 
 /* Cascade: תאריכים בפועל שהוזנו גוברים; חישובים לפי _c (מודע-למצב) */
 function getCascadedChain(c){
-  var a=c.actualDates||{},dd=getDefenseDays(c),s=c.service;
-  var def  = a.t1 || _c(s,dd);
-  var rpl  = a.t2 || _c(def,14);
-  var med  = a.t3 || _c(rpl,45);
-  var disc = a.t4 || _c(rpl,30);
-  var meet = a.t5 || _c(med,30);
-  var req  = a.t6 || _c(rpl,60);
-  var dComp= a.t7 || _c(disc,30);
-  var mRep = a.t8 || _c(meet,14);
+  var a=c.actualDates||{},j=c.judgeDates||{},dd=getDefenseDays(c),s=c.service;
+  var def  = a.t1 || j.t1 || _c(s,dd);
+  var rpl  = a.t2 || j.t2 || _c(def,14);
+  var med  = a.t3 || j.t3 || _c(rpl,45);
+  var disc = a.t4 || j.t4 || _c(rpl,30);
+  var meet = a.t5 || j.t5 || _c(med,30);
+  var req  = a.t6 || j.t6 || _c(rpl,60);
+  var dComp= a.t7 || j.t7 || _c(disc,30);
+  var mRep = a.t8 || j.t8 || _c(meet,14);
   var pt   = c.pretrialActual||c.pretrial||null;
-  var t10  = a.t10|| (pt?_c(pt,-30):null);
-  var t11  = a.t11|| (pt?_c(pt,-20):null);
-  var t12  = a.t12|| (pt?_c(pt,-20):null);
-  var t13  = a.t13|| (pt?_c(pt,-14):null);
-  var t14  = a.t14|| (t11?_c(t11,14):null);
-  var t15  = a.t15|| (t12?_c(t12,14):null);
+  var t10  = a.t10|| j.t10|| (pt?_c(pt,-30):null);
+  var t11  = a.t11|| j.t11|| (pt?_c(pt,-20):null);
+  var t12  = a.t12|| j.t12|| (pt?_c(pt,-20):null);
+  var t13  = a.t13|| j.t13|| (pt?_c(pt,-14):null);
+  var t14  = a.t14|| j.t14|| (t11?_c(t11,14):null);
+  var t15  = a.t15|| j.t15|| (t12?_c(t12,14):null);
   var tr   = c.trialActual||c.trial||null;
-  var t17  = a.t17|| (tr?_c(tr,-30):null);
-  var t18  = a.t18|| (tr?_c(tr,-14):null);
-  var t19  = a.t19|| (tr?_c(tr,-3):null);
-  var t20  = a.t20|| tr;
-  var t23  = a.t23|| (tr?_c(tr,90):null);
+  var t17  = a.t17|| j.t17|| (tr?_c(tr,-30):null);
+  var t18  = a.t18|| j.t18|| (tr?_c(tr,-14):null);
+  var t19  = a.t19|| j.t19|| (tr?_c(tr,-3):null);
+  var t20  = a.t20|| j.t20|| tr;
+  var t23  = a.t23|| j.t23|| (tr?_c(tr,90):null);
   var dc   = c.decisionActual||c.decision||null;
-  var t25  = a.t25|| (dc?_c(dc,30):null);
-  var t26  = a.t26|| (dc?_c(dc,60):null);
-  var t27  = a.t27|| (dc?_c(_c(dc,60),60):null);
+  var t25  = a.t25|| j.t25|| (dc?_c(dc,30):null);
+  var t26  = a.t26|| j.t26|| (dc?_c(dc,60):null);
+  var t27  = a.t27|| j.t27|| (dc?_c(_c(dc,60),60):null);
   var ad   = c.appealDecActual||c.appealDec||null;
-  var t29  = a.t29|| (ad?_c(ad,60):null);
+  var t29  = a.t29|| j.t29|| (ad?_c(ad,60):null);
   return {t1:def,t2:rpl,t3:med,t4:disc,t5:meet,t6:req,t7:dComp,t8:mRep,
           t10:t10,t11:t11,t12:t12,t13:t13,t14:t14,t15:t15,
           t17:t17,t18:t18,t19:t19,t20:t20,t23:t23,
@@ -1508,7 +1511,7 @@ function anchorRowHtml(a,c,isNext){
   var compChip=actualVal&&origVal?comparisonChip(actualVal,origVal):'';
   var regLine=a.reg?'<div class="treg" style="margin-top:4px">'+linkRegs(a.reg)+'</div>':'';
   return '<tr class="'+rowCls+'">'+
-    '<td colspan="6">'+
+    '<td colspan="7">'+
     '<div class="anchor-label" style="flex-wrap:wrap;gap:10px">'+
       '<span class="anchor-tag">מועד</span>'+
       '<span style="font-size:13px;font-weight:700;color:var(--navy-d)">'+linkRegs(a.label)+'</span>'+
@@ -1537,6 +1540,7 @@ function taskRowHtml(t,c,chain,isNext){
     var daysCell=status==='done'?'<span class="dc done-badge">✓ בוצע</span>':'<span class="dc none">—</span>';
     return '<tr class="task-row"'+(trStyle?' style="'+trStyle+'"':'')+'>'+
       '<td style="min-width:220px" colspan="3"><div class="tdesc">'+linkRegs(t.desc)+'</div><div class="treg">'+linkRegs(t.reg)+'</div></td>'+
+      '<td></td>'+
       '<td style="min-width:150px">'+effCell+'</td>'+
       '<td>'+daysCell+'</td>'+
       '<td><select class="ss" onchange="setStatus(\''+t.id+'\',this.value)">'+selOpts+'</select></td>'+
@@ -1591,10 +1595,14 @@ function taskRowHtml(t,c,chain,isNext){
   var rowClass='task-row'+(isNext?' next-task':'')+((status==='urgent'||status==='no_response')?' urgent-row':'');
   var nextBadge=isNext?'<span class="next-badge">▶ מטלה הבאה</span>':'';
   var trStyle=(status==='urgent'||status==='no_response')?'background:#fca5a5;border-right:4px solid #dc2626':(!isNext&&rowBg?rowBg:'');
+  var judgeVal=toInput((c.judgeDates||{})[t.id]||'');
+  var judgeTd='<input type="date" class="date-input inp-judge" value="'+judgeVal+'" '+
+    'onchange="setJudgeDate(\''+t.id+'\',this.value)" placeholder="תאריך ע״פ שופט" title="מועד שקבע השופט — ישפיע על כל המועדים הבאים">';
   return '<tr class="'+rowClass+'"'+(trStyle?' style="'+trStyle+'"':'')+'>'+
     '<td style="min-width:220px"><div class="tdesc">'+nextBadge+descHtml+'</div><div class="treg">'+regHtml+'</div>'+urgentAlert+'</td>'+
     '<td style="white-space:nowrap;font-size:11px;color:var(--gray-l)">'+getOffsetLabel(t.id,c)+'</td>'+
     '<td>'+origCell+'</td>'+
+    '<td style="min-width:140px">'+judgeTd+'</td>'+
     '<td style="min-width:150px">'+effCell+'</td>'+
     '<td>'+(status==='done'?'<span class="dc done-badge">✓ בוצע</span>':(actualDate?comparisonChip(actualDate,origDate):daysChip(rem)))+'</td>'+
     '<td><select class="ss" onchange="setStatus(\''+t.id+'\',this.value)">'+selOpts+'</select></td>'+
@@ -1708,6 +1716,7 @@ function renderStages(){
       '<th style="min-width:220px">מטלות לביצוע על פי ציר הזמנים</th>'+
       '<th>ימים</th>'+
       '<th class="col-orig">מועד מקורי להגשה <span style="font-weight:400;opacity:.7">'+(recessMode==='without'?'(ללא פגרות)':'(כולל פגרות)')+'</span></th>'+
+      '<th class="col-judge">מועד תלוי החלטות שופט</th>'+
       '<th class="col-actual">מועד ביצוע בפועל</th>'+
       '<th>ימים נותרו</th>'+
       '<th>סטטוס</th>'+
@@ -1722,10 +1731,11 @@ function renderStages(){
     '<span class="stog">▼</span></div>'+
     '<div class="stage-body"><table class="tt"><thead><tr>'+
     '<th colspan="2">מועד פסק הדין הסופי</th>'+
-    '<th class="col-orig">מועד מקורי</th><th class="col-actual">מועד בפועל</th>'+
+    '<th class="col-orig">מועד מקורי</th><th class="col-judge">מועד תלוי החלטות שופט</th><th class="col-actual">מועד בפועל</th>'+
     '<th></th><th></th></tr></thead><tbody>'+
     '<tr class="anchor-row"><td colspan="2"><div class="anchor-label"><span class="anchor-tag">סיום</span>פסק דין סופי</div></td>'+
     '<td><input type="date" class="date-input inp-orig" value="'+toInput(c.verdict)+'" onchange="updateAnchor(\'verdict\',this.value)"></td>'+
+    '<td></td>'+
     '<td><input type="date" class="date-input inp-actual" value="'+toInput(c.verdictActual||'')+'" onchange="updateAnchor(\'verdictActual\',this.value)" placeholder="מועד בפועל"></td>'+
     '<td></td><td></td></tr></tbody></table></div></div>';
 
@@ -1899,6 +1909,12 @@ function setActual(tid,v){
   autoSave(c);renderStages();renderStats();
 }
 
+function setJudgeDate(tid,v){
+  var c=cur();if(!c.judgeDates)c.judgeDates={};
+  c.judgeDates[tid]=v||'';
+  autoSave(c);renderStages();renderStats();
+}
+
 function updateAnchor(key,v){var c=cur();c[key]=v||'';autoSave(c);renderStages();renderStats();}
 
 function switchCase(id){curId=id;saveCurrentId(curId);renderAll();}
@@ -1939,7 +1955,7 @@ function createCase(){
     trial:'',trialActual:'',decision:'',decisionActual:'',
     appealDec:'',appealDecActual:'',appealHr:'',appealHrActual:'',
     verdict:'',verdictActual:'',
-    statuses:defaultStatuses(),actualDates:{}
+    statuses:defaultStatuses(),actualDates:{},judgeDates:{}
   };
   cases.push(nc);curId=nc.id;
   autoSave(nc);saveCurrentId(curId);closeModal('modalNew');
