@@ -1529,10 +1529,9 @@ function appealDecRowHtml(a,c,isNext){
   }
 
   var decDateInput='<input type="date" class="date-input inp-orig" value="'+toInput(decDate)+'" onchange="setAppealDecDate(this.value)" style="width:132px;margin-right:4px" title="יום ההחלטה">';
-  var yesExtra=' '+decDateInput+(computed&&mode==='yes'?' <span style="font-size:12px;color:#1a7a4a;font-weight:700">← '+fmtDate(computed)+'</span>':'');
+  var yesExtra=(computed&&mode==='yes')?' <span style="font-size:12px;color:#1a7a4a;font-weight:700">← '+fmtDate(computed)+'</span>':'';
   var untilInput='<input type="date" class="date-input inp-orig" value="'+(mode==='until'?toInput(c.appealDec||''):'')+'" onchange="setAppealDecUntil(this.value)" style="width:132px;margin-right:4px">';
-  var withinInput=decDateInput
-    +'<input type="number" min="1" max="365" value="'+(c.appealDecDays||'')+'" onchange="setAppealDecDays(this.value)" style="width:64px;padding:4px 6px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center" placeholder="ימים">'
+  var withinInput='<input type="number" min="1" max="365" value="'+(c.appealDecDays||'')+'" onchange="setAppealDecDays(this.value)" style="width:64px;padding:4px 6px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center" placeholder="ימים">'
     +' <span style="font-size:12px;color:#64748b">ימים</span>'
     +(computed&&mode==='within'?' <span style="font-size:12px;color:#1a7a4a;font-weight:700">← '+fmtDate(computed)+'</span>':'');
 
@@ -1542,9 +1541,10 @@ function appealDecRowHtml(a,c,isNext){
       '<span class="anchor-tag">מועד</span>'+
       '<span style="font-size:13px;font-weight:700;color:var(--navy-d)">'+linkRegs(a.label)+'</span>'+
       tip+
+      decDateInput+
     '</div>'+
     '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center">'+
-      radio('yes','כן',mode==='yes'?yesExtra:'')+
+      radio('yes','כן',yesExtra)+
       radio('until','עד',mode==='until'?' '+untilInput:'')+
       radio('within','בתוך',mode==='within'?' '+withinInput:'')+
     '</div>'+
