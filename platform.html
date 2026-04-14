@@ -1331,7 +1331,7 @@ var STAGES=[
   {id:'hearing',name:'הערעור',color:'#5b21b6',
    anchors:[
     {key:'appealHr',actualKey:'appealHrActual',label:'מועד הדיון בערעור',commentKey:null},
-    {key:'appealDec',actualKey:'appealDecActual',label:'החלטה על הגשת תשובה לערעור',commentKey:'appeal_hdr',dateLabel:'עד:'}
+    {key:'appealDec',actualKey:'appealDecActual',label:'החלטה על הגשת תשובה לערעור',commentKey:'appeal_hdr',special:'appealDec'}
    ],
    tasks:[{id:'t29',desc:'תשובה לערעור — תקנה 140(א)(1)',reg:'תקנה 140(א)(1)'}]
   }
@@ -1391,7 +1391,7 @@ function _rawDate(id,c){
     case 't25':return c.decision?addDays(c.decision,30):null;
     case 't26':return c.decision?addDays(c.decision,60):null;
     case 't27':return c.decision?addDays(addDays(c.decision,60),60):null;
-    case 't29':return c.appealDec?addDays(c.appealDec,60):null;
+    case 't29':{var adc=computeAppealDec(c);return adc?addDays(adc,0):null;}
   }
   return null;
 }
@@ -1423,7 +1423,7 @@ function getOriginalDate(id,c){
     case 't25':return c.decision?_c(c.decision,30):null;
     case 't26':return c.decision?_c(c.decision,60):null;
     case 't27':return c.decision?_c(_c(c.decision,60),60):null;
-    case 't29':return c.appealDec?_c(c.appealDec,60):null;
+    case 't29':{var adc2=computeAppealDec(c);return adc2?_c(adc2,0):null;}
   }
   return null;
 }
@@ -1456,8 +1456,8 @@ function getCascadedChain(c){
   var t25  = a.t25|| j.t25|| (dc?_c(dc,30):null);
   var t26  = a.t26|| j.t26|| (dc?_c(dc,60):null);
   var t27  = a.t27|| j.t27|| (dc?_c(_c(dc,60),60):null);
-  var ad   = c.appealDecActual||c.appealDec||null;
-  var t29  = a.t29|| j.t29|| (ad?_c(ad,60):null);
+  var ad   = computeAppealDec(c);
+  var t29  = a.t29|| j.t29|| (ad?_c(ad,0):null);
   return {t1:def,t2:rpl,t3:med,t4:disc,t5:meet,t6:req,t7:dComp,t8:mRep,
           t10:t10,t11:t11,t12:t12,t13:t13,t14:t14,t15:t15,
           t17:t17,t18:t18,t19:t19,t20:t20,t23:t23,
@@ -1502,6 +1502,77 @@ function getOffsetLabel(id,c){
 }
 
 /* ══ ANCHOR ROW ══ */
+function computeAppealDec(c){
+  var mode=c.appealDecMode||'';
+  var decDate=c.appealDecDate||null; // יום ההחלטה (לאפשרות "כן")
+  var hr=c.appealHrActual||c.appealHr||null;
+  if(mode==='yes') return decDate?addDays(decDate,60):null;
+  if(mode==='until') return c.appealDec||null;
+  if(mode==='within'){
+    var d=parseInt(c.appealDecDays||'0');
+    return (decDate&&d>0)?addDays(decDate,d):(hr&&d>0)?addDays(hr,d):null;
+  }
+  return null;
+}
+
+function appealDecRowHtml(a,c,isNext){
+  var tip=a.commentKey?tipHtml(a.commentKey):'';
+  var rowCls='anchor-row'+(isNext?' next-task':'');
+  var mode=c.appealDecMode||'';
+  var decDate=c.appealDecDate||'';
+  var computed=computeAppealDec(c);
+
+  function radio(val,label,extra){
+    var chk=mode===val?'checked':'';
+    return '<label style="display:inline-flex;align-items:center;gap:6px;cursor:pointer;padding:5px 10px;border-radius:6px;border:1.5px solid '+(mode===val?'#1a4fa0':'#cbd5e1')+';background:'+(mode===val?'#eff6ff':'#f8fafc')+';font-size:13px;font-weight:600;color:'+(mode===val?'#1a4fa0':'#64748b')+'">'
+      +'<input type="radio" name="admode_'+c.id+'" value="'+val+'" '+chk+' onchange="setAppealDecMode(\''+val+'\')" style="accent-color:#1a4fa0">'+label+extra+'</label>';
+  }
+
+  var decDateInput='<input type="date" class="date-input inp-orig" value="'+toInput(decDate)+'" onchange="setAppealDecDate(this.value)" style="width:132px;margin-right:4px" title="יום ההחלטה">';
+  var yesExtra=' '+decDateInput+(computed&&mode==='yes'?' <span style="font-size:12px;color:#1a7a4a;font-weight:700">← '+fmtDate(computed)+'</span>':'');
+  var untilInput='<input type="date" class="date-input inp-orig" value="'+(mode==='until'?toInput(c.appealDec||''):'')+'" onchange="setAppealDecUntil(this.value)" style="width:132px;margin-right:4px">';
+  var withinInput=decDateInput
+    +'<input type="number" min="1" max="365" value="'+(c.appealDecDays||'')+'" onchange="setAppealDecDays(this.value)" style="width:64px;padding:4px 6px;border:1.5px solid #cbd5e1;border-radius:6px;font-size:13px;text-align:center" placeholder="ימים">'
+    +' <span style="font-size:12px;color:#64748b">ימים</span>'
+    +(computed&&mode==='within'?' <span style="font-size:12px;color:#1a7a4a;font-weight:700">← '+fmtDate(computed)+'</span>':'');
+
+  return '<tr class="'+rowCls+'">'+
+    '<td colspan="7">'+
+    '<div class="anchor-label" style="flex-wrap:wrap;gap:10px;align-items:center">'+
+      '<span class="anchor-tag">מועד</span>'+
+      '<span style="font-size:13px;font-weight:700;color:var(--navy-d)">'+linkRegs(a.label)+'</span>'+
+      tip+
+    '</div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;align-items:center">'+
+      radio('yes','כן',mode==='yes'?yesExtra:'')+
+      radio('until','עד',mode==='until'?' '+untilInput:'')+
+      radio('within','בתוך',mode==='within'?' '+withinInput:'')+
+    '</div>'+
+    '</td></tr>';
+}
+
+function setAppealDecMode(mode){
+  var c=cur(); c.appealDecMode=mode;
+  autoSave(c);renderStages();renderStats();
+}
+function setAppealDecDate(v){
+  var c=cur(); c.appealDecDate=v||'';
+  var d=parseInt(c.appealDecDays||'0');
+  if(c.appealDecMode==='yes') c.appealDec=v?addDays(v,60):'';
+  if(c.appealDecMode==='within'&&d>0) c.appealDec=v?addDays(v,d):'';
+  autoSave(c); renderStages(); renderStats();
+}
+function setAppealDecUntil(v){
+  var c=cur(); c.appealDec=v||''; autoSave(c); renderStages(); renderStats();
+}
+function setAppealDecDays(v){
+  var c=cur(); c.appealDecDays=v||'';
+  var decDate=c.appealDecDate||null;
+  var d=parseInt(v||'0');
+  c.appealDec=(decDate&&d>0)?addDays(decDate,d):'';
+  autoSave(c); renderStages(); renderStats();
+}
+
 function anchorRowHtml(a,c,isNext){
   var origVal=toInput(c[a.key]),actualVal=toInput(c[a.actualKey]||'');
   var tip=a.commentKey?tipHtml(a.commentKey):'';
@@ -1682,7 +1753,9 @@ function renderStages(){
       stageNextId=st2.id;
       break; // take the FIRST undone one in the list order
     }
-    if(stage.anchors) stage.anchors.forEach(function(a){rows+=anchorRowHtml(a,c,a.key===nextAnchorKey);});
+    if(stage.anchors) stage.anchors.forEach(function(a){
+      rows+=a.special==='appealDec'?appealDecRowHtml(a,c,a.key===nextAnchorKey):anchorRowHtml(a,c,a.key===nextAnchorKey);
+    });
     if(stage.preTaskNote) rows+=taskRowHtml(stage.preTaskNote,c,chain,stage.preTaskNote.id===stageNextId);
     stage.tasks.forEach(function(t){rows+=taskRowHtml(t,c,chain,t.id===stageNextId);});
     if(stage.postAnchors) stage.postAnchors.forEach(function(a){rows+=anchorRowHtml(a,c,a.key===nextAnchorKey);});
@@ -1952,7 +2025,7 @@ function createCase(){
     filing:filing,service:service,
     pretrial:'',pretrialActual:'',pretrialExtra:'',pretrialExtraActual:'',pretrialFinal:'',pretrialFinalActual:'',
     trial:'',trialActual:'',decision:'',decisionActual:'',
-    appealDec:'',appealDecActual:'',appealHr:'',appealHrActual:'',
+    appealDec:'',appealDecActual:'',appealDecMode:'',appealDecDays:'',appealDecDate:'',appealHr:'',appealHrActual:'',
     verdict:'',verdictActual:'',
     statuses:defaultStatuses(),actualDates:{},judgeDates:{}
   };
