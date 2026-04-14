@@ -1329,9 +1329,11 @@ var STAGES=[
    ]
   },
   {id:'hearing',name:'הערעור',color:'#5b21b6',
-   anchors:[{key:'appealDec',actualKey:'appealDecActual',label:'החלטה על הגשת תשובה לערעור',commentKey:'appeal_hdr',dateLabel:'עד:'}],
-   tasks:[{id:'t29',desc:'תשובה לערעור — תקנה 140(א)(1)',reg:'תקנה 140(א)(1)'}],
-   postAnchors:[{key:'appealHr',actualKey:'appealHrActual',label:'מועד הדיון בערעור',commentKey:null}]
+   anchors:[
+    {key:'appealHr',actualKey:'appealHrActual',label:'מועד הדיון בערעור',commentKey:null},
+    {key:'appealDec',actualKey:'appealDecActual',label:'החלטה על הגשת תשובה לערעור',commentKey:'appeal_hdr',dateLabel:'עד:'}
+   ],
+   tasks:[{id:'t29',desc:'תשובה לערעור — תקנה 140(א)(1)',reg:'תקנה 140(א)(1)'}]
   }
 ];
 
