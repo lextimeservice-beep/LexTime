@@ -1328,13 +1328,10 @@ var STAGES=[
     {id:'t27',desc:'משיב לערעור — תקנה 137(ב)',reg:'תקנה 137(ב)'}
    ]
   },
-  {id:'appeal',name:'תשובה לערעור — תקנה 140',color:'#5b21b6',
-   anchors:[{key:'appealDec',actualKey:'appealDecActual',label:'החלטה על הגשת תשובה לערעור',commentKey:'appeal_hdr'}],
-   tasks:[{id:'t29',desc:'תשובה לערעור — תקנה 140(א)(1)',reg:'תקנה 140(א)(1)'}]
-  },
-  {id:'hearing',name:'דיון בערעור',color:'#065f46',
-   anchors:[{key:'appealHr',actualKey:'appealHrActual',label:'דיון בערעור',commentKey:null}],
-   tasks:[]
+  {id:'hearing',name:'הערעור',color:'#5b21b6',
+   anchors:[{key:'appealDec',actualKey:'appealDecActual',label:'החלטה על הגשת תשובה לערעור',commentKey:'appeal_hdr',dateLabel:'עד:'}],
+   tasks:[{id:'t29',desc:'תשובה לערעור — תקנה 140(א)(1)',reg:'תקנה 140(א)(1)'}],
+   postAnchors:[{key:'appealHr',actualKey:'appealHrActual',label:'מועד הדיון בערעור',commentKey:null}]
   }
 ];
 
@@ -1516,7 +1513,7 @@ function anchorRowHtml(a,c,isNext){
       '<span class="anchor-tag">מועד</span>'+
       '<span style="font-size:13px;font-weight:700;color:var(--navy-d)">'+linkRegs(a.label)+'</span>'+
       tip+
-      '<span style="font-size:11px;color:var(--gray-l)">— מועד הדיון:</span>'+
+      '<span style="font-size:11px;color:var(--gray-l)">'+(a.dateLabel ? a.dateLabel : '— מועד הדיון:')+'</span>'+
       '<input type="date" class="date-input inp-orig" value="'+origVal+'" '+
       'onchange="updateAnchor(\''+a.key+'\',this.value)" title="מועד מקורי" style="width:140px">'+
       (compChip?'<span style="margin-right:6px">'+compChip+'</span>':'')+

@@ -1192,53 +1192,9 @@ function toggleMenu(){
         <div class="sreg-title">פרטי תשלום</div>
         <div class="sreg-sub">תשלום מאובטח · <span id="sumPriceSub"></span> לחודש</div>
 
-        <!-- Payment tabs -->
-        <div class="sreg-ptabs">
-          <div class="sreg-ptab active" id="ptab-card" onclick="sregPayTab('card')"><span class="sreg-ptab-icon">💳</span>כרטיס אשראי</div>
-          <div class="sreg-ptab" id="ptab-paypal" onclick="sregPayTab('paypal')"><span class="sreg-ptab-icon">🅿️</span>PayPal</div>
-        </div>
-
-        <!-- Credit Card panel -->
-        <div class="sreg-ppanel active" id="pay-card">
-          <div class="sreg-fg">
-            <label class="sreg-fl">שם בעל הכרטיס *</label>
-            <input class="sreg-fi" id="ccName" type="text" placeholder="ישראל ישראלי">
-            <div class="sreg-fi-err" id="e-ccName">שדה חובה</div>
-          </div>
-          <div class="sreg-fg">
-            <label class="sreg-fl">מספר כרטיס *</label>
-            <div class="sreg-card-wrap">
-              <input class="sreg-fi" id="ccNum" type="text" placeholder="0000 0000 0000 0000" maxlength="19" oninput="sregFmtCard(this)" style="padding-left:44px">
-              <span class="sreg-card-brand" id="ccBrand">💳</span>
-            </div>
-            <div class="sreg-fi-err" id="e-ccNum">מספר כרטיס לא תקין</div>
-          </div>
-          <div class="sreg-fgrid">
-            <div class="sreg-fg">
-              <label class="sreg-fl">תוקף *</label>
-              <input class="sreg-fi" id="ccExp" type="text" placeholder="MM/YY" maxlength="5" oninput="sregFmtExp(this)">
-              <div class="sreg-fi-err" id="e-ccExp">תוקף לא תקין</div>
-            </div>
-            <div class="sreg-fg">
-              <label class="sreg-fl">CVV *</label>
-              <input class="sreg-fi" id="ccCVV" type="text" placeholder="123" maxlength="4">
-              <div class="sreg-fi-err" id="e-ccCVV">CVV לא תקין</div>
-            </div>
-          </div>
-          <div class="sreg-fg">
-            <label class="sreg-fl">סוג חיוב</label>
-            <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(201,146,42,.08);border:1.5px solid rgba(201,146,42,.35);border-radius:8px">
-              <span style="font-size:16px">🔄</span>
-              <div>
-                <div style="font-size:13px;font-weight:700;color:#e8b84b">מנוי חודשי מתחדש</div>
-                <div style="font-size:11px;color:rgba(255,255,255,.45);margin-top:2px">החיוב מתבצע אוטומטית מדי חודש · ניתן לביטול בכל עת</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
+        <!-- PayPal only — credit card tab removed (was forwarding to PayPal anyway) -->
         <!-- PayPal panel -->
-        <div class="sreg-ppanel" id="pay-paypal">
+        <div class="sreg-ppanel active" id="pay-paypal">
           <div style="text-align:center;padding:28px 20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:12px;margin-bottom:14px">
             <div style="font-size:40px;margin-bottom:12px">🅿️</div>
             <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:8px">תשלום דרך PayPal</div>
@@ -1269,8 +1225,7 @@ function toggleMenu(){
         </div>
 
         <div id="payError" style="display:none;background:rgba(185,28,28,.15);border:1px solid rgba(185,28,28,.4);color:#f87171;padding:10px 14px;border-radius:8px;font-size:13px;margin-top:14px"></div>
-        <button class="sreg-btn sreg-btn-gold" id="paySubmitBtn" onclick="submitPayment()" style="margin-top:20px">השלם תשלום ←</button>
-        <button class="sreg-btn sreg-btn-outline" onclick="backToStep1()">← חזרה לפרטים אישיים</button>
+        <button class="sreg-btn sreg-btn-outline" onclick="backToStep1()" style="margin-top:16px">← חזרה לפרטים אישיים</button>
         <div class="sreg-secure">🔒 תשלום מאובטח ומוצפן SSL 256-bit</div>
       </div>
 
@@ -1335,7 +1290,7 @@ function openSignup(plan,price){
   var m=document.getElementById('signupModal');
   m.style.display='block'; document.body.style.overflow='hidden';
   sregShowStep(1);
-  sregPayTab('card');
+  sregPayTab('paypal');
 }
 function closeSignup(){
   document.getElementById('signupModal').style.display='none';
