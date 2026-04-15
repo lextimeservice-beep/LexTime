@@ -228,16 +228,17 @@ nav.scrolled{background:rgba(10,22,40,.95);backdrop-filter:blur(12px);box-shadow
 
 /* ─── PRICING ─── */
 .pricing{padding:96px 0;background:var(--white)}
-.pricing-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:64px;align-items:start}
-.price-card{border:2px solid var(--border);border-radius:20px;padding:36px;transition:.2s;position:relative}
+.pricing-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:24px;margin-top:64px;align-items:stretch;max-width:800px;margin-left:auto;margin-right:auto}
+.price-card{border:2px solid var(--border);border-radius:20px;padding:36px;transition:.2s;position:relative;display:flex;flex-direction:column}
 .price-card:hover{border-color:var(--gold);box-shadow:0 12px 48px rgba(0,0,0,.1)}
 .price-card.featured{border-color:var(--gold);background:var(--gold-pale);box-shadow:0 16px 56px rgba(201,146,42,.2)}
-.price-card.featured::before{content:'מומלץ למשרדים';position:absolute;top:-14px;right:50%;transform:translateX(50%);background:var(--gold);color:var(--white);font-size:12px;font-weight:700;padding:4px 16px;border-radius:20px;white-space:nowrap}
+.price-card.featured::before{content:'הכי פופולרי';position:absolute;top:-14px;right:50%;transform:translateX(50%);background:var(--gold);color:var(--white);font-size:12px;font-weight:700;padding:4px 16px;border-radius:20px;white-space:nowrap}
+.price-card[data-label]::before{content:attr(data-label);position:absolute;top:-14px;right:50%;transform:translateX(50%);background:var(--gold);color:var(--white);font-size:12px;font-weight:700;padding:4px 16px;border-radius:20px;white-space:nowrap}
 .price-name{font-size:14px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
 .price-amount{font-family:'Frank Ruhl Libre',serif;font-size:48px;font-weight:900;color:var(--ink);line-height:1}
 .price-period{font-size:14px;color:var(--gray)}
 .price-desc{font-size:14px;color:var(--gray);margin:16px 0 28px;padding-bottom:20px;border-bottom:1px solid var(--border)}
-.price-features{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:32px}
+.price-features{list-style:none;display:flex;flex-direction:column;gap:12px;margin-bottom:32px;flex-grow:1}
 .price-features li{font-size:14px;color:var(--ink);display:flex;align-items:center;gap:10px}
 .price-features li::before{content:'✓';color:var(--gold);font-weight:800;flex-shrink:0}
 
@@ -835,51 +836,36 @@ body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{anima
       </div>
     </div>
 
-    <div class="pricing-grid">
-      <div class="price-card reveal reveal-delay-1">
-        <div class="price-name">עצמאי</div>
-        <div class="price-amount" style="direction:ltr">₪49</div>
-        <div class="price-period">לחודש · עורך דין אחד</div>
-        <p class="price-desc">לעורך דין עצמאי — תיקים ללא הגבלה</p>
+    <div class="pricing-grid" style="grid-template-columns:repeat(2,1fr);max-width:800px;margin:64px auto 0">
+      <div class="price-card reveal reveal-delay-1" data-label="גרסת ניסיון" style="border-color:var(--gold);background:var(--gold-pale);box-shadow:0 16px 56px rgba(201,146,42,.2)">
+        <div class="price-name">גרסת ניסיון</div>
+        <div class="price-amount" style="direction:ltr">₪0</div>
+        <div class="price-period">3 ימים · גישה מלאה</div>
+        <p class="price-desc">התנסות חופשית בכל יכולות הפלטפורמה — ללא כרטיס אשראי</p>
         <ul class="price-features">
           <li>תיקים ללא הגבלה</li>
           <li>כל שלבי ציר הזמנים</li>
           <li>140+ תקנות מוטמעות</li>
           <li>שמירה אוטומטית</li>
-          <li>תמיכה בדוא"ל</li>
+          <li>ללא כרטיס אשראי</li>
         </ul>
-        <a href="javascript:void(0)" class="btn btn-outline" style="width:100%;justify-content:center" onclick="openSignup('עצמאי','49')">הרשמה ותשלום</a>
-        <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:8px">בתוספת מע"מ כדין</div>
+        <button onclick="openTrial()" class="btn btn-primary" style="width:100%;justify-content:center">🚀 &nbsp;התחל גרסת ניסיון</button>
+        <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:8px">ללא התחייבות · ביטול בכל עת</div>
       </div>
       <div class="price-card featured reveal reveal-delay-2">
-        <div class="price-name">משרד</div>
-        <div class="price-amount" style="direction:ltr">₪199</div>
-        <div class="price-period">לחודש · עד 5 עורכי דין</div>
-        <p class="price-desc">למשרד עורכי דין — תיקים ללא הגבלה</p>
+        <div class="price-name">מסלול מקצועי</div>
+        <div class="price-amount" style="direction:ltr">₪29<span style="font-size:18px;font-weight:400;color:var(--gray)">.00</span></div>
+        <div class="price-period">לחודש · עורך דין אחד</div>
+        <p class="price-desc">גישה מלאה לכל יכולות הפלטפורמה — ללא הגבלה</p>
         <ul class="price-features">
-          <li>עד 5 עורכי דין</li>
           <li>תיקים ללא הגבלה</li>
           <li>כל שלבי ציר הזמנים</li>
           <li>140+ תקנות מוטמעות</li>
-          <li>תמיכה מועדפת בוואטסאפ</li>
+          <li>שמירה אוטומטית</li>
+          <li>תמיכה מועדפת</li>
         </ul>
-        <a href="javascript:void(0)" class="btn btn-primary" style="width:100%;justify-content:center" onclick="openSignup('משרד','199')">הרשמה ותשלום</a>
-        <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:8px">בתוספת מע"מ כדין</div>
-      </div>
-      <div class="price-card reveal reveal-delay-3">
-        <div class="price-name">משרד גדול</div>
-        <div class="price-amount" style="direction:ltr">₪499</div>
-        <div class="price-period">לחודש · עורכי דין ללא הגבלה</div>
-        <p class="price-desc">למשרדים גדולים — עורכי דין ותיקים ללא הגבלה</p>
-        <ul class="price-features">
-          <li>עורכי דין ללא הגבלה</li>
-          <li>תיקים ללא הגבלה</li>
-          <li>כל שלבי ציר הזמנים</li>
-          <li>140+ תקנות מוטמעות</li>
-          <li>מנהל חשבון ייעודי</li>
-        </ul>
-        <a href="javascript:void(0)" class="btn btn-outline" style="width:100%;justify-content:center" onclick="openSignup('משרד גדול','499')">הרשמה ותשלום</a>
-        <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:8px">בתוספת מע"מ כדין</div>
+        <a href="javascript:void(0)" class="btn btn-primary" style="width:100%;justify-content:center" onclick="openSignup('מקצועי','29')">הרשמה ותשלום</a>
+        <div style="text-align:center;font-size:11px;color:#94a3b8;margin-top:8px">על הסכום ייגבה מע״מ כדין</div>
       </div>
     </div>
   </div>
@@ -1344,7 +1330,7 @@ function sregPayTab(name){
     else payBtn.style.display='block';
   }
   if(name==='paypal'){
-    var PAYPAL_PLANS={'עצמאי':'P-1T860757D49561026NHD4DFQ','משרד':'P-2BT36473BJ884801MNHD5HGY','משרד גדול':'P-2F482632XU839435PNHD5PTA'};
+    var PAYPAL_PLANS={'מקצועי':'P-1T860757D49561026NHD4DFQ','משרד':'P-2BT36473BJ884801MNHD5HGY','משרד גדול':'P-2F482632XU839435PNHD5PTA'};
     var planId=PAYPAL_PLANS[_plan]||'';
     var ph=document.getElementById('paypalBtnPlaceholder');
     if(ph)ph.setAttribute('data-plan-id',planId);
@@ -1403,7 +1389,7 @@ function submitPayment(){
     saveSubToRTDB(name,email,_plan,'card','pending');
     /* פותח PayPal לתשלום בכרטיס */
     var PAYPAL_PLANS={
-      'עצמאי':'P-1T860757D49561026NHD4DFQ',
+      'מקצועי':'P-1T860757D49561026NHD4DFQ',
       'משרד':'P-2BT36473BJ884801MNHD5HGY',
       'משרד גדול':'P-2F482632XU839435PNHD5PTA'
     };
@@ -1482,7 +1468,7 @@ function grantFullAccess(email,plan){
 
 function openPayPalSubscription(){
   var PAYPAL_PLANS={
-    'עצמאי':'P-1T860757D49561026NHD4DFQ',
+    'מקצועי':'P-1T860757D49561026NHD4DFQ',
     'משרד':'P-2BT36473BJ884801MNHD5HGY',
     'משרד גדול':'P-2F482632XU839435PNHD5PTA'
   };
@@ -1607,7 +1593,7 @@ function simpleHashLogin(str){
 /* ── יוצר רשומת חשבונית ב-Firebase כאשר תשלום אומת בצד המשתמש ── */
 function _createInvoiceRTDB(sub){
   if(!sub || !sub.email || !sub.plan) return;
-  var PRICES = {'עצמאי':49,'משרד':199,'משרד גדול':499};
+  var PRICES = {'מקצועי':29};
   var VAT = 0.18;
   var total = PRICES[sub.plan] || 0;
   if(!total) return;
