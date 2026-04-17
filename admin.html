@@ -1081,7 +1081,7 @@ async function loadFromFirebase(){
     _cache.pays          = _arrFromFb(p);
     _cache.settings      = cfg || {};
     _cache.deletedEmails = _arrFromFb(del);
-    _cache.trials        = _arrFromFb(tr);
+    _cache.trials        = tr  ? Object.entries(tr).map(function(e){ return Object.assign({_key:e[0]},e[1]); }) : [];
     _cache.invoices      = inv ? Object.entries(inv).map(function(e){ return Object.assign({_key:e[0]},e[1]); }) : [];
   }catch(e){
     _cache.subs          = JSON.parse(localStorage.getItem('tb_subs')||'[]');
@@ -1881,7 +1881,7 @@ async function _ensureCredentials(sub){
 async function loadTrials(){
   try{
     var data = await _fbGet('/trials');
-    _cache.trials = _arrFromFb(data);
+    _cache.trials = data ? Object.entries(data).map(function(e){ return Object.assign({_key:e[0]},e[1]); }) : [];
   }catch(e){ _cache.trials=[]; }
   renderTrials();
 }
