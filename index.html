@@ -422,32 +422,68 @@ footer{background:var(--ink);padding:60px 0 32px;border-top:1px solid rgba(255,2
 #a11y-font-row button:hover{background:#eff6ff;border-color:#b8862a}
 #a11y-font-row span{font-size:11px;color:#374151;font-family:'Heebo',Arial,sans-serif;min-width:30px;text-align:center}
 body.a11y-contrast{filter:contrast(1.5) brightness(1.05)}
-body.a11y-links a{text-decoration:underline !important}
+body.a11y-links a{text-decoration:underline !important;outline:1px dotted #b8862a !important}
 body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{animation-duration:.001s !important;transition-duration:.001s !important}
 #a11y-guide{position:fixed;left:0;width:100%;height:38px;background:rgba(184,134,42,.15);border-top:2px solid rgba(184,134,42,.45);border-bottom:2px solid rgba(184,134,42,.45);pointer-events:none;z-index:9997;display:none}
+/* ─── נגישות: מצבים נוספים ─── */
+body.a11y-grayscale{filter:grayscale(100%)}
+body.a11y-contrast.a11y-grayscale{filter:grayscale(100%) contrast(1.5) brightness(1.05)}
+body.a11y-invert{filter:invert(1) hue-rotate(180deg)}
+body.a11y-high-contrast{background:#000 !important;color:#fff !important}
+body.a11y-high-contrast *{background-color:transparent !important;color:#fff !important;border-color:#fff !important}
+body.a11y-high-contrast a{color:#ff0 !important}
+body.a11y-high-contrast button,body.a11y-high-contrast .btn{background:#fff !important;color:#000 !important}
+body.a11y-spacing *{letter-spacing:0.1em !important;word-spacing:0.2em !important;line-height:1.8 !important}
+body.a11y-dyslexia *{font-family:Arial,sans-serif !important;letter-spacing:.06em !important;word-spacing:.2em !important;line-height:1.7 !important}
+body.a11y-big-cursor,body.a11y-big-cursor *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M8,2 L8,32 L14,26 L18,36 L22,34 L18,24 L26,24 Z' fill='black' stroke='white' stroke-width='2'/%3E%3C/svg%3E") 8 2,auto !important}
+body.a11y-focus-visible *:focus{outline:3px solid #ff0 !important;outline-offset:3px !important}
+/* ─── מבנה הפאנל ─── */
+#a11y-panel{background:#fff;border:1px solid #e2e8f0;border-radius:0 12px 12px 0;box-shadow:4px 4px 20px rgba(0,0,0,.15);padding:12px 10px;display:none;flex-direction:column;gap:5px;min-width:190px;direction:rtl;max-height:90vh;overflow-y:auto}
+#a11y-panel.open{display:flex}
 </style>
 </head>
 <body>
-<!-- ══ סרגל נגישות ══ -->
+<!-- ══ סרגל נגישות — תקן ישראלי 5568 / WCAG 2.1 AA ══ -->
 <div id="a11y-bar" role="complementary" aria-label="סרגל נגישות">
   <button id="a11y-toggle" onclick="a11yOpen()" aria-expanded="false" aria-controls="a11y-panel">נגישות ♿</button>
-  <div id="a11y-panel" role="dialog" aria-label="אפשרויות נגישות">
+  <div id="a11y-panel" role="dialog" aria-label="אפשרויות נגישות" aria-modal="false">
+
+    <!-- גודל טקסט -->
     <div class="a11y-section-title">גודל טקסט</div>
     <div id="a11y-font-row">
-      <button onclick="a11yFont(-1)" aria-label="הקטן">A-</button>
+      <button onclick="a11yFont(-1)" aria-label="הקטן טקסט" title="הקטן">A-</button>
       <span id="a11y-fval">100%</span>
-      <button onclick="a11yFont(1)" aria-label="הגדל">A+</button>
-      <button onclick="a11yFontReset()" title="אפס">↺</button>
+      <button onclick="a11yFont(1)" aria-label="הגדל טקסט" title="הגדל">A+</button>
+      <button onclick="a11yFontReset()" title="אפס גודל" aria-label="אפס גודל טקסט">↺</button>
     </div>
+
+    <!-- תצוגה -->
     <div class="a11y-section-title">תצוגה</div>
     <button class="a11y-btn" id="a11y-btn-contrast" onclick="a11yToggle('contrast')" aria-pressed="false"><span class="a11y-icon">◑</span>ניגודיות גבוהה</button>
+    <button class="a11y-btn" id="a11y-btn-high-contrast" onclick="a11yToggle('high-contrast')" aria-pressed="false"><span class="a11y-icon">🔲</span>ניגודיות מרבית</button>
+    <button class="a11y-btn" id="a11y-btn-grayscale" onclick="a11yToggle('grayscale')" aria-pressed="false"><span class="a11y-icon">🩶</span>גווני אפור</button>
+    <button class="a11y-btn" id="a11y-btn-invert" onclick="a11yToggle('invert')" aria-pressed="false"><span class="a11y-icon">🌙</span>היפוך צבעים</button>
+
+    <!-- טקסט ונוחות קריאה -->
+    <div class="a11y-section-title">קריאה ונגישות</div>
     <button class="a11y-btn" id="a11y-btn-links" onclick="a11yToggle('links')" aria-pressed="false"><span class="a11y-icon">🔗</span>הדגשת קישורים</button>
-    <button class="a11y-btn" id="a11y-btn-no-anim" onclick="a11yToggle('no-anim')" aria-pressed="false"><span class="a11y-icon">⏸</span>עצור אנימציות</button>
+    <button class="a11y-btn" id="a11y-btn-spacing" onclick="a11yToggle('spacing')" aria-pressed="false"><span class="a11y-icon">↔</span>ריווח מוגדל</button>
+    <button class="a11y-btn" id="a11y-btn-dyslexia" onclick="a11yToggle('dyslexia')" aria-pressed="false"><span class="a11y-icon">📖</span>גופן לדיסלקציה</button>
+    <button class="a11y-btn" id="a11y-btn-guide" onclick="a11yToggle('guide')" aria-pressed="false"><span class="a11y-icon">📏</span>סרגל קריאה</button>
+
+    <!-- ניווט ואינטראקציה -->
     <div class="a11y-section-title">ניווט</div>
-    <button class="a11y-btn" id="a11y-btn-guide" onclick="a11yToggle('guide')" aria-pressed="false"><span class="a11y-icon">📖</span>סרגל קריאה</button>
-    <div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px">
-      <button class="a11y-btn" onclick="a11yReset()" style="justify-content:center;color:#94a3b8;font-size:11px">↺ אפס הכל</button>
+    <button class="a11y-btn" id="a11y-btn-no-anim" onclick="a11yToggle('no-anim')" aria-pressed="false"><span class="a11y-icon">⏸</span>עצור אנימציות</button>
+    <button class="a11y-btn" id="a11y-btn-big-cursor" onclick="a11yToggle('big-cursor')" aria-pressed="false"><span class="a11y-icon">🖱️</span>סמן גדול</button>
+    <button class="a11y-btn" id="a11y-btn-focus-visible" onclick="a11yToggle('focus-visible')" aria-pressed="false"><span class="a11y-icon">⌨️</span>הדגשת מיקוד</button>
+
+    <!-- מידע -->
+    <div style="margin-top:8px;border-top:1px solid #e2e8f0;padding-top:8px;display:flex;flex-direction:column;gap:5px">
+      <a class="a11y-btn" href="#" onclick="event.preventDefault();document.getElementById('contactModal') && openContactForm()" style="text-decoration:none;justify-content:center;font-size:11px;color:#64748b"><span class="a11y-icon">📞</span>פנייה בנושא נגישות</a>
+      <button class="a11y-btn" onclick="a11yReset()" style="justify-content:center;color:#94a3b8;font-size:11px" aria-label="אפס את כל הגדרות הנגישות">↺ אפס הכל</button>
     </div>
+
+    <div style="font-size:9px;color:#cbd5e1;text-align:center;padding-top:4px;line-height:1.4">תקן ישראלי 5568 / WCAG 2.1 AA</div>
   </div>
 </div>
 <div id="a11y-guide" aria-hidden="true"></div>
@@ -2181,7 +2217,7 @@ var _legalData={
 <p style="margin-bottom:16px">עורך הדין המשתמש מאשר כי ידוע לו שעל פי כללי האתיקה המקצועית, האחריות הבלעדית והסופית לניהול התיק ולעמידה במועדים הקבועים בחוק חלה עליו בלבד. המשתמש פוטר את הנהלת האתר מכל אחריות לכל טענה בדבר רשלנות מקצועית או הטעיה הנובעת משימוש במערכת.</p>
 `},
   terms:{title:'תנאי שימוש',body:'<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. קבלת התנאים</h3><p style="margin-bottom:16px">השימוש בפלטפורמת LexTime מהווה הסכמה מלאה לתנאי שימוש אלו.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. תיאור השירות</h3><p style="margin-bottom:16px">LexTime היא פלטפורמה לניהול מועדים משפטיים המיועדת לעורכי דין בישראל.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. אחריות המשתמש</h3><p style="margin-bottom:16px">המשתמש אחראי לאימות כל מועד משפטי באופן עצמאי.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. הגבלת אחריות</h3><p style="margin-bottom:16px">החברה לא תישא באחריות לנזקים הנובעים מהשימוש בפלטפורמה.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">5. מנוי ותשלום</h3><p style="margin-bottom:16px">המנוי הוא חודשי וניתן לביטול בכל עת.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">6. יצירת קשר</h3><p>לשאלות: <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'},
-  privacy:{title:'מדיניות פרטיות',body:'<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. איסוף מידע</h3><p style="margin-bottom:16px">אנו אוספים שם מלא, כתובת דוא"ל ומספר טלפון בעת ההרשמה.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. שמירת נתוני תיקים</h3><p style="margin-bottom:16px">נתוני התיקים המשפטיים נשמרים מקומית בדפדפן שלך בלבד.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. שימוש במידע</h3><p style="margin-bottom:16px">המידע ישמש לצורך מתן השירות בלבד. לא נמכור מידע לצד שלישי.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. יצירת קשר</h3><p>לפניות: <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'},
+  privacy:{title:'מדיניות פרטיות',body:'<p style="font-size:12px;color:#94a3b8;margin-bottom:20px">עודכן לאחרונה: ינואר 2025</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">1. מבוא</h3><p style="margin-bottom:8px">LexTime (להלן: "החברה" ו/או "האתר") מחויבת להגנה על פרטיות משתמשיה. מדיניות פרטיות זו מפרטת את האופן שבו אנו אוספים, משתמשים, מאחסנים ומגנים על המידע האישי שלכם, בהתאם לחוק הגנת הפרטיות, התשמ"א–1981, לתקנותיו ולתקנות כלליות בדבר הגנת מידע (GDPR).</p><p style="margin-bottom:16px">שימוש בפלטפורמה מהווה הסכמה מלאה למדיניות פרטיות זו. אם אינכם מסכימים לתנאים המפורטים להלן, אנא הימנעו משימוש בשירות.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">2. המידע שאנו אוספים</h3><p style="margin-bottom:8px"><strong>מידע שנמסר על ידכם ישירות:</strong></p><ul style="margin:0 0 8px 20px;padding:0;list-style:disc"><li style="margin-bottom:4px">שם מלא (שם פרטי ושם משפחה)</li><li style="margin-bottom:4px">כתובת דוא"ל</li><li style="margin-bottom:4px">מספר טלפון (אם נמסר)</li><li style="margin-bottom:4px">פרטי תיקים משפטיים שתזינו למערכת</li></ul><p style="margin-bottom:8px"><strong>מידע הנאסף אוטומטית:</strong></p><ul style="margin:0 0 16px 20px;padding:0;list-style:disc"><li style="margin-bottom:4px">כתובת IP וסוג דפדפן</li><li style="margin-bottom:4px">תאריך ושעת כניסה לאתר</li><li style="margin-bottom:4px">עמודים שביקרתם בהם ומשך הביקור</li><li style="margin-bottom:4px">מידע על המכשיר (מערכת הפעלה, רזולוציה)</li></ul><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">3. מטרות השימוש במידע</h3><p style="margin-bottom:8px">אנו משתמשים במידע שנאסף למטרות הבאות בלבד:</p><ul style="margin:0 0 16px 20px;padding:0;list-style:disc"><li style="margin-bottom:4px">מתן השירות וניהול חשבון המשתמש</li><li style="margin-bottom:4px">שליחת עדכונים, התראות ותזכורות הנוגעות לשירות</li><li style="margin-bottom:4px">שיפור ופיתוח הפלטפורמה</li><li style="margin-bottom:4px">מענה לפניות ותמיכה טכנית</li><li style="margin-bottom:4px">עמידה בדרישות חוק ורגולציה</li></ul><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">4. אחסון ואבטחת המידע</h3><p style="margin-bottom:8px">נתוני התיקים המשפטיים מאוחסנים מקומית בדפדפן שלכם בלבד ואינם מועברים לשרתינו. פרטי ההרשמה נשמרים בשרתים מאובטחים המוגנים בהצפנת SSL/TLS.</p><p style="margin-bottom:8px">אנו נוקטים באמצעי אבטחה טכניים וארגוניים סבירים על מנת להגן על המידע מפני גישה בלתי מורשית, שינוי, חשיפה או מחיקה.</p><p style="margin-bottom:16px">יחד עם זאת, אין בכוחנו להבטיח אבטחה מלאה על כל תשדורת מידע ברשת האינטרנט.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">5. העברת מידע לצדדים שלישיים</h3><p style="margin-bottom:8px">אנו <strong>לא מוכרים</strong> ולא מעבירים את פרטיכם האישיים לצדדים שלישיים, למעט במקרים הבאים:</p><ul style="margin:0 0 16px 20px;padding:0;list-style:disc"><li style="margin-bottom:4px"><strong>ספקי שירות:</strong> גורמים המסייעים בתפעול הפלטפורמה (אחסון ענן, עיבוד תשלומים) — אך ורק לצורך מתן השירות ובכפוף להסכמי סודיות</li><li style="margin-bottom:4px"><strong>דרישות חוק:</strong> מסירת מידע כנדרש על פי צו שיפוטי, חוק או רגולציה</li><li style="margin-bottom:4px"><strong>הגנה על זכויות:</strong> כשנדרש להגן על זכויות, רכוש או בטיחות החברה ומשתמשיה</li></ul><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">6. עוגיות (Cookies)</h3><p style="margin-bottom:8px">האתר עשוי לעשות שימוש בעוגיות לצורך שיפור חוויית המשתמש, שמירת העדפות ואיסוף נתונים סטטיסטיים אנונימיים. ניתן להגדיר את הדפדפן כך שידחה עוגיות, אולם פעולה זו עשויה לפגוע בפונקציונליות חלקית של האתר.</p><p style="margin-bottom:16px">לא נשתמש בעוגיות לצורך פרסום ממוקד ללא הסכמתכם המפורשת.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">7. זכויות המשתמש</h3><p style="margin-bottom:8px">בהתאם לחוק הגנת הפרטיות ולדין האירופי (GDPR), עומדות לכם הזכויות הבאות:</p><ul style="margin:0 0 16px 20px;padding:0;list-style:disc"><li style="margin-bottom:4px"><strong>זכות עיון:</strong> לבקש לעיין במידע האישי המוחזק אצלנו</li><li style="margin-bottom:4px"><strong>זכות תיקון:</strong> לתקן מידע שגוי או לא מדויק</li><li style="margin-bottom:4px"><strong>זכות מחיקה:</strong> לבקש מחיקת המידע ("הזכות להישכח"), בכפוף לדרישות חוק</li><li style="margin-bottom:4px"><strong>זכות התנגדות:</strong> להתנגד לעיבוד המידע לצרכי שיווק</li><li style="margin-bottom:4px"><strong>ניידות נתונים:</strong> לקבל את המידע בפורמט קריא למכונה</li></ul><p style="margin-bottom:16px">לממוש זכויותיכם, פנו אלינו בכתב לכתובת הדוא"ל: <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a>. נטפל בפנייתכם תוך 30 יום.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">8. שמירת מידע</h3><p style="margin-bottom:16px">אנו שומרים את המידע האישי כל עוד חשבונכם פעיל, ולאחר מכן לתקופה הנדרשת על פי דין (עד 7 שנים בהתאם לדרישות חשבונאיות וחוק). מידע שאינו נדרש יימחק בצורה מאובטחת.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">9. קטינים</h3><p style="margin-bottom:16px">השירות מיועד לבגירים בלבד. איננו אוספים מידע מקטינים ביודעין. אם נודע לנו שנאסף מידע מקטין, נמחקנו לאלתר.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">10. שינויים במדיניות הפרטיות</h3><p style="margin-bottom:16px">אנו שומרים לעצמנו את הזכות לעדכן מדיניות פרטיות זו מעת לעת. שינויים מהותיים יפורסמו באתר ויישלח עדכון לכתובת הדוא"ל הרשומה לפחות 14 יום טרם כניסתם לתוקף. המשך השימוש בשירות לאחר כניסת שינויים לתוקף מהווה הסכמה אליהם.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">11. יצירת קשר</h3><p style="margin-bottom:4px">לכל שאלה, פנייה או בקשה בנושא פרטיות:</p><p style="margin-bottom:4px"><strong>דוא"ל:</strong> <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p><p style="margin-bottom:0">ניתן לפנות אלינו בכתב ונשיב תוך 30 יום ממועד קבלת הפנייה.</p>'},
   security:{title:'אבטחת מידע',body:'<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. עקרונות האבטחה</h3><p style="margin-bottom:16px">נתוני התיקים לא עוזבים את המכשיר שלך.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. אחסון מקומי</h3><p style="margin-bottom:16px">כל נתוני התיקים מאוחסנים ב-localStorage של הדפדפן בלבד.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. תשלומים</h3><p style="margin-bottom:16px">תשלומים מעובדים דרך PayPal בלבד ואינם עוברים דרך המערכת שלנו.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. דיווח על בעיות</h3><p><a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'},
   takanon:{title:'תקנון אתר',body:`
 <p style="font-size:12px;color:#94a3b8;margin-bottom:20px">עודכן לאחרונה: ינואר 2025</p>
@@ -2573,5 +2609,174 @@ function _notifyAdminTrial(name, email){
   );
   window.open('mailto:lextimeservice@gmail.com?subject='+subject+'&body='+body);
 }
+</script>
+<script>
+/* ══════════════════════════════════════════════
+   סרגל נגישות מלא — תקן ישראלי 5568 / WCAG 2.1 AA
+   ══════════════════════════════════════════════ */
+
+/* --- מצב גלובלי --- */
+var _a11y = {
+  fontSize: 100,      /* % */
+  active: {}          /* map: key -> boolean */
+};
+
+/* --- שמירה ב-localStorage --- */
+function _a11ySave() {
+  try { localStorage.setItem('a11y_state', JSON.stringify(_a11y)); } catch(e) {}
+}
+function _a11yLoad() {
+  try {
+    var s = localStorage.getItem('a11y_state');
+    if (!s) return;
+    var parsed = JSON.parse(s);
+    _a11y = parsed;
+    /* החל גודל גופן */
+    document.documentElement.style.fontSize = _a11y.fontSize + '%';
+    var fval = document.getElementById('a11y-fval');
+    if (fval) fval.textContent = _a11y.fontSize + '%';
+    /* החל כל הגדרה */
+    var keys = Object.keys(_a11y.active || {});
+    for (var i = 0; i < keys.length; i++) {
+      if (_a11y.active[keys[i]]) _a11yApply(keys[i]);
+    }
+  } catch(e) {}
+}
+
+/* --- פתח / סגור פאנל --- */
+function a11yOpen() {
+  var panel  = document.getElementById('a11y-panel');
+  var toggle = document.getElementById('a11y-toggle');
+  var isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open');
+  toggle.setAttribute('aria-expanded', isOpen ? 'false' : 'true');
+}
+
+/* --- גודל טקסט --- */
+function a11yFont(delta) {
+  _a11y.fontSize = Math.min(150, Math.max(80, _a11y.fontSize + delta * 10));
+  document.documentElement.style.fontSize = _a11y.fontSize + '%';
+  var fval = document.getElementById('a11y-fval');
+  if (fval) fval.textContent = _a11y.fontSize + '%';
+  _a11ySave();
+}
+function a11yFontReset() {
+  _a11y.fontSize = 100;
+  document.documentElement.style.fontSize = '';
+  var fval = document.getElementById('a11y-fval');
+  if (fval) fval.textContent = '100%';
+  _a11ySave();
+}
+
+/* --- החל class על body --- */
+function _a11yApply(key) {
+  var classMap = {
+    'contrast'      : 'a11y-contrast',
+    'high-contrast' : 'a11y-high-contrast',
+    'grayscale'     : 'a11y-grayscale',
+    'invert'        : 'a11y-invert',
+    'links'         : 'a11y-links',
+    'spacing'       : 'a11y-spacing',
+    'dyslexia'      : 'a11y-dyslexia',
+    'no-anim'       : 'a11y-no-anim',
+    'big-cursor'    : 'a11y-big-cursor',
+    'focus-visible' : 'a11y-focus-visible'
+  };
+  var cls = classMap[key];
+  if (cls) document.body.classList.add(cls);
+
+  /* סרגל קריאה */
+  if (key === 'guide') {
+    var guide = document.getElementById('a11y-guide');
+    if (guide) {
+      guide.style.display = 'block';
+      document.addEventListener('mousemove', _a11yGuideMove);
+    }
+  }
+  /* עדכן כפתור */
+  var btn = document.getElementById('a11y-btn-' + key);
+  if (btn) { btn.classList.add('active'); btn.setAttribute('aria-pressed', 'true'); }
+}
+function _a11yRemove(key) {
+  var classMap = {
+    'contrast'      : 'a11y-contrast',
+    'high-contrast' : 'a11y-high-contrast',
+    'grayscale'     : 'a11y-grayscale',
+    'invert'        : 'a11y-invert',
+    'links'         : 'a11y-links',
+    'spacing'       : 'a11y-spacing',
+    'dyslexia'      : 'a11y-dyslexia',
+    'no-anim'       : 'a11y-no-anim',
+    'big-cursor'    : 'a11y-big-cursor',
+    'focus-visible' : 'a11y-focus-visible'
+  };
+  var cls = classMap[key];
+  if (cls) document.body.classList.remove(cls);
+
+  if (key === 'guide') {
+    var guide = document.getElementById('a11y-guide');
+    if (guide) guide.style.display = 'none';
+    document.removeEventListener('mousemove', _a11yGuideMove);
+  }
+  var btn = document.getElementById('a11y-btn-' + key);
+  if (btn) { btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); }
+}
+
+/* --- Toggle כל הגדרה --- */
+function a11yToggle(key) {
+  _a11y.active = _a11y.active || {};
+  var on = !_a11y.active[key];
+  _a11y.active[key] = on;
+  if (on) _a11yApply(key);
+  else    _a11yRemove(key);
+  _a11ySave();
+}
+
+/* --- סרגל קריאה: עוקב אחרי העכבר --- */
+function _a11yGuideMove(e) {
+  var guide = document.getElementById('a11y-guide');
+  if (!guide) return;
+  var h = guide.offsetHeight;
+  guide.style.top = (e.clientY - h / 2) + 'px';
+}
+
+/* --- אפס הכל --- */
+function a11yReset() {
+  /* מחק classes */
+  var allClasses = [
+    'a11y-contrast','a11y-high-contrast','a11y-grayscale','a11y-invert',
+    'a11y-links','a11y-spacing','a11y-dyslexia','a11y-no-anim',
+    'a11y-big-cursor','a11y-focus-visible'
+  ];
+  for (var i = 0; i < allClasses.length; i++) document.body.classList.remove(allClasses[i]);
+  /* מחק aria-pressed */
+  var btns = document.querySelectorAll('.a11y-btn');
+  for (var j = 0; j < btns.length; j++) {
+    btns[j].classList.remove('active');
+    btns[j].setAttribute('aria-pressed','false');
+  }
+  /* גופן */
+  document.documentElement.style.fontSize = '';
+  var fval = document.getElementById('a11y-fval');
+  if (fval) fval.textContent = '100%';
+  /* סרגל קריאה */
+  var guide = document.getElementById('a11y-guide');
+  if (guide) guide.style.display = 'none';
+  document.removeEventListener('mousemove', _a11yGuideMove);
+  /* מחק שמירה */
+  _a11y = { fontSize: 100, active: {} };
+  try { localStorage.removeItem('a11y_state'); } catch(e) {}
+}
+
+/* --- טעינה בעמוד --- */
+document.addEventListener('DOMContentLoaded', _a11yLoad);
+
+/* --- סגור עם Escape --- */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    var panel = document.getElementById('a11y-panel');
+    if (panel && panel.classList.contains('open')) a11yOpen();
+  }
+});
 </script>
 </html>
