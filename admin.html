@@ -437,9 +437,8 @@ tr:hover td{background:#fafbfc}
               <input type="text" class="search-input" id="subSearch" placeholder="חיפוש שם / דוא"ל..." oninput="renderSubs()">
               <select class="filter-sel" id="subPlanFilter" onchange="renderSubs()">
                 <option value="">כל המסלולים</option>
-                <option value="עצמאי">עצמאי ₪49</option>
-                <option value="משרד">משרד ₪199</option>
-                <option value="משרד גדול">משרד גדול ₪499</option>
+                <option value="עצמאי">עצמאי ₪29</option>
+                <option value="ניסיון">ניסיון ₪0</option>
               </select>
               <button class="btn btn-gold btn-sm" onclick="exportCSV()">📥 ייצוא CSV</button>
             </div>
@@ -510,9 +509,8 @@ tr:hover td{background:#fafbfc}
       <!-- ── PLANS PAGE ── -->
       <div id="page-plans" style="display:none">
         <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
-          <div class="kpi gold" id="planKpi1"><div class="kpi-label">עצמאי ₪49</div><div class="kpi-value" id="pk1">0</div><div class="kpi-sub">נרשמים פעילים</div></div>
-          <div class="kpi green" id="planKpi2"><div class="kpi-label">משרד ₪199</div><div class="kpi-value" id="pk2">0</div><div class="kpi-sub">נרשמים פעילים</div></div>
-          <div class="kpi blue" id="planKpi3"><div class="kpi-label">משרד גדול ₪499</div><div class="kpi-value" id="pk3">0</div><div class="kpi-sub">נרשמים פעילים</div></div>
+          <div class="kpi gold" id="planKpi1"><div class="kpi-label">עצמאי ₪29</div><div class="kpi-value" id="pk1">0</div><div class="kpi-sub">נרשמים פעילים</div></div>
+          <div class="kpi green" id="planKpi2"><div class="kpi-label">ניסיון ₪0</div><div class="kpi-value" id="pk2">0</div><div class="kpi-sub">נרשמים פעילים</div></div>
         </div>
         <div class="card">
           <div class="card-header"><div class="card-title">פירוט לפי מסלולים</div></div>
@@ -745,9 +743,8 @@ tr:hover td{background:#fafbfc}
       <div class="fgrid">
         <div class="fg"><label class="fl">מסלול *</label>
           <select class="fi" id="subPlan">
-            <option value="עצמאי">עצמאי — ₪49/חודש</option>
-            <option value="משרד">משרד — ₪199/חודש</option>
-            <option value="משרד גדול">משרד גדול — ₪499/חודש</option>
+            <option value="עצמאי">עצמאי — ₪29/חודש</option>
+            <option value="ניסיון">ניסיון — ₪0/חודש</option>
           </select>
         </div>
         <div class="fg"><label class="fl">אמצעי תשלום</label>
@@ -789,7 +786,7 @@ tr:hover td{background:#fafbfc}
         <div class="fg"><label class="fl">חודש חיוב</label><input class="fi" id="payMonth" type="month"></div>
       </div>
       <div class="fgrid">
-        <div class="fg"><label class="fl">סכום ₪</label><input class="fi" id="payAmount" type="number" placeholder="49"></div>
+        <div class="fg"><label class="fl">סכום ₪</label><input class="fi" id="payAmount" type="number" placeholder="29"></div>
         <div class="fg"><label class="fl">אמצעי תשלום</label>
           <select class="fi" id="payMethod">
             <option value="paypal">PayPal</option>
@@ -905,7 +902,7 @@ function sendActivationCode(sub){
 }
 
 /* ═══ LAWYERS MANAGEMENT ═══ */
-var PLAN_MAX_LAWYERS = {'עצמאי':1,'משרד':5,'משרד גדול':Infinity};
+var PLAN_MAX_LAWYERS = {'עצמאי':Infinity,'ניסיון':1};
 var _lawyersSubId = null;
 var _lawyersList  = [];
 
@@ -1126,7 +1123,7 @@ function fmtDate(s){if(!s)return '—';try{return new Date(s+'T00:00:00').toLoca
 function todayISO(){return new Date().toISOString().slice(0,10);}
 function todayMonth(){return new Date().toISOString().slice(0,7);}
 
-var PLAN_PRICES={'עצמאי':49,'משרד':199,'משרד גדול':499};
+var PLAN_PRICES={'עצמאי':29,'ניסיון':0};
 var METHOD_LABELS={'paypal':'PayPal','card':'כ. אשראי (PP)','bank':'העברה בנקאית'};
 
 /* ═══ SAMPLE DATA ═══ */
@@ -1329,7 +1326,7 @@ function deletePay(id){
 /* ═══ PLANS ═══ */
 function renderPlans(){
   var subs=loadSubs();
-  var plans=['עצמאי','משרד','משרד גדול'];
+  var plans=['עצמאי','ניסיון'];
   plans.forEach(function(plan,i){
     var active=subs.filter(function(s){return s.plan===plan&&s.status==='active';}).length;
     var el=document.getElementById('pk'+(i+1));
@@ -1429,8 +1426,8 @@ function viewSub(id){
   // כפתור עורכי דין
   var lawyersBtn = document.getElementById('manageLawyersBtn');
   if(lawyersBtn){
-    // הצג רק למסלולי משרד (לא עצמאי)
-    if(s.plan !== 'עצמאי'){
+    // הצג רק למסלול עצמאי (לא ניסיון)
+    if(s.plan !== 'ניסיון'){
       lawyersBtn.style.display='inline-flex';
       lawyersBtn.onclick = function(){ closeModal('modalSubView'); openLawyersModal(id); };
     } else {
@@ -2123,7 +2120,7 @@ function mailTrial(email, name){
 }
 
 function planBadge(p){
-  var cls={עצמאי:'badge-gold',משרד:'badge-blue','משרד גדול':'badge-green'};
+  var cls={עצמאי:'badge-gold',ניסיון:'badge-green'};
   return '<span class="badge '+(cls[p]||'badge-gray')+'">'+p+'</span>';
 }
 function statusBadge(s){
@@ -2786,8 +2783,7 @@ async function cancelInvoice(key){
         <div class="fg"><label class="fl">מסלול</label>
           <select class="fi" id="editInvPlan">
             <option value="עצמאי">עצמאי</option>
-            <option value="משרד">משרד</option>
-            <option value="משרד גדול">משרד גדול</option>
+            <option value="ניסיון">ניסיון</option>
           </select>
         </div>
         <div class="fg"><label class="fl">אמצעי תשלום</label>
