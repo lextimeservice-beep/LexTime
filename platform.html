@@ -1299,7 +1299,7 @@ var STAGES=[
     {id:'t10',desc:'פנייה לבעל הדין שכנגד — הודעה על כוונה להגיש בקשות על פי הרשימה — תקנה 49(ד)',reg:'תקנה 49(ד)'},
     {id:'t11',desc:'הגשת רשימת עדים על ידי התובע — תקנה 62',reg:'תקנה 62'},
     {id:'t12',desc:'הגשת רשימת הבקשות לבית המשפט — תקנה 49(ג)',reg:'תקנה 49(ג)'},
-    {id:'t13',desc:'דיווח באשר לתוצאות הדיון המקדמי — תקנה 36',reg:'תקנה 36'},
+    {id:'t13',desc:'דיווח באשר לתוצאות הדיון המקדמי (טופס 4) — תקנה 36',reg:'תקנה 36'},
     {id:'t14',desc:'הגשת רשימת עדים על ידי הנתבע — תקנה 62',reg:'תקנה 62'},
     {id:'t15',desc:'תגובת בעל הדין שכנגד לרשימת הבקשות — תקנה 49(ה)',reg:'תקנה 49(ה)'}
    ],
@@ -1377,10 +1377,10 @@ function _rawDate(id,c){
   switch(id){
     case 't1':return def; case 't2':return rpl; case 't3':return med; case 't4':return disc;
     case 't5':return meet; case 't6':return req; case 't7':return discComp; case 't8':return medRep;
-    case 't10':return c.pretrial?addDays(c.pretrial,-30):null;
+    case 't10':return c.pretrial?addDays(c.pretrial,-27):null;
     case 't11':return c.pretrial?addDays(c.pretrial,-20):null;
     case 't12':return c.pretrial?addDays(c.pretrial,-20):null;
-    case 't13':return c.pretrial?addDays(c.pretrial,-14):null;
+    case 't13':return c.pretrial?addDays(c.pretrial,-20):null;
     case 't14':return c.pretrial?addDays(addDays(c.pretrial,-20),14):null;
     case 't15':return c.pretrial?addDays(addDays(c.pretrial,-20),14):null;
     case 't17':return c.trial?addDays(c.trial,-30):null;
@@ -1410,10 +1410,10 @@ function getOriginalDate(id,c){
     case 't6':return _c(_c(def,14),60);
     case 't7':return _c(_c(_c(def,14),30),30);
     case 't8':return _c(_c(_c(_c(def,14),45),30),14);
-    case 't10':return c.pretrial?_c(c.pretrial,-30):null;
+    case 't10':return c.pretrial?_c(c.pretrial,-27):null;
     case 't11':return c.pretrial?_c(c.pretrial,-20):null;
     case 't12':return c.pretrial?_c(c.pretrial,-20):null;
-    case 't13':return c.pretrial?_c(c.pretrial,-14):null;
+    case 't13':return c.pretrial?_c(c.pretrial,-20):null;
     case 't14':return c.pretrial?_c(_c(c.pretrial,-20),14):null;
     case 't15':return c.pretrial?_c(_c(c.pretrial,-20),14):null;
     case 't17':return c.trial?_c(c.trial,-30):null;
@@ -1440,10 +1440,10 @@ function getCascadedChain(c){
   var dComp= a.t7 || j.t7 || _c(disc,30);
   var mRep = a.t8 || j.t8 || _c(meet,14);
   var pt   = c.pretrialActual||c.pretrial||null;
-  var t10  = a.t10|| j.t10|| (pt?_c(pt,-30):null);
+  var t10  = a.t10|| j.t10|| (pt?_c(pt,-27):null);
   var t11  = a.t11|| j.t11|| (pt?_c(pt,-20):null);
   var t12  = a.t12|| j.t12|| (pt?_c(pt,-20):null);
-  var t13  = a.t13|| j.t13|| (pt?_c(pt,-14):null);
+  var t13  = a.t13|| j.t13|| (pt?_c(pt,-20):null);
   var t14  = a.t14|| j.t14|| (t11?_c(t11,14):null);
   var t15  = a.t15|| j.t15|| (t12?_c(t12,14):null);
   var tr   = c.trialActual||c.trial||null;
@@ -1494,7 +1494,7 @@ function getOffsetLabel(id,c){
   var dd=getDefenseDays(c);
   var m={t1:'+'+dd+' ימים',t2:'+14 לאחר הגנה',t3:'+45 לאחר תשובה',t4:'+30 לאחר תשובה',
     t5:'+30 לאחר מגשר',t6:'+60 לאחר תשובה',t7:'+30 לאחר גילוי',t8:'+14 לאחר פגישה',
-    t10:'−30 לפני קד"מ',t11:'−20 לפני קד"מ',t12:'−20 לפני קד"מ',t13:'−14 לפני קד"מ',
+    t10:'−27 לפני קד"מ',t11:'−20 לפני קד"מ',t12:'−20 לפני קד"מ',t13:'−20 לפני קד"מ',
     t14:'−6 לפני קד"מ',t15:'−6 לפני קד"מ',
     t17:'−30 לפני דיון',t18:'−14 לפני דיון',t19:'−3 לפני דיון',t20:'מועד הדיון',
     t23:'+90 מדיון',t25:'+30 מהחלטה',t26:'+60 מהחלטה',t27:'+60 מערעור',t29:'+60 מהחלטה'};
