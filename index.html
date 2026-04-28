@@ -410,8 +410,7 @@ footer{background:var(--ink);padding:60px 0 32px;border-top:1px solid rgba(255,2
 #a11y-bar{position:fixed;top:50%;left:0;transform:translateY(-50%);z-index:9998;display:flex;flex-direction:column;align-items:flex-start;direction:ltr}
 #a11y-toggle{width:36px;height:128px;background:#0f2d5a;color:#fff;border:none;border-radius:0 8px 8px 0;cursor:pointer;font-size:13px;display:flex;align-items:center;justify-content:center;box-shadow:2px 2px 8px rgba(0,0,0,.25);transition:background .2s;writing-mode:vertical-rl;letter-spacing:1px;font-weight:700;font-family:'Heebo',Arial,sans-serif}
 #a11y-toggle:hover{background:#b8862a}
-#a11y-panel{background:#fff;border:1px solid #e2e8f0;border-radius:0 12px 12px 0;box-shadow:4px 4px 20px rgba(0,0,0,.15);padding:14px 12px;display:none;flex-direction:column;gap:6px;min-width:180px;direction:rtl}
-#a11y-panel.open{display:flex}
+/* #a11y-panel ו-#a11y-panel.open מוגדרים בהמשך (הגדרה מלאה עם max-height ו-overflow-y) */
 .a11y-btn{display:flex;align-items:center;gap:8px;padding:8px 11px;border:1.5px solid #e2e8f0;border-radius:7px;background:#f8fafc;color:#374151;font-family:'Heebo',Arial,sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .15s;text-align:right;white-space:nowrap;width:100%}
 .a11y-btn:hover{background:#eff6ff;border-color:#b8862a;color:#0f2d5a}
 .a11y-btn.active{background:#0f2d5a;color:#fff;border-color:#0f2d5a}
@@ -437,6 +436,35 @@ body.a11y-spacing *{letter-spacing:0.1em !important;word-spacing:0.2em !importan
 body.a11y-dyslexia *{font-family:Arial,sans-serif !important;letter-spacing:.06em !important;word-spacing:.2em !important;line-height:1.7 !important}
 body.a11y-big-cursor,body.a11y-big-cursor *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M8,2 L8,32 L14,26 L18,36 L22,34 L18,24 L26,24 Z' fill='black' stroke='white' stroke-width='2'/%3E%3C/svg%3E") 8 2,auto !important}
 body.a11y-focus-visible *:focus{outline:3px solid #ff0 !important;outline-offset:3px !important}
+
+/* ─── הגנה על סרגל הנגישות מפני מצבי הנגישות עצמם ─── */
+
+/* היפוך צבעים: double-invert מחזיר את הסרגל לצבעים המקוריים */
+body.a11y-invert #a11y-bar{filter:invert(1) hue-rotate(180deg)}
+
+/* ניגודיות גבוהה: מחזיר ניגודיות לסרגל */
+body.a11y-contrast #a11y-bar{filter:contrast(0.667) brightness(0.952)}
+
+/* גווני אפור: מחזיר רוויה לסרגל */
+body.a11y-grayscale #a11y-bar{filter:saturate(5) brightness(1.05)}
+
+/* ניגודיות מרבית: מונע ביטול עיצוב הסרגל */
+body.a11y-high-contrast #a11y-toggle{background:#0f2d5a !important;color:#fff !important;border:none !important}
+body.a11y-high-contrast #a11y-panel{background:#fff !important;border:1px solid #e2e8f0 !important;color:#374151 !important}
+body.a11y-high-contrast #a11y-panel *{background-color:unset !important;color:unset !important;border-color:unset !important}
+body.a11y-high-contrast .a11y-btn{background:#f8fafc !important;color:#374151 !important;border:1.5px solid #e2e8f0 !important}
+body.a11y-high-contrast .a11y-btn:hover{background:#eff6ff !important;border-color:#b8862a !important;color:#0f2d5a !important}
+body.a11y-high-contrast .a11y-btn.active{background:#0f2d5a !important;color:#fff !important;border-color:#0f2d5a !important}
+body.a11y-high-contrast #a11y-font-row button{background:#f8fafc !important;color:#374151 !important;border:1.5px solid #e2e8f0 !important}
+body.a11y-high-contrast .a11y-section-title{color:#94a3b8 !important;background:transparent !important}
+body.a11y-high-contrast #a11y-guide{background:rgba(184,134,42,.15) !important;border-top:2px solid rgba(184,134,42,.45) !important;border-bottom:2px solid rgba(184,134,42,.45) !important}
+
+/* ריווח מוגדל: מונע שבירת פריסת הסרגל */
+body.a11y-spacing #a11y-bar *{letter-spacing:normal !important;word-spacing:normal !important;line-height:normal !important}
+
+/* גופן לדיסלקציה: שומר על גופן ועיצוב הסרגל */
+body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;letter-spacing:normal !important;word-spacing:normal !important;line-height:normal !important}
+
 /* ─── מבנה הפאנל ─── */
 #a11y-panel{background:#fff;border:1px solid #e2e8f0;border-radius:0 12px 12px 0;box-shadow:4px 4px 20px rgba(0,0,0,.15);padding:12px 10px;display:none;flex-direction:column;gap:5px;min-width:190px;direction:rtl;max-height:90vh;overflow-y:auto}
 #a11y-panel.open{display:flex}
