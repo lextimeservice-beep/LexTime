@@ -1815,7 +1815,7 @@ function taskRowHtml(t,c,chain,isNext){
       'onchange="setActual(\''+t.id+'\',this.value)" placeholder="מועד בפועל" title="הזן תאריך הגשה בפועל">';
   } else {
     // show cascade note if effective differs from original
-    var showEff=(effDate&&effDate!==origDate)?'<div style="font-size:12px;font-weight:800;color:var(--teal);margin-top:4px;letter-spacing:.2px">\u21b3 \u05de\u05d7\u05d5\u05e9\u05d1: <span style="font-size:12px;font-weight:900;color:var(--teal)">'+fmtDate(effDate)+'</span></div>':'';
+    var showEff=(effDate&&effDate!==origDate)?'<div style="font-size:12px;font-weight:800;color:var(--navy);margin-top:4px;letter-spacing:.2px">\u21b3 \u05de\u05d7\u05d5\u05e9\u05d1: <span style="font-size:12px;font-weight:900;color:var(--navy)">'+fmtDate(effDate)+'</span></div>':'';
     effCell='<input type="date" class="date-input inp-actual" value="'+toInput(actualDate)+'" '+
       'onchange="setActual(\''+t.id+'\',this.value)" placeholder="\u05de\u05d5\u05e2\u05d3 \u05d1\u05e4\u05d5\u05e2\u05dc">'+showEff;
     // Special: t12 — show computed indicator = t10 actual + 7 days
@@ -1823,7 +1823,7 @@ function taskRowHtml(t,c,chain,isNext){
       var t10actual=(c.actualDates||{}).t10||'';
       if(t10actual){
         var computed12=addDays(t10actual,7);
-        effCell+='<div style="font-size:12px;font-weight:800;color:var(--teal);margin-top:4px;display:flex;align-items:center;gap:4px;letter-spacing:.2px">'+
+        effCell+='<div style="font-size:12px;font-weight:800;color:var(--navy);margin-top:4px;display:flex;align-items:center;gap:4px;letter-spacing:.2px">'+
           '<span>\ud83d\udcc5</span><span>\u05de\u05d7\u05d5\u05e9\u05d1: <span style="font-size:12px;font-weight:900">'+fmtDate(computed12)+'</span> (\u05e4\u05e0\u05d9\u05d9\u05d4 + 7 \u05d9\u05de\u05d9\u05dd)</span></div>';
       }
     }
