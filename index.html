@@ -1348,32 +1348,32 @@ function toggleMenu(){
         <div class="sreg-title">פרטי תשלום</div>
         <div class="sreg-sub">תשלום מאובטח · <span id="sumPriceSub"></span> לחודש</div>
 
-        <!-- PayPal only — credit card tab removed (was forwarding to PayPal anyway) -->
-        <!-- PayPal panel -->
-        <div class="sreg-ppanel active" id="pay-paypal">
+        <!--  חשבונית ירוקה - Morning  only — credit card tab removed (was forwarding to  חשבונית ירוקה - Morning  anyway) -->
+        <!--  חשבונית ירוקה - Morning  panel -->
+        <div class="sreg-ppanel active" id="pay-morning">
           <div style="text-align:center;padding:28px 20px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.1);border-radius:12px;margin-bottom:14px">
-            <div style="font-size:40px;margin-bottom:12px">🅿️</div>
-            <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:8px">תשלום דרך PayPal</div>
-            <div style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6">לחץ על הכפתור — תועבר לדף PayPal המאובטח לאישור המנוי החודשי.</div>
+            <div style="font-size:40px;margin-bottom:12px"> 💳</div>
+            <div style="font-size:15px;font-weight:600;color:#fff;margin-bottom:8px">תשלום דרך  חשבונית ירוקה - Morning </div>
+            <div style="color:rgba(255,255,255,.5);font-size:13px;line-height:1.6">לחץ על הכפתור — תועבר לדף  חשבונית ירוקה - Morning  המאובטח לאישור המנוי החודשי.</div>
           </div>
-          <div id="paypalArea">
-            <div id="paypalBtnContainer">
-              <div id="paypalBtnPlaceholder" onclick="openPayPalSubscription()"
+          <div id="morningArea">
+            <div id="morningBtnContainer">
+              <div id="morningBtnPlaceholder" onclick="openMorningSubscription()"
                 style="background:#003087;border-radius:10px;padding:14px;text-align:center;cursor:pointer;color:#fff;font-size:15px;font-weight:700;font-family:'Heebo',sans-serif">
-                🅿️ &nbsp;שלם מנוי חודשי עם PayPal
+                 💳 &nbsp;שלם מנוי חודשי עם  חשבונית ירוקה - Morning 
               </div>
             </div>
-            <!-- מופיע אחרי לחיצה על PayPal -->
-            <div id="paypalPendingMsg" style="display:none;margin-top:14px">
+            <!-- מופיע אחרי לחיצה על  חשבונית ירוקה - Morning  -->
+            <div id="morningPendingMsg" style="display:none;margin-top:14px">
               <div style="background:rgba(201,146,42,.08);border:1px solid rgba(201,146,42,.25);border-radius:10px;padding:16px 18px;margin-bottom:12px">
-                <div style="font-size:13px;font-weight:700;color:#e8b84b;margin-bottom:6px">✅ דף PayPal נפתח בלשונית חדשה</div>
-                <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.7">לאחר השלמת התשלום ב-PayPal, חזור לכאן ולחץ על הכפתור למטה לאימות אוטומטי.</div>
+                <div style="font-size:13px;font-weight:700;color:#e8b84b;margin-bottom:6px">✅ דף  חשבונית ירוקה - Morning  נפתח בלשונית חדשה</div>
+                <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.7">לאחר השלמת התשלום ב- חשבונית ירוקה - Morning , חזור לכאן ולחץ על הכפתור למטה לאימות אוטומטי.</div>
               </div>
-              <button onclick="verifyPayPalPayment()"
+              <button onclick="verifyMorningPayment()"
                 style="width:100%;padding:13px;background:linear-gradient(135deg,#1a7a4a,#28a060);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;font-family:'Heebo',sans-serif;cursor:pointer">
                 🔍 אימות תשלום וכניסה לפלטפורמה
               </button>
-              <div id="paypalVerifyMsg" style="display:none;margin-top:10px;font-size:13px;color:rgba(255,255,255,.5);text-align:center">
+              <div id="morningVerifyMsg" style="display:none;margin-top:10px;font-size:13px;color:rgba(255,255,255,.5);text-align:center">
                 מאמת תשלום...
               </div>
             </div>
@@ -1390,7 +1390,7 @@ function toggleMenu(){
         <div id="sregProcessing" style="text-align:center;padding:60px 0">
           <div style="font-size:52px;margin-bottom:18px">⏳</div>
           <div class="sreg-title" style="text-align:center">מאמת תשלום...</div>
-          <div style="color:rgba(255,255,255,.4);font-size:14px;margin-top:10px;text-align:center">מתחבר ל-PayPal, אנא המתן</div>
+          <div style="color:rgba(255,255,255,.4);font-size:14px;margin-top:10px;text-align:center">מתחבר ל- חשבונית ירוקה - Morning , אנא המתן</div>
         </div>
         <div id="sregSuccess" style="display:none;text-align:center;padding:20px 0">
           <div style="font-size:60px;margin-bottom:16px">🎉</div>
@@ -1446,7 +1446,7 @@ function openSignup(plan,price){
   var m=document.getElementById('signupModal');
   m.style.display='block'; document.body.style.overflow='hidden';
   sregShowStep(1);
-  sregPayTab('paypal');
+  sregPayTab('morning');
 }
 function closeSignup(){
   document.getElementById('signupModal').style.display='none';
@@ -1489,20 +1489,20 @@ function sregFmtExp(inp){
 }
 function sregPayTab(name){
   _payTab=name;
-  ['card','paypal'].forEach(function(m){
+  ['card','morning'].forEach(function(m){
     var t=document.getElementById('ptab-'+m), p=document.getElementById('pay-'+m);
     if(t)t.classList.toggle('active',m===name);
     if(p)p.classList.toggle('active',m===name);
   });
   var payBtn=document.getElementById('paySubmitBtn');
   if(payBtn){
-    if(name==='paypal') payBtn.style.display='none';
+    if(name==='morning') payBtn.style.display='none';
     else payBtn.style.display='block';
   }
-  if(name==='paypal'){
-    var PAYPAL_PLANS={'מקצועי':'P-1T860757D49561026NHD4DFQ','משרד':'P-2BT36473BJ884801MNHD5HGY','משרד גדול':'P-2F482632XU839435PNHD5PTA'};
-    var planId=PAYPAL_PLANS[_plan]||'';
-    var ph=document.getElementById('paypalBtnPlaceholder');
+  if(name==='morning'){
+    var  MORNING_PLANS={'מקצועי':'P-1T860757D49561026NHD4DFQ','משרד':'P-2BT36473BJ884801MNHD5HGY','משרד גדול':'P-2F482632XU839435PNHD5PTA'};
+    var planId= MORNING_PLANS[_plan]||'';
+    var ph=document.getElementById('morningBtnPlaceholder');
     if(ph)ph.setAttribute('data-plan-id',planId);
   }
 }
@@ -1549,7 +1549,7 @@ function submitPayment(){
   var email=document.getElementById('regEmail').value.trim();
 
   if(_payTab==='card'){
-    /* ── כרטיס אשראי עובר דרך PayPal — מפנה לדף PayPal ── */
+    /* ── כרטיס אשראי עובר דרך  חשבונית ירוקה - Morning  — מפנה לדף  חשבונית ירוקה - Morning  ── */
     savePendingCredentials(name,email);
     localStorage.setItem('lextime_user',JSON.stringify({
       name:name,email:email,plan:_plan,method:'card',
@@ -1557,13 +1557,13 @@ function submitPayment(){
     }));
     saveToFirestore(name,email,_plan,_price,'card','pending');
     saveSubToRTDB(name,email,_plan,'card','pending');
-    /* פותח PayPal לתשלום בכרטיס */
-    var PAYPAL_PLANS={
+    /* פותח  חשבונית ירוקה - Morning  לתשלום בכרטיס */
+    var  MORNING_PLANS={
       'מקצועי':'P-1T860757D49561026NHD4DFQ',
       'משרד':'P-2BT36473BJ884801MNHD5HGY',
       'משרד גדול':'P-2F482632XU839435PNHD5PTA'
     };
-    var planId=PAYPAL_PLANS[_plan]||'';
+    var planId= MORNING_PLANS[_plan]||'';
     window.open('https://mrng.to/2RKIctj3fN','_blank');
     sregShowStep(3);
     document.getElementById('sregProcessing').style.display='none';
@@ -1572,14 +1572,14 @@ function submitPayment(){
     return;
   }
 
-  /* PayPal — נשמר ומוצג מסך המתנה */
+  /*  חשבונית ירוקה - Morning  — נשמר ומוצג מסך המתנה */
   savePendingCredentials(name,email);
   localStorage.setItem('lextime_user',JSON.stringify({
-    name:name,email:email,plan:_plan,method:'paypal',
+    name:name,email:email,plan:_plan,method:'morning',
     date:new Date().toISOString().slice(0,10)
   }));
-  saveToFirestore(name,email,_plan,_price,'paypal','pending');
-  saveSubToRTDB(name,email,_plan,'paypal','pending');
+  saveToFirestore(name,email,_plan,_price,'morning','pending');
+  saveSubToRTDB(name,email,_plan,'morning','pending');
   sregShowStep(3);
   document.getElementById('sregProcessing').style.display='none';
   document.getElementById('sregSuccess').style.display='none';
@@ -1636,17 +1636,17 @@ function grantFullAccess(email,plan){
   }catch(e){}
 }
 
-function openPayPalSubscription(){
-  var PAYPAL_PLANS={
+function openMorningSubscription(){
+  var  MORNING_PLANS={
     'מקצועי':'P-1T860757D49561026NHD4DFQ',
     'משרד':'P-2BT36473BJ884801MNHD5HGY',
     'משרד גדול':'P-2F482632XU839435PNHD5PTA'
   };
-  var planId=PAYPAL_PLANS[_plan]||'';
+  var planId= MORNING_PLANS[_plan]||'';
   var url='https://mrng.to/2RKIctj3fN';
   window.open(url,'_blank');
-  document.getElementById('paypalPendingMsg').style.display='block';
-  var ph=document.getElementById('paypalBtnPlaceholder');
+  document.getElementById('morningPendingMsg').style.display='block';
+  var ph=document.getElementById('morningBtnPlaceholder');
   ph.style.opacity='.4';
   ph.style.pointerEvents='none';
   var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
@@ -1654,17 +1654,17 @@ function openPayPalSubscription(){
   // שמירת פרטי רישום בלבד — ללא גישה!
   savePendingCredentials(name,email);
   localStorage.setItem('lextime_user', JSON.stringify({
-    name: name, email: email, plan: _plan, method: 'paypal',
+    name: name, email: email, plan: _plan, method: 'morning',
     date: new Date().toISOString().slice(0,10)
   }));
-  saveToFirestore(name,email,_plan,_price,'paypal','pending');
+  saveToFirestore(name,email,_plan,_price,'morning','pending');
   /* ── שמירה ל-RTDB כדי שהמנהל יראה את הנרשם ── */
-  saveSubToRTDB(name,email,_plan,'paypal','pending');
+  saveSubToRTDB(name,email,_plan,'morning','pending');
 }
 
-function verifyPayPalPayment(){
+function verifyMorningPayment(){
   var email=document.getElementById('regEmail').value.trim().toLowerCase();
-  var verifyMsg=document.getElementById('paypalVerifyMsg');
+  var verifyMsg=document.getElementById('morningVerifyMsg');
   verifyMsg.style.display='block';
   verifyMsg.textContent='מאמת תשלום...';
 
@@ -1679,7 +1679,7 @@ function verifyPayPalPayment(){
     document.getElementById('sregPending').style.display='none';
     document.getElementById('sregSuccess').style.display='block';
     /* ── יצירת חשבונית מס אוטומטית בענן ── */
-    _createInvoiceRTDB({name:name, email:email, plan:plan, payMethod:_payTab||'paypal'});
+    _createInvoiceRTDB({name:name, email:email, plan:plan, payMethod:_payTab||'morning'});
   }
 
   /* בדיקת אישור מנהל ב-RTDB — fallback אחרי Cloud Function */
@@ -1690,7 +1690,7 @@ function verifyPayPalPayment(){
       if(sub&&sub.status==='active'){
         grantAndRedirect(sub.plan||_plan);
       } else {
-        verifyMsg.textContent='התשלום ב-PayPal טרם אושר. אם סיימת לשלם, נסה שוב בעוד דקה.';
+        verifyMsg.textContent='התשלום ב- חשבונית ירוקה - Morning  טרם אושר. אם סיימת לשלם, נסה שוב בעוד דקה.';
       }
     }).catch(function(){
       verifyMsg.textContent='שגיאת חיבור. נסה שוב.';
@@ -1712,7 +1712,7 @@ function verifyPayPalPayment(){
     checkRTDBFallback();
   });
 }
-function onPayPalReturn(){verifyPayPalPayment();}
+function onMorningReturn(){verifyMorningPayment();}
 
 function saveToFirestore(name,email,plan,price,method,status){
   try{
@@ -1786,7 +1786,7 @@ function _createInvoiceRTDB(sub){
       beforeVat:beforeVat,
       vat:      vat,
       total:    total,
-      method:   sub.payMethod || 'paypal',
+      method:   sub.payMethod || 'morning',
       status:   'pending_send',
       subId:    '',
       payRef:   '',
@@ -2352,7 +2352,7 @@ var _legalData={
 `},
   terms:{title:'תנאי שימוש',body:'<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. קבלת התנאים</h3><p style="margin-bottom:16px">השימוש בפלטפורמת LexTime מהווה הסכמה מלאה לתנאי שימוש אלו.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. תיאור השירות</h3><p style="margin-bottom:16px">LexTime היא פלטפורמה לניהול מועדים משפטיים המיועדת לעורכי דין בישראל.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. אחריות המשתמש</h3><p style="margin-bottom:16px">המשתמש אחראי לאימות כל מועד משפטי באופן עצמאי.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. הגבלת אחריות</h3><p style="margin-bottom:16px">החברה לא תישא באחריות לנזקים הנובעים מהשימוש בפלטפורמה.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">5. מנוי ותשלום</h3><p style="margin-bottom:16px">המנוי הוא חודשי וניתן לביטול בכל עת.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">6. יצירת קשר</h3><p>לשאלות: <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'},
   privacy:{title:'מדיניות פרטיות',body:'<p style="font-size:12px;color:#94a3b8;margin-bottom:20px">עודכן לאחרונה: ינואר 2025</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">1. מבוא</h3><p style="margin-bottom:8px">LexTime (להלן: "הפלטפורמה") מחויבת להגנה על פרטיות משתמשיה. מדיניות פרטיות זו מפרטת את האופן שבו אנו אוספים, משתמשים, מאחסנים ומגנים על המידע האישי שלכם, בהתאם לחוק הגנת הפרטיות, התשמ"א–1981, לתקנותיו ולתקנות כלליות בדבר הגנת מידע (GDPR).</p><p style="margin-bottom:16px">שימוש בפלטפורמה מהווה הסכמה מלאה למדיניות פרטיות זו. אם אינכם מסכימים לתנאים המפורטים להלן, אנא הימנעו משימוש בשירות.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">2. המידע שאנו אוספים</h3><p style="margin-bottom:8px"><strong>מידע שנמסר על ידכם ישירות:</strong></p><ul style="margin:0 0 16px 20px;padding:0;list-style:disc"><li style="margin-bottom:4px">שם מלא (שם פרטי ושם משפחה)</li><li style="margin-bottom:4px">כתובת דוא"ל</li><li style="margin-bottom:4px">מספר טלפון (אם נמסר)</li></ul><p style="margin-bottom:16px;padding:12px 16px;background:#f0fdf4;border-right:4px solid #1a7a4a;border-radius:6px;color:#166534"><strong>⚠️ חשוב לציין:</strong> פרטי התיקים המשפטיים שתזינו למערכת <strong>אינם נשמרים ואינם נצפים בשום צורה ואופן</strong> על ידי הפלטפורמה. מידע זה מאוחסן באופן מקומי על גבי המכשיר שלכם בלבד ולא מועבר לשרתינו, לצדדים שלישיים, ואין לנו כל גישה אליו.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">3. מטרות השימוש במידע</h3><p style="margin-bottom:8px">אנו משתמשים במידע שנאסף למטרות הבאות בלבד:</p><ul style="margin:0 0 16px 20px;padding:0;list-style:disc"><li style="margin-bottom:4px">מתן השירות וניהול חשבון המשתמש</li><li style="margin-bottom:4px">שליחת עדכונים, התראות ותזכורות הנוגעות לשירות</li><li style="margin-bottom:4px">שיפור ופיתוח הפלטפורמה</li><li style="margin-bottom:4px">מענה לפניות ותמיכה טכנית</li><li style="margin-bottom:4px">עמידה בדרישות חוק ורגולציה</li></ul><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">4. אחסון ואבטחת המידע</h3><p style="margin-bottom:8px">נתוני התיקים המשפטיים מאוחסנים מקומית בדפדפן שלכם בלבד ואינם מועברים לשרתינו. פרטי ההרשמה נשמרים בשרתים מאובטחים המוגנים בהצפנת SSL/TLS.</p><p style="margin-bottom:8px">אנו נוקטים באמצעי אבטחה טכניים וארגוניים סבירים על מנת להגן על המידע מפני גישה בלתי מורשית, שינוי, חשיפה או מחיקה.</p><p style="margin-bottom:16px">יחד עם זאת, אין בכוחנו להבטיח אבטחה מלאה על כל תשדורת מידע ברשת האינטרנט.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">5. העברת מידע לצדדים שלישיים</h3><p style="margin-bottom:8px">אנו <strong>לא מוכרים</strong> ולא מעבירים את פרטיכם האישיים לצדדים שלישיים, למעט במקרים הבאים:</p><ul style="margin:0 0 16px 20px;padding:0;list-style:disc"><li style="margin-bottom:4px"><strong>ספקי שירות:</strong> גורמים המסייעים בתפעול הפלטפורמה (אחסון ענן, עיבוד תשלומים) — אך ורק לצורך מתן השירות ובכפוף להסכמי סודיות</li><li style="margin-bottom:4px"><strong>דרישות חוק:</strong> מסירת מידע כנדרש על פי צו שיפוטי, חוק או רגולציה</li><li style="margin-bottom:4px"><strong>הגנה על זכויות:</strong> כשנדרש להגן על זכויות, רכוש או בטיחות הפלטפורמה ומשתמשיה</li></ul><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">6. עוגיות (Cookies)</h3><p style="margin-bottom:8px">האתר עשוי לעשות שימוש בעוגיות לצורך שיפור חוויית המשתמש, שמירת העדפות ואיסוף נתונים סטטיסטיים אנונימיים. ניתן להגדיר את הדפדפן כך שידחה עוגיות, אולם פעולה זו עשויה לפגוע בפונקציונליות חלקית של האתר.</p><p style="margin-bottom:16px">לא נשתמש בעוגיות לצורך פרסום ממוקד ללא הסכמתכם המפורשת.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">7. זכויות המשתמש</h3><p style="margin-bottom:8px">בהתאם לחוק הגנת הפרטיות ולדין האירופי (GDPR), עומדות לכם הזכויות הבאות:</p><ul style="margin:0 0 16px 20px;padding:0;list-style:disc"><li style="margin-bottom:4px"><strong>זכות עיון:</strong> לבקש לעיין במידע האישי המוחזק אצלנו</li><li style="margin-bottom:4px"><strong>זכות תיקון:</strong> לתקן מידע שגוי או לא מדויק</li><li style="margin-bottom:4px"><strong>זכות מחיקה:</strong> לבקש מחיקת המידע ("הזכות להישכח"), בכפוף לדרישות חוק</li><li style="margin-bottom:4px"><strong>זכות התנגדות:</strong> להתנגד לעיבוד המידע לצרכי שיווק</li><li style="margin-bottom:4px"><strong>ניידות נתונים:</strong> לקבל את המידע בפורמט קריא למכונה</li></ul><p style="margin-bottom:16px">לממוש זכויותיכם, פנו אלינו בכתב לכתובת הדוא"ל: <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a>. נטפל בפנייתכם תוך 30 יום.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">8. שמירת מידע</h3><p style="margin-bottom:16px">אנו שומרים את המידע האישי כל עוד חשבונכם פעיל, ולאחר מכן לתקופה הנדרשת על פי דין (עד 7 שנים בהתאם לדרישות חשבונאיות וחוק). מידע שאינו נדרש יימחק בצורה מאובטחת.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">9. קטינים</h3><p style="margin-bottom:16px">השירות מיועד לבגירים בני 18 ומעלה בלבד. איננו אוספים ביודעין מידע אישי מקטינים. ככל שיתברר לנו כי נאסף מידע אישי מקטין, נפעל למחיקתו המיידית ממערכותינו, ככל שהדבר אפשרי ובהתאם לדין.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">10. שינויים במדיניות הפרטיות</h3><p style="margin-bottom:16px">אנו שומרים לעצמנו את הזכות לעדכן מדיניות פרטיות זו מעת לעת. שינויים מהותיים יפורסמו באתר ויישלח עדכון לכתובת הדוא"ל הרשומה לפחות 14 יום טרם כניסתם לתוקף. המשך השימוש בשירות לאחר כניסת שינויים לתוקף מהווה הסכמה אליהם.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin:0 0 8px">11. יצירת קשר</h3><p style="margin-bottom:4px">לכל שאלה, פנייה או בקשה בנושא פרטיות:</p><p style="margin-bottom:4px"><strong>דוא"ל:</strong> <a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p><p style="margin-bottom:0">ניתן לפנות אלינו בכתב ונשיב תוך 30 יום ממועד קבלת הפנייה.</p>'},
-  security:{title:'אבטחת מידע',body:'<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. עקרונות האבטחה</h3><p style="margin-bottom:16px">נתוני התיקים לא עוזבים את המכשיר שלך.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. אחסון מקומי</h3><p style="margin-bottom:16px">כל נתוני התיקים מאוחסנים ב-localStorage של הדפדפן בלבד.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. תשלומים</h3><p style="margin-bottom:16px">תשלומים מעובדים דרך PayPal בלבד ואינם עוברים דרך המערכת שלנו.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. דיווח על בעיות</h3><p><a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'},
+  security:{title:'אבטחת מידע',body:'<h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">1. עקרונות האבטחה</h3><p style="margin-bottom:16px">נתוני התיקים לא עוזבים את המכשיר שלך.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">2. אחסון מקומי</h3><p style="margin-bottom:16px">כל נתוני התיקים מאוחסנים ב-localStorage של הדפדפן בלבד.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">3. תשלומים</h3><p style="margin-bottom:16px">תשלומים מעובדים דרך  חשבונית ירוקה - Morning  בלבד ואינם עוברים דרך המערכת שלנו.</p><h3 style="font-size:16px;font-weight:800;color:#0a1628;margin-bottom:8px">4. דיווח על בעיות</h3><p><a href="mailto:lextimeservice@gmail.com" style="color:#c9922a">lextimeservice@gmail.com</a></p>'},
   takanon:{title:'תקנון אתר',body:`
 <p style="font-size:12px;color:#94a3b8;margin-bottom:20px">עודכן לאחרונה: ינואר 2025</p>
 
@@ -2365,7 +2365,7 @@ var _legalData={
 <ul style="margin:0 16px 16px;padding:0;line-height:2">
   <li>האתר מאפשר שירות ניהול מועדים משפטיים על פי תקנות סדר הדין האזרחי התשע"ט-2018, לרבות חישוב מועדים, ניהול תיקים ומעקב אחר הליכים.</li>
   <li>השירות מיועד לעורכי דין בלבד ומצריך הרשמה אישית ותשלום מנוי.</li>
-  <li>ניתן להירשם לשירות ולשלם עבורו באמצעות כרטיס אשראי ישראלי תקף או PayPal, בכפוף לאישור הנהלת האתר.</li>
+  <li>ניתן להירשם לשירות ולשלם עבורו באמצעות כרטיס אשראי ישראלי תקף או  חשבונית ירוקה - Morning , בכפוף לאישור הנהלת האתר.</li>
   <li>הזכאות לשימוש בשירות מוגבלת למי שמלאו לו 18 שנים, בעל רישיון עריכת דין בתוקף בישראל ובעל תיבת דואר אלקטרוני פעילה.</li>
   <li>הנהלת האתר שומרת לעצמה את הזכות להפסיק את שירותיה, כולם או חלקם, בכל עת.</li>
 </ul>
