@@ -25,7 +25,7 @@
   --red:#b91c1c;
   --r:10px;
 }
-
+ 
 *{box-sizing:border-box;margin:0;padding:0;-webkit-font-smoothing:antialiased}
 html{scroll-behavior:smooth}
 body{font-family:'Heebo',sans-serif;color:var(--ink);background:var(--white);overflow-x:hidden}
@@ -260,7 +260,7 @@ nav.scrolled{background:rgba(10,22,40,.95);backdrop-filter:blur(12px);box-shadow
 .cta-title{font-size:clamp(28px,4vw,50px);color:var(--white);margin:16px 0 20px}
 .cta-desc{font-size:17px;color:rgba(255,255,255,.65);margin-bottom:40px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.75}
 .cta-actions{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
-.cta-note{margin-top:20px;font-size:13px;color:rgba(255,255,255,1)}
+.cta-note{margin-top:20px;font-size:13px;color:}
 
 /* ─── FOOTER ─── */
 footer{background:var(--ink);padding:60px 0 32px;border-top:1px solid rgba(255,255,255,.07)}
@@ -710,10 +710,10 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
             <div class="sol-dot" style="background:#ef4444"></div>
             <div class="sol-dot" style="background:#f59e0b"></div>
             <div class="sol-dot" style="background:#22c55e"></div>
-            <span style="font-size:12px;color:rgba(255,255,255,1);margin-right:10px">LexTime — ניהול מועדים</span>
+            <span style="font-size:12px;color:;margin-right:10px">LexTime — ניהול מועדים</span>
           </div>
           <div class="sol-content">
-            <div style="font-size:11px;color:rgba(255,255,255,1);margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">דיון מקדמי</div>
+            <div style="font-size:11px;color:;margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">דיון מקדמי</div>
             <div class="sol-row done">
               <span class="sol-badge done">✓ בוצע</span>
               <span class="sol-task-name">כתב הגנה — תקנה 9(ב)</span>
@@ -725,12 +725,12 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
               <span class="sol-date">14.04.26</span>
             </div>
             <div class="sol-row muted">
-              <span class="sol-badge" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,1)">ממתין</span>
+              <span class="sol-badge" style="background:rgba(255,255,255,.1);color:">ממתין</span>
               <span class="sol-task-name">מינוי מגשר — תקנה 37(ב)</span>
               <span class="sol-date" style="color:rgba(255,255,255,.3)">28.04.26</span>
             </div>
             <div class="sol-row muted">
-              <span class="sol-badge" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,1)">ממתין</span>
+              <span class="sol-badge" style="background:rgba(255,255,255,.1);color:">ממתין</span>
               <span class="sol-task-name">גילוי מסמכים — תקנה 57</span>
               <span class="sol-date" style="color:rgba(255,255,255,.3)">08.05.26</span>
             </div>
@@ -1112,8 +1112,8 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
         </a>
         <p class="footer-desc">הפלטפורמה המקצועית לניהול מועדים משפטיים לעורכי דין עצמאיים ומשרדי עורכי דין בישראל.</p>
         <div style="margin-top:20px;display:flex;gap:12px">
-          <a href="#" style="color:rgba(255,255,255,1);font-size:20px;text-decoration:none" title="LinkedIn">in</a>
-          <a href="#" style="color:rgba(255,255,255,1);font-size:18px;text-decoration:none">📘</a>
+          <a href="#" style="color:;font-size:20px;text-decoration:none" title="LinkedIn">in</a>
+          <a href="#" style="color:;font-size:18px;text-decoration:none">📘</a>
         </div>
       </div>
       <div class="footer-col">
@@ -1131,9 +1131,9 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
         <a href="platform.html">🚀 כניסה לפלטפורמה</a>
         <a href="admin.html">⚙️ ממשק ניהול</a>
         <div style="margin-top:14px;padding:10px 12px;background:rgba(201,146,42,.1);border:1px solid rgba(201,146,42,.25);border-radius:8px">
-          <div style="font-size:10px;font-weight:700;letter-spacing:.5px;color:rgba(255,255,255,1);text-transform:uppercase;margin-bottom:5px">⏰ שירות טכני</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.5px;color:;text-transform:uppercase;margin-bottom:5px">⏰ שירות טכני</div>
           <div style="font-size:13px;font-weight:700;color:#e8b84b;margin-bottom:2px">08:00 – 22:00</div>
-          <div style="font-size:11px;color:rgba(255,255,255,1);line-height:1.6">כל ימות השבוע</div>
+          <div style="font-size:11px;color:;line-height:1.6">כל ימות השבוע</div>
         </div>
       </div>
       <div class="footer-col">
@@ -1261,7 +1261,7 @@ function toggleMenu(){
 
     <!-- RIGHT: Form -->
     <div class="sreg-right">
-      <button style="background:none;border:none;color:rgba(255,255,255,1);font-size:14px;cursor:pointer;font-family:'Heebo',sans-serif;margin-bottom:24px;padding:0;text-align:right" onclick="closeSignup()">← חזרה לדף הבית</button>
+      <button style="background:none;border:none;color:;font-size:14px;cursor:pointer;font-family:'Heebo',sans-serif;margin-bottom:24px;padding:0;text-align:right" onclick="closeSignup()">← חזרה לדף הבית</button>
 
       <!-- Steps bar -->
       <div class="sreg-steps">
@@ -1389,7 +1389,7 @@ function toggleMenu(){
         <div id="sregProcessing" style="text-align:center;padding:60px 0">
           <div style="font-size:52px;margin-bottom:18px">⏳</div>
           <div class="sreg-title" style="text-align:center">מאמת תשלום...</div>
-          <div style="color:rgba(255,255,255,1);font-size:14px;margin-top:10px;text-align:center">מתחבר ל- חשבונית ירוקה - Morning , אנא המתן</div>
+          <div style="color:;font-size:14px;margin-top:10px;text-align:center">מתחבר ל- חשבונית ירוקה - Morning , אנא המתן</div>
         </div>
         <div id="sregSuccess" style="display:none;text-align:center;padding:20px 0">
           <div style="font-size:60px;margin-bottom:16px">🎉</div>
@@ -1936,9 +1936,9 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
   <div style="background:#0f1e38;border:1px solid rgba(201,146,42,.25);border-radius:20px;width:100%;max-width:420px;padding:40px 36px;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.5)">
     <button onclick="closeLogin()" style="position:absolute;top:16px;left:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
     <div style="font-family:'Frank Ruhl Libre',serif;font-size:24px;color:#c9922a;text-align:center;margin-bottom:6px">⚖️ LexTime</div>
-    <div style="text-align:center;color:rgba(255,255,255,1);font-size:13px;margin-bottom:28px">ניהול מועדים משפטיים</div>
+    <div style="text-align:center;color:;font-size:13px;margin-bottom:28px">ניהול מועדים משפטיים</div>
     <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">כניסת עורכי דין</div>
-    <div style="color:rgba(255,255,255,1);font-size:13px;margin-bottom:24px">הזן את כתובת הדוא&quot;ל והסיסמה שבחרת בהרשמה</div>
+    <div style="color:;font-size:13px;margin-bottom:24px">הזן את כתובת הדוא&quot;ל והסיסמה שבחרת בהרשמה</div>
     <div id="loginErr" style="display:none;background:rgba(185,28,28,.15);border:1px solid rgba(185,28,28,.35);border-radius:8px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:8px"></div>
     <div id="loginContactWrap" style="display:none;margin-bottom:14px">
       <button onclick="openContactForm()"
@@ -1973,7 +1973,7 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
     </button>
     <div style="text-align:center;margin-bottom:12px">
       <a href="javascript:void(0)" onclick="showForgotPassword()"
-        style="color:rgba(255,255,255,1);font-size:13px;text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.2);padding-bottom:1px">
+        style="color:;font-size:13px;text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.2);padding-bottom:1px">
         שכחתי סיסמה
       </a>
     </div>
@@ -1986,7 +1986,7 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
     <!-- ══ FORGOT PASSWORD PANEL ══ -->
     <div id="forgotPanel" style="display:none;margin-top:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:20px">
       <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px">איפוס סיסמה</div>
-      <div style="font-size:13px;color:rgba(255,255,255,1);margin-bottom:14px">הזן את כתובת הדוא"ל שלך ונשלח לך קוד לאיפוס הסיסמה</div>
+      <div style="font-size:13px;color:;margin-bottom:14px">הזן את כתובת הדוא"ל שלך ונשלח לך קוד לאיפוס הסיסמה</div>
       <div id="forgotMsg" style="display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px"></div>
       <div style="margin-bottom:12px">
         <input id="forgotEmail" type="email" placeholder="name@lawfirm.co.il"
@@ -2018,7 +2018,7 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
         שלח קוד לאיפוס ←
       </button>
       <div style="margin-bottom:12px;padding:10px 14px;background:rgba(201,146,42,.06);border:1px solid rgba(201,146,42,.18);border-radius:8px;text-align:center">
-        <div style="font-size:11px;color:rgba(255,255,255,1);margin-bottom:3px">⏰ שירות טכני זמין</div>
+        <div style="font-size:11px;color:;margin-bottom:3px">⏰ שירות טכני זמין</div>
         <div style="font-size:13px;font-weight:700;color:#e8b84b">08:00 – 22:00</div>
         <div style="font-size:11px;color:rgba(255,255,255,.3)">כל ימות השבוע</div>
       </div>
