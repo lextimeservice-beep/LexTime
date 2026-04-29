@@ -1763,8 +1763,9 @@ function taskRowHtml(t,c,chain,isNext){
     STATUS_OPTS.forEach(function(o){selOpts+='<option value="'+o.v+'"'+(status===o.v?' selected':'')+'>'+o.l+'</option>';});
     var rowBg=status==='done'?'background:#dcfce7':status==='urgent'?'background:#fee2e2':(status==='no_response'?'background:#fca5a5':'');
     var trStyle=(status==='urgent'||status==='no_response')?'background:#fca5a5;border-right:4px solid #dc2626':(rowBg||'');
+    var doneActualStyle=status==='done'?'background:#dcfce7;border-color:#4ade80;color:#14532d;':'';
     var effCell='<input type="date" class="date-input inp-actual" value="'+toInput(actualDate)+'" '+
-      'onchange="setActual(\''+t.id+'\',this.value)" placeholder="מועד בפועל">';
+      'onchange="setActual(\''+t.id+'\',this.value)" placeholder="מועד בפועל"'+(doneActualStyle?' style="'+doneActualStyle+'"':'')+'>'; 
     var daysCell=status==='done'?'<span class="dc done-badge">✓ בוצע</span>':'<span class="dc none">—</span>';
     return '<tr class="task-row"'+(trStyle?' style="'+trStyle+'"':'')+'>'+
       '<td style="min-width:220px" colspan="3"><div class="tdesc">'+linkRegs(t.desc)+'</div><div class="treg">'+linkRegs(t.reg)+'</div></td>'+
@@ -1808,16 +1809,17 @@ function taskRowHtml(t,c,chain,isNext){
       '<span>📅</span><span>מורחב מ'+recessLabel+' (ללא פגרה: '+fmtDate(rawDate)+')</span></div>':'')
     :'<span class="date-none">—</span>';
   // Cascaded (effective) date cell — editable only for t1 (root), computed for others
+  var doneStyle=status==='done'?'background:#dcfce7;border-color:#4ade80;color:#14532d;':'';
   var effCell;
   if(t.isRoot){
     // t1: show editable input so user can override the cascade root
     effCell='<input type="date" class="date-input inp-actual" value="'+toInput(actualDate)+'" '+
-      'onchange="setActual(\''+t.id+'\',this.value)" placeholder="מועד בפועל" title="הזן תאריך הגשה בפועל">';
+      'onchange="setActual(\''+t.id+'\',this.value)" placeholder="מועד בפועל" title="הזן תאריך הגשה בפועל"'+(doneStyle?' style="'+doneStyle+'"':'')+'>'; 
   } else {
     // show cascade note if effective differs from original
     var showEff=(effDate&&effDate!==origDate)?'<div style="font-size:13px;color:#C00000;margin-top:4px;letter-spacing:.2px">\u21b3 \u05de\u05d7\u05d5\u05e9\u05d1: '+fmtDate(effDate)+'</div>':'';
     effCell='<input type="date" class="date-input inp-actual" value="'+toInput(actualDate)+'" '+
-      'onchange="setActual(\''+t.id+'\',this.value)" placeholder="\u05de\u05d5\u05e2\u05d3 \u05d1\u05e4\u05d5\u05e2\u05dc">'+showEff;
+      'onchange="setActual(\''+t.id+'\',this.value)" placeholder="\u05de\u05d5\u05e2\u05d3 \u05d1\u05e4\u05d5\u05e2\u05dc"'+(doneStyle?' style="'+doneStyle+'"':'')+'>'+showEff;
     // Special: t12 — show computed indicator = t10 actual + 7 days
     if(t.id==='t12'){
       var t10actual=(c.actualDates||{}).t10||'';
