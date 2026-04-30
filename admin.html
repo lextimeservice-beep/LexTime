@@ -299,10 +299,6 @@ tr:hover td{background:#fafbfc}
         <span class="nav-icon">🎁</span><span>ניסיונות</span>
         <span class="nav-badge" id="trialsBadge" style="display:none">0</span>
       </div>
-      <div class="nav-item" onclick="showPage('invoices')" id="nav-invoices">
-        <span class="nav-icon">🧾</span><span>חשבוניות מס</span>
-        <span class="nav-badge" id="invoicesBadge" style="display:none">0</span>
-      </div>
       <div class="nav-item" onclick="showPage('settings')" id="nav-settings">
         <span class="nav-icon">⚙️</span><span>הגדרות מערכת</span>
       </div>
@@ -670,60 +666,12 @@ tr:hover td{background:#fafbfc}
             <div class="fdiv"></div>
             <div class="slbl">PayPal</div>
             <div class="fg"><label class="fl">כתובת PayPal לקבלת תשלומים</label><input class="fi" id="settingPaypal" placeholder="payments@timebar.co.il"></div>
-            <div class="fdiv"></div>
-            <div class="slbl">פרטי עסק לחשבוניות מס</div>
-            <div class="fgrid">
-              <div class="fg"><label class="fl">שם העסק בחשבונית</label><input class="fi" id="settingBizName" placeholder="LexTime בע״מ"></div>
-              <div class="fg"><label class="fl">מספר עוסק מורשה / ח.פ.</label><input class="fi" id="settingVatNum" placeholder="515XXXXXXX"></div>
-            </div>
-            <div class="fg"><label class="fl">כתובת העסק</label><input class="fi" id="settingBizAddr" placeholder="רח׳ הרצל 1, תל אביב"></div>
-            <div class="fgrid">
-              <div class="fg"><label class="fl">טלפון עסקי</label><input class="fi" id="settingBizPhone" placeholder="04-875-8355"></div>
-              <div class="fg"><label class="fl">פקס</label><input class="fi" id="settingBizFax" placeholder="077-555-8894"></div>
-            </div>
+            
             <button class="btn btn-gold" onclick="saveSettings()" style="margin-top:6px">שמור הגדרות</button>
           </div>
         </div>
       </div>
-
-      <!-- ── INVOICES PAGE ── -->
-      <div id="page-invoices" style="display:none">
-        <div class="kpi-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:20px">
-          <div class="kpi gold"><div class="kpi-icon">🧾</div><div class="kpi-label">סה"כ חשבוניות</div><div class="kpi-value" id="invKpiTotal">0</div></div>
-          <div class="kpi red"><div class="kpi-icon">📤</div><div class="kpi-label">ממתינות לשליחה</div><div class="kpi-value" id="invKpiPending">0</div></div>
-          <div class="kpi green"><div class="kpi-icon">✅</div><div class="kpi-label">נשלחו החודש</div><div class="kpi-value" id="invKpiSent">0</div></div>
-          <div class="kpi blue"><div class="kpi-icon">💰</div><div class="kpi-label">הכנסות החודש</div><div class="kpi-value" id="invKpiMRR" style="font-size:22px">₪0</div></div>
-        </div>
-        <div class="card">
-          <div class="card-header">
-            <div class="card-title">🧾 חשבוניות מס</div>
-            <div class="search-wrap">
-              <input type="text" class="search-input" id="invSearch" placeholder="חיפוש שם / מספר..." oninput="renderInvoices()">
-              <select class="filter-sel" id="invStatusFilter" onchange="renderInvoices()">
-                <option value="">הכל</option>
-                <option value="pending_send">ממתינות לשליחה</option>
-                <option value="sent">נשלחו</option>
-                <option value="cancelled">מבוטלות</option>
-              </select>
-              <button class="btn btn-gh btn-sm" onclick="loadInvoices()">🔄 רענן</button>
-              <button class="btn btn-blue btn-sm" onclick="createMonthlyInvoices()" style="background:var(--blue);color:#fff">📊 צור חשבוניות חודשיות</button>
-              <button class="btn btn-gold btn-sm" onclick="sendAllPendingInvoices()">📤 שלח את כולן</button>
-            </div>
-          </div>
-          <div style="overflow-x:auto">
-            <table>
-              <thead><tr>
-                <th>מספר חשבונית</th><th>תאריך</th><th>לקוח</th><th>מסלול</th>
-                <th>לפני מע"מ</th><th>מע"מ 18%</th><th>סה"כ</th><th>אמצעי תשלום</th><th>סטטוס</th><th>פעולות</th>
-              </tr></thead>
-              <tbody id="invoicesTable"><tr class="empty-row"><td colspan="10">טוען...</td></tr></tbody>
-            </table>
-          </div>
-          <div style="padding:12px 20px;border-top:1px solid var(--border);font-size:12px;color:var(--gray)" id="invoicesCount"></div>
-        </div>
-      </div>
-
-    </div><!-- /page-content -->
+</div><!-- /page-content -->
   </div><!-- /main-content -->
 
 <!-- ══ MODAL: עורכי דין מורשים ══ -->
@@ -1097,7 +1045,7 @@ var DB_URL    = 'https://lextime-82214-default-rtdb.europe-west1.firebasedatabas
 var DB_SECRET = 'ZRYmRM293l9TyrLs9vRt02MYRtBKMWDwNiMFirgk';
 
 /* זיכרון מקומי (נטען מ-Firebase בכניסה) */
-var _cache = { subs:[], pays:[], settings:{}, deletedEmails:[], trials:[], invoices:[] };
+var _cache = { subs:[], pays:[], settings:{}, deletedEmails:[], trials:[] };
 
 async function _fbGet(path){
   var r = await fetch(DB_URL+path+'.json?auth='+DB_SECRET);
@@ -1120,24 +1068,22 @@ function _arrFromFb(d){ // Firebase מחזיר null / array / object
 /* טעינת כל הנתונים מ-Firebase בכניסה */
 async function loadFromFirebase(){
   try{
-    var [s,p,cfg,del,tr,inv] = await Promise.all([
+    var [s,p,cfg,del,tr] = await Promise.all([
       _fbGet('/subs'), _fbGet('/pays'),
       _fbGet('/settings'), _fbGet('/deletedEmails'),
-      _fbGet('/trials'), _fbGet('/invoices')
+      _fbGet('/trials')
     ]);
     _cache.subs          = _arrFromFb(s);
     _cache.pays          = _arrFromFb(p);
     _cache.settings      = cfg || {};
     _cache.deletedEmails = _arrFromFb(del);
     _cache.trials        = tr  ? Object.entries(tr).map(function(e){ return Object.assign({_key:e[0]},e[1]); }) : [];
-    _cache.invoices      = inv ? Object.entries(inv).map(function(e){ return Object.assign({_key:e[0]},e[1]); }) : [];
   }catch(e){
     _cache.subs          = JSON.parse(localStorage.getItem('tb_subs')||'[]');
     _cache.pays          = JSON.parse(localStorage.getItem('tb_pays')||'[]');
     _cache.settings      = JSON.parse(localStorage.getItem('tb_settings')||'{}');
     _cache.deletedEmails = JSON.parse(localStorage.getItem('tb_deleted_emails')||'[]');
     _cache.trials        = [];
-    _cache.invoices      = [];
     console.warn('Firebase לא זמין — נטען מ-localStorage');
   }
 }
@@ -1189,7 +1135,6 @@ async function initApp(){
   await loadAllCredentials(); /* ← בודק credentials לכל נרשם */
   setToday();
   fillSettingsForm();
-  _updateInvoiceBadge();
   showPage('dashboard');
 }
 
@@ -1201,13 +1146,13 @@ function setToday(){
 /* ═══ PAGE NAVIGATION ═══ */
 var _currentFilter='all';
 function showPage(page){
-  ['dashboard','subscribers','payments','plans','contacts','reviews','trials','invoices','settings'].forEach(function(p){
+  ['dashboard','subscribers','payments','plans','contacts','reviews','trials','settings'].forEach(function(p){
     var el=document.getElementById('page-'+p);
     if(el)el.style.display=p===page?'block':'none';
     var nav=document.getElementById('nav-'+p);
     if(nav)nav.className='nav-item'+(p===page?' active':'');
   });
-  var titles={dashboard:'לוח בקרה',subscribers:'ניהול נרשמים',payments:'ניהול תשלומים',plans:'מסלולים ומנויים',contacts:'פניות יצירת קשר',reviews:'חוות דעת',trials:'משתמשי ניסיון',invoices:'חשבוניות מס',settings:'הגדרות מערכת'};
+  var titles={dashboard:'לוח בקרה',subscribers:'ניהול נרשמים',payments:'ניהול תשלומים',plans:'מסלולים ומנויים',contacts:'פניות יצירת קשר',reviews:'חוות דעת',trials:'משתמשי ניסיון',settings:'הגדרות מערכת'};
   document.getElementById('pageTitle').textContent=titles[page]||page;
   document.getElementById('pageSub').textContent='';
   if(page==='dashboard')renderDashboard();
@@ -1216,7 +1161,6 @@ function showPage(page){
   if(page==='plans')renderPlans();
   if(page==='contacts')loadContacts();
   if(page==='reviews')loadReviews();
-  if(page==='invoices'){loadInvoices();}
   if(page==='trials'){loadTrials();}
 }
 
@@ -1530,11 +1474,7 @@ function approveSub(id){
   if(!exists){pays.push({id:genId(),subId:id,subName:s.name,plan:s.plan,amount:PLAN_PRICES[s.plan]||0,method:s.payMethod,month:todayMonth(),status:'approved',ref:'',notes:'אושר ידנית'});savePays(pays);}
   /* ── תיקון אוטומטי של credentials בענן ── */
   _ensureCredentials(s);
-  /* ── יצירת חשבונית מס אוטומטית ── */
-  createInvoice(s,'').then(function(inv){
-    if(inv) toast('המנוי אושר ✅ | חשבונית '+inv.num+' נוצרה — עבור לחשבוניות לשליחה');
-    else toast('המנוי אושר ✅');
-  });
+  toast('המנוי אושר ✅');
   renderSubs();renderDashboard();renderPayments();
 }
 function suspendSub(id){
@@ -1634,11 +1574,6 @@ function saveSettings(){
   s.bankBranch=document.getElementById('settingBankBranch').value;
   s.bankAccount=document.getElementById('settingBankAccount').value;
   s.paypal=document.getElementById('settingPaypal').value;
-  var bizNameEl=document.getElementById('settingBizName'); if(bizNameEl) s.bizName=bizNameEl.value;
-  var vatNumEl=document.getElementById('settingVatNum'); if(vatNumEl) s.vatNum=vatNumEl.value;
-  var bizAddrEl=document.getElementById('settingBizAddr'); if(bizAddrEl) s.bizAddr=bizAddrEl.value;
-  var bizPhoneEl=document.getElementById('settingBizPhone'); if(bizPhoneEl) s.bizPhone=bizPhoneEl.value;
-  var bizFaxEl=document.getElementById('settingBizFax'); if(bizFaxEl) s.bizFax=bizFaxEl.value;
   var newUser=document.getElementById('settingUser').value.trim();
   var newPass=document.getElementById('settingPass').value;
   if(newUser){s.adminUser=newUser;ADMIN_USER=newUser;}
@@ -2265,673 +2200,11 @@ function methodBadge(m){
   return '<span class="badge badge-blue">'+(labels[m]||m)+'</span>';
 }
 
-/* ═══════════════════════════════════════════════════
-   ═══ INVOICE SYSTEM — חשבוניות מס                ═══
-   ═══════════════════════════════════════════════════ */
-
-var VAT_RATE = 0.18; /* מע"מ 18% */
-
-/* מחזיר את מספר החשבונית הבא — מ-Firebase */
-async function _nextInvoiceNum(){
-  var counter = await _fbGet('/invoice_counter');
-  var next = (counter && counter.value ? counter.value : 0) + 1;
-  var year = new Date().getFullYear();
-  await _fbPut('/invoice_counter', {value: next, updatedAt: new Date().toISOString()});
-  return 'INV-' + year + '-' + String(next).padStart(4,'0');
-}
-
-/* יוצר רשומת חשבונית ב-Firebase ומחזיר אותה */
-async function createInvoice(sub, payRef){
-  if(!sub || !sub.email) return null;
-  /* בדוק אם כבר יש חשבונית לנרשם זה החודש */
-  var thisMonth = new Date().toISOString().slice(0,7);
-  var existing = (_cache.invoices||[]).find(function(i){
-    return i.email && i.email.toLowerCase() === sub.email.toLowerCase() &&
-           i.date && i.date.slice(0,7) === thisMonth;
-  });
-  if(existing){ console.log('Invoice already exists for this month:', existing.num); return existing; }
-
-  var total    = PLAN_PRICES[sub.plan] || 0;
-  var vat      = Math.round(total / (1 + VAT_RATE) * VAT_RATE * 100) / 100;
-  var beforeVat= Math.round((total - vat) * 100) / 100;
-
-  var num = await _nextInvoiceNum();
-  var invoice = {
-    num:      num,
-    date:     new Date().toISOString().slice(0,10),
-    name:     sub.name  || '',
-    email:    sub.email.toLowerCase(),
-    plan:     sub.plan  || '',
-    beforeVat:beforeVat,
-    vat:      vat,
-    total:    total,
-    method:   sub.payMethod || '',
-    status:   'pending_send',
-    subId:    sub.id    || '',
-    payRef:   payRef    || '',
-    createdAt:new Date().toISOString()
-  };
-
-  var key = 'inv_' + Date.now() + '_' + Math.random().toString(36).slice(2,5);
-  try{
-    await _fbPut('/invoices/'+key, invoice);
-    if(!_cache.invoices) _cache.invoices = [];
-    _cache.invoices.push(Object.assign({_key:key}, invoice));
-    _updateInvoiceBadge();
-    return invoice;
-  }catch(e){
-    console.error('createInvoice error:', e);
-    return null;
-  }
-}
-
-/* טוען חשבוניות מ-Firebase */
-async function loadInvoices(){
-  try{
-    var data = await _fbGet('/invoices');
-    _cache.invoices = data
-      ? Object.entries(data).map(function(e){ return Object.assign({_key:e[0]},e[1]); })
-      : [];
-  }catch(e){ _cache.invoices = []; }
-  _updateInvoiceBadge();
-  renderInvoices();
-}
-
-/* מעדכן את הבאדג' בסרגל הצד */
-function _updateInvoiceBadge(){
-  var pending = (_cache.invoices||[]).filter(function(i){ return i.status==='pending_send'; }).length;
-  var badge = document.getElementById('invoicesBadge');
-  if(!badge) return;
-  badge.textContent = pending;
-  badge.style.display = pending ? '' : 'none';
-}
-
-/* מרנדר את טבלת החשבוניות */
-function renderInvoices(){
-  var search = (document.getElementById('invSearch')||{}).value||'';
-  var filter = (document.getElementById('invStatusFilter')||{}).value||'';
-  var invs = (_cache.invoices||[]).slice().sort(function(a,b){
-    return (b.createdAt||'') > (a.createdAt||'') ? 1 : -1;
-  });
-
-  /* KPI */
-  var thisMonth = new Date().toISOString().slice(0,7);
-  var realInvs  = invs.filter(function(i){ return i.type !== 'credit_note'; });
-  var pending   = realInvs.filter(function(i){ return i.status==='pending_send'; });
-  var sentMonth = realInvs.filter(function(i){ return i.status==='sent' && (i.date||'').slice(0,7)===thisMonth; });
-  var mrr       = sentMonth.reduce(function(a,i){ return a+(i.total||0); }, 0);
-  var activeInvs= realInvs.filter(function(i){ return i.status !== 'cancelled'; });
-  var el1=document.getElementById('invKpiTotal');   if(el1) el1.textContent=activeInvs.length;
-  var el2=document.getElementById('invKpiPending'); if(el2) el2.textContent=pending.length;
-  var el3=document.getElementById('invKpiSent');    if(el3) el3.textContent=sentMonth.length;
-  var el4=document.getElementById('invKpiMRR');     if(el4) el4.textContent='₪'+mrr.toLocaleString();
-
-  /* סינון */
-  if(search){ var s=search.toLowerCase(); invs=invs.filter(function(i){
-    return (i.name||'').toLowerCase().includes(s)||(i.num||'').toLowerCase().includes(s)||(i.email||'').toLowerCase().includes(s);
-  });}
-  if(filter) invs=invs.filter(function(i){ return i.status===filter; });
-
-  var tb = document.getElementById('invoicesTable');
-  if(!invs.length){ tb.innerHTML='<tr class="empty-row"><td colspan="10">אין חשבוניות</td></tr>'; return; }
-
-  var methodLabels = {paypal:'PayPal', card:'כ. אשראי', bank:'העברה בנקאית'};
-  tb.innerHTML = invs.map(function(inv){
-    var isCancelled = inv.status === 'cancelled';
-    var isCreditNote = inv.type === 'credit_note';
-    var sBadge = isCreditNote
-      ? '<span class="badge" style="background:#ede9fe;color:#5b21b6">זיכוי 🔄</span>'
-      : isCancelled
-        ? '<span class="badge" style="background:#fee2e2;color:#b91c1c">מבוטלת 🚫</span>'
-        : inv.status==='sent'
-          ? '<span class="badge badge-green">נשלחה ✅</span>'
-          : '<span class="badge badge-amber">ממתינה 📤</span>';
-    var d = inv.date ? new Date(inv.date+'T00:00:00').toLocaleDateString('he-IL') : '—';
-    var actions = '<div class="row-actions">';
-    if(!isCancelled && !isCreditNote){
-      if(inv.status==='pending_send'){
-        actions += '<button class="btn btn-gold btn-sm" onclick="sendInvoice(\''+inv._key+'\')">📧 שלח</button>';
-      }
-      if(inv.status==='sent'){
-        actions += '<button class="btn btn-sm" style="background:#ede9fe;color:#5b21b6;border:none;cursor:pointer" onclick="createCreditNote(\''+inv._key+'\')">🔄 זיכוי</button>';
-      }
-      actions += '<button class="btn btn-gh btn-sm" onclick="openEditInvoice(\''+inv._key+'\')">✏️ ערוך</button>';
-      actions += '<button class="btn btn-sm" style="background:#fee2e2;color:#b91c1c;border:none;cursor:pointer" onclick="cancelInvoice(\''+inv._key+'\')">❌ בטל</button>';
-    }
-    if(isCreditNote){
-      actions += '<button class="btn btn-gh btn-sm" onclick="sendCreditNote(\''+inv._key+'\')">📧 שלח</button>';
-    }
-    actions += isCreditNote ? '<button class="btn btn-gh btn-sm" onclick="previewCreditNote(\''+inv._key+'\')">👁 צפה</button>' : '<button class="btn btn-gh btn-sm" onclick="previewInvoice(\''+inv._key+'\')">👁 צפה</button>';
-    actions += '</div>';
-    var rowStyle = isCancelled ? ' style="opacity:0.45;text-decoration:line-through"' : isCreditNote ? ' style="background:rgba(139,92,246,0.05)"' : '';
-    return '<tr'+rowStyle+'>'
-      +'<td style="font-family:monospace;font-weight:700;color:'+(isCreditNote?'#7c3aed':'var(--gold)')+'">'+(inv.num||'—')+'</td>'
-      +'<td style="white-space:nowrap;color:var(--gray)">'+d+'</td>'
-      +'<td><strong>'+(inv.name||'—')+'</strong><br><span style="font-size:11px;color:var(--gray-l)">'+(inv.email||'')+'</span></td>'
-      +'<td>'+planBadge(inv.plan)+'</td>'
-      +'<td style="font-weight:600">₪'+(inv.beforeVat||0).toFixed(2)+'</td>'
-      +'<td style="color:var(--gray)">₪'+(inv.vat||0).toFixed(2)+'</td>'
-      +'<td style="font-weight:700;color:var(--ink)">₪'+(inv.total||0)+'</td>'
-      +'<td>'+methodBadge(inv.method)+'</td>'
-      +'<td>'+sBadge+'</td>'
-      +'<td>'+actions+'</td>'
-      +'</tr>';
-  }).join('');
-
-  var cnt = document.getElementById('invoicesCount');
-  var monthLabel = new Date().toLocaleDateString('he-IL',{month:'long',year:'numeric'});
-  if(cnt) cnt.textContent = 'מוצגות ' + invs.length + ' חשבוניות | חודש נוכחי: ' + monthLabel;
-}
-
-/* שולח חשבונית — פותח mailto ומסמן כנשלחה */
-async function sendInvoice(key){
-  var inv = (_cache.invoices||[]).find(function(i){ return i._key===key; });
-  if(!inv){ toast('❌ חשבונית לא נמצאה'); return; }
-  var s = loadSettings();
-  _openInvoiceMailto(inv, s);
-  /* סמן כנשלחה */
-  var updated = Object.assign({}, inv, {status:'sent', sentAt: new Date().toISOString()});
-  try{
-    await _fbPut('/invoices/'+key, updated);
-    _cache.invoices = _cache.invoices.map(function(i){ return i._key===key ? Object.assign({},i,{status:'sent'}) : i; });
-    _updateInvoiceBadge();
-    renderInvoices();
-    toast('✅ החשבונית נשלחה וסומנה');
-  }catch(e){ toast('❌ שגיאת עדכון: '+e.message); }
-}
-
-/* יוצר חשבוניות חודשיות לכל המנויים הפעילים שעדיין אין להם חשבונית החודש */
-async function createMonthlyInvoices(){
-  var subs = loadSubs().filter(function(s){ return s.status === 'active'; });
-  if(!subs.length){ toast('❌ אין מנויים פעילים'); return; }
-
-  var thisMonth = new Date().toISOString().slice(0,7);
-  var monthLabel = new Date().toLocaleDateString('he-IL',{month:'long',year:'numeric'});
-
-  /* מצא מנויים שכבר יש להם חשבונית החודש */
-  var existingEmails = (_cache.invoices||[])
-    .filter(function(i){ return i.date && i.date.slice(0,7) === thisMonth; })
-    .map(function(i){ return (i.email||'').toLowerCase(); });
-
-  var toCreate = subs.filter(function(s){
-    return s.email && existingEmails.indexOf(s.email.toLowerCase()) === -1;
-  });
-
-  if(!toCreate.length){
-    toast('✅ כל המנויים כבר קיבלו חשבונית לחודש ' + monthLabel);
-    return;
-  }
-
-  if(!confirm('ליצור ' + toCreate.length + ' חשבוניות חדשות לחודש ' + monthLabel + '?\n\n' +
-    toCreate.map(function(s){ return '\u2022 ' + s.name + ' \u2014 ' + s.plan + ' (\u20aa' + (PLAN_PRICES[s.plan]||0) + ')'; }).join('\n')
-  )) return;
-
-  var created = 0;
-  var errors  = 0;
-  var btn = document.querySelector('[onclick="createMonthlyInvoices()"]');
-  if(btn){ btn.textContent = '⏳ יוצר חשבוניות...'; btn.disabled = true; }
-
-  for(var i=0; i<toCreate.length; i++){
-    var s = toCreate[i];
-    try{
-      var inv = await createInvoice(s, '');
-      if(inv) created++;
-    }catch(e){
-      errors++;
-      console.error('Failed to create invoice for', s.email, e);
-    }
-  }
-
-  if(btn){ btn.textContent = '📊 צור חשבוניות חודשיות'; btn.disabled = false; }
-  renderInvoices();
-
-  if(errors){
-    toast('⚠️ נוצרו ' + created + ' חשבוניות. ' + errors + ' נכשלו — בדוק Console');
-  } else {
-    toast('✅ נוצרו ' + created + ' חשבוניות לחודש ' + monthLabel + ' — לחץ "שלח את כולן"');
-  }
-}
-
-/* שולח את כל החשבוניות הממתינות */
-async function sendAllPendingInvoices(){
-  var pending = (_cache.invoices||[]).filter(function(i){ return i.status==='pending_send'; });
-  if(!pending.length){ toast('אין חשבוניות ממתינות לשליחה'); return; }
-  if(!confirm('לשלוח '+pending.length+' חשבוניות ממתינות?')) return;
-  var s = loadSettings();
-  for(var i=0; i<pending.length; i++){
-    var inv = pending[i];
-    _openInvoiceMailto(inv, s);
-    await new Promise(function(r){ setTimeout(r, 800); }); /* עיכוב בין מיילים */
-    var updated = Object.assign({},inv,{status:'sent',sentAt:new Date().toISOString()});
-    await _fbPut('/invoices/'+inv._key, updated).catch(function(){});
-    _cache.invoices = _cache.invoices.map(function(x){ return x._key===inv._key ? Object.assign({},x,{status:'sent'}) : x; });
-  }
-  _updateInvoiceBadge();
-  renderInvoices();
-  toast('✅ '+pending.length+' חשבוניות נשלחו');
-}
-
-/* פותח חלון תצוגה מקדימה + הדפסה של החשבונית */
-function previewInvoice(key){
-  var inv = (_cache.invoices||[]).find(function(i){ return i._key===key; });
-  if(!inv){ toast('❌ חשבונית לא נמצאה'); return; }
-  var s = loadSettings();
-  var w = window.open('','_blank','width=800,height=900');
-  w.document.write(generateInvoiceHTML(inv, s));
-  w.document.close();
-}
-
-/* פותח mailto עם פרטי החשבונית */
-function _openInvoiceMailto(inv, s){
-  var bizName = (s && s.bizName) ? s.bizName : 'LexTime';
-  var methodLabel = {paypal:'PayPal', card:'כרטיס אשראי', bank:'העברה בנקאית'}[inv.method] || inv.method || '';
-  var d = inv.date ? new Date(inv.date+'T00:00:00').toLocaleDateString('he-IL') : '';
-  var subject = encodeURIComponent('חשבונית מס ' + inv.num + ' — ' + bizName);
-  var body = encodeURIComponent(
-    'שלום ' + (inv.name||'') + ',\n\n' +
-    'להלן פרטי חשבונית המס עבור המנוי שלך.\n\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'חשבונית מס מספר: ' + inv.num + '\n' +
-    'תאריך: ' + d + '\n' +
-    'עסק: ' + bizName + (s && s.vatNum ? ' | ע.מ. ' + s.vatNum : '') + '\n' +
-    'כתובת: הנביאים 28, חיפה | טל: 04-875-8355 | פקס: 077-555-8894\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n' +
-    'שירות: מנוי LexTime — מסלול ' + (inv.plan||'') + '\n' +
-    'מחיר לפני מע"מ:  ₪' + (inv.beforeVat||0).toFixed(2) + '\n' +
-    'מע"מ 18%:         ₪' + (inv.vat||0).toFixed(2) + '\n' +
-    'סה"כ לתשלום:     ₪' + (inv.total||0) + '\n' +
-    'אמצעי תשלום:     ' + methodLabel + '\n' +
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n' +
-    'לשאלות — ענה למייל זה.\n\n' +
-    'בברכה,\nצוות ' + bizName
-  );
-  window.open('mailto:' + inv.email + '?subject=' + subject + '&body=' + body);
-}
-
-/* יוצר HTML מלא של חשבונית מס להדפסה */
-function generateInvoiceHTML(inv, s){
-  var bizName  = (s && s.bizName)  ? s.bizName  : 'LexTime';
-  var bizFax   = (s && s.bizFax)   ? s.bizFax   : '077-555-8894';
-  var vatNum   = (s && s.vatNum)   ? s.vatNum   : '';
-  var bizAddr  = (s && s.bizAddr)  ? s.bizAddr  : 'הנביאים 28, חיפה 3310407';
-  var bizPhone = (s && s.bizPhone) ? s.bizPhone : '04-875-8355';
-  var bizEmail = (s && s.adminEmail) ? s.adminEmail : '';
-  var methodLabel = {paypal:'PayPal', card:'כרטיס אשראי', bank:'העברה בנקאית'}[inv.method] || inv.method || '';
-  var d = inv.date ? new Date(inv.date+'T00:00:00').toLocaleDateString('he-IL') : '';
-
-  return '<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="UTF-8">' +
-  '<title>חשבונית מס ' + inv.num + '</title>' +
-  '<style>' +
-  '*{box-sizing:border-box;margin:0;padding:0}' +
-  'body{font-family:Arial,sans-serif;color:#1a202c;background:#f7fafc;padding:32px;direction:rtl}' +
-  '.page{background:#fff;max-width:720px;margin:0 auto;padding:48px;box-shadow:0 4px 24px rgba(0,0,0,.1);border-radius:12px}' +
-  '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:24px;border-bottom:3px solid #c9922a}' +
-  '.biz-name{font-size:28px;font-weight:900;color:#0a1628;margin-bottom:4px}' +
-  '.biz-detail{font-size:13px;color:#64748b;line-height:1.8}' +
-  '.inv-badge{background:#0a1628;color:#fff;padding:12px 20px;border-radius:10px;text-align:center}' +
-  '.inv-badge-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.6;margin-bottom:4px}' +
-  '.inv-badge-num{font-size:22px;font-weight:900;color:#e8b84b}' +
-  '.inv-badge-date{font-size:12px;opacity:.7;margin-top:4px}' +
-  '.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#94a3b8;margin-bottom:8px}' +
-  '.client-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 20px;margin-bottom:32px}' +
-  '.client-name{font-size:18px;font-weight:700;color:#0a1628;margin-bottom:4px}' +
-  '.client-email{font-size:13px;color:#64748b}' +
-  'table{width:100%;border-collapse:collapse;margin-bottom:0}' +
-  'thead th{background:#0a1628;color:#fff;padding:11px 16px;font-size:12px;font-weight:700;text-align:right;letter-spacing:.4px}' +
-  'tbody td{padding:13px 16px;border-bottom:1px solid #f1f5f9;font-size:14px;vertical-align:middle}' +
-  'tbody tr:last-child td{border-bottom:none}' +
-  '.totals{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:20px 24px;margin-top:24px}' +
-  '.total-row{display:flex;justify-content:space-between;align-items:center;padding:6px 0;font-size:14px;color:#475569}' +
-  '.total-row.grand{border-top:2px solid #0a1628;margin-top:10px;padding-top:14px;font-size:18px;font-weight:900;color:#0a1628}' +
-  '.total-row.grand span:last-child{color:#c9922a}' +
-  '.badge{display:inline-flex;padding:3px 10px;border-radius:10px;font-size:11px;font-weight:700;background:#dcf4e8;color:#1a7a4a}' +
-  '.footer{margin-top:40px;padding-top:20px;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#94a3b8;line-height:1.8}' +
-  '.stamp{display:inline-block;border:2px solid #c9922a;color:#c9922a;padding:6px 18px;border-radius:50px;font-size:13px;font-weight:700;margin-bottom:16px;transform:rotate(-3deg)}' +
-  '@media print{body{padding:0;background:#fff}.page{box-shadow:none;border-radius:0;padding:32px}button{display:none}}' +
-  '</style></head><body>' +
-  '<div class="page">' +
-  '<div class="header">' +
-  '<div><div class="biz-name">' + bizName + '</div>' +
-  '<div class="biz-detail">' +
-  (vatNum ? 'עוסק מורשה: ' + vatNum + '<br>' : '') +
-  (bizAddr ? bizAddr + '<br>' : '') +
-  (bizPhone ? 'טל׳: ' + bizPhone + ' | פקס: ' + bizFax + '<br>' : '') +
-  (bizEmail ? bizEmail : '') +
-  '</div></div>' +
-  '<div class="inv-badge">' +
-  '<div class="inv-badge-title">חשבונית מס</div>' +
-  '<div class="inv-badge-num">' + inv.num + '</div>' +
-  '<div class="inv-badge-date">תאריך: ' + d + '</div>' +
-  '</div></div>' +
-
-  '<div class="section-title">פרטי לקוח</div>' +
-  '<div class="client-box"><div class="client-name">' + (inv.name||'') + '</div>' +
-  '<div class="client-email">' + (inv.email||'') + '</div></div>' +
-
-  '<div class="section-title">פירוט שירות</div>' +
-  '<table><thead><tr><th>תיאור</th><th>אמצעי תשלום</th><th>מחיר לפני מע"מ</th><th>מע"מ 18%</th><th>סה"כ</th></tr></thead>' +
-  '<tbody><tr>' +
-  '<td><strong>מנוי LexTime</strong><br><span style="font-size:12px;color:#64748b">מסלול ' + (inv.plan||'') + ' — חיוב חודשי</span></td>' +
-  '<td><span class="badge">' + methodLabel + '</span></td>' +
-  '<td style="font-weight:600">₪' + (inv.beforeVat||0).toFixed(2) + '</td>' +
-  '<td style="color:#64748b">₪' + (inv.vat||0).toFixed(2) + '</td>' +
-  '<td style="font-weight:700">₪' + (inv.total||0) + '</td>' +
-  '</tr></tbody></table>' +
-
-  '<div class="totals">' +
-  '<div class="total-row"><span>מחיר לפני מע"מ</span><span>₪' + (inv.beforeVat||0).toFixed(2) + '</span></div>' +
-  '<div class="total-row"><span>מע"מ (18%)</span><span>₪' + (inv.vat||0).toFixed(2) + '</span></div>' +
-  '<div class="total-row grand"><span>סה"כ לתשלום</span><span>₪' + (inv.total||0) + '</span></div>' +
-  '</div>' +
-
-  '<div class="footer">' +
-  '<div class="stamp">שולם ✓</div><br>' +
-  bizName + (vatNum ? ' | ע.מ. ' + vatNum : '') + '<br>' +
-  'חשבונית זו מהווה מסמך חשבונאי לצרכי מס בהתאם לחוק מע"מ, תשל"ו-1975' +
-  '</div>' +
-  '<div style="text-align:center;margin-top:24px">' +
-  '<button onclick="window.print()" style="background:#c9922a;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:Arial">🖨️ הדפס / שמור PDF</button>' +
-  '</div>' +
-  '</div></body></html>';
-}
-
 /* ═══ MODAL & TOAST ═══ */
 function closeModal(id){document.getElementById(id).classList.add('hidden');}
 function toast(msg){var t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');setTimeout(function(){t.classList.remove('show');},2800);}
 
-/* ═══ EDIT INVOICE ═══ */
-function recalcEditInvTotal(){
-  var before  = parseFloat(document.getElementById('editInvBeforeVat').value) || 0;
-  var vatRate = parseFloat(document.getElementById('editInvVatRate').value)   || 0;
-  var total   = parseFloat((before * (1 + vatRate/100)).toFixed(2));
-  document.getElementById('editInvTotal').value = before ? total : '';
-}
-function recalcEditInvFromTotal(){
-  var total   = parseFloat(document.getElementById('editInvTotal').value)   || 0;
-  var vatRate = parseFloat(document.getElementById('editInvVatRate').value) || 0;
-  var before  = parseFloat((total / (1 + vatRate/100)).toFixed(2));
-  document.getElementById('editInvBeforeVat').value = total ? before : '';
-}
 
-function openEditInvoice(key){
-  var inv = (_cache.invoices||[]).find(function(i){ return i._key===key; });
-  if(!inv){ toast('❌ חשבונית לא נמצאה'); return; }
-  document.getElementById('editInvKey').value   = key;
-  document.getElementById('editInvNum').textContent = inv.num || '—';
-  document.getElementById('editInvName').value   = inv.name  || '';
-  document.getElementById('editInvEmail').value  = inv.email || '';
-  document.getElementById('editInvDate').value       = inv.date  || '';
-  var vr = inv.vatRate != null ? inv.vatRate : 18;
-  document.getElementById('editInvVatRate').value    = vr;
-  document.getElementById('editInvBeforeVat').value  = inv.beforeVat != null ? inv.beforeVat : '';
-  document.getElementById('editInvTotal').value      = inv.total || '';
-  document.getElementById('editInvPlan').value   = inv.plan  || '';
-  document.getElementById('editInvMethod').value = inv.method|| '';
-  document.getElementById('editInvNotes').value  = inv.notes || '';
-  document.getElementById('modalEditInv').classList.remove('hidden');
-}
-
-async function saveEditInvoice(){
-  var key    = document.getElementById('editInvKey').value;
-  var inv    = (_cache.invoices||[]).find(function(i){ return i._key===key; });
-  if(!inv){ toast('❌ שגיאה'); return; }
-
-  var beforeVat = parseFloat(document.getElementById('editInvBeforeVat').value) || 0;
-  var vatRate   = parseFloat(document.getElementById('editInvVatRate').value) || 0;
-  var vat       = parseFloat((beforeVat * vatRate / 100).toFixed(2));
-  var total     = parseFloat((beforeVat + vat).toFixed(2));
-
-  var updated = Object.assign({}, inv, {
-    name     : document.getElementById('editInvName').value.trim(),
-    email    : document.getElementById('editInvEmail').value.trim(),
-    date     : document.getElementById('editInvDate').value,
-    total    : total,
-    beforeVat: beforeVat,
-    vat      : vat,
-    vatRate  : vatRate,
-    plan     : document.getElementById('editInvPlan').value,
-    method   : document.getElementById('editInvMethod').value,
-    notes    : document.getElementById('editInvNotes').value.trim(),
-    editedAt : new Date().toISOString()
-  });
-
-  try{
-    await _fbPut('/invoices/'+key, updated);
-    _cache.invoices = _cache.invoices.map(function(i){ return i._key===key ? Object.assign({},i,updated) : i; });
-    closeModal('modalEditInv');
-    renderInvoices();
-    toast('✅ החשבונית עודכנה בהצלחה');
-  }catch(e){ toast('❌ שגיאת שמירה: '+e.message); }
-}
-
-/* ═══ CREDIT NOTE ═══ */
-async function _nextCreditNum(){
-  var counter = await _fbGet('/credit_counter');
-  var next = (counter && counter.value ? counter.value : 0) + 1;
-  var year = new Date().getFullYear();
-  await _fbPut('/credit_counter', {value: next, updatedAt: new Date().toISOString()});
-  return 'ZIK-' + year + '-' + String(next).padStart(4,'0');
-}
-
-async function createCreditNote(key){
-  var inv = (_cache.invoices||[]).find(function(i){ return i._key===key; });
-  if(!inv){ toast('❌ חשבונית לא נמצאה'); return; }
-  if((_cache.invoices||[]).find(function(i){ return i.type==='credit_note' && i.originalInvKey===key; })){
-    toast('⚠️ כבר קיימת הודעת זיכוי לחשבונית זו'); return;
-  }
-  if(!confirm('ליצור הודעת זיכוי עבור חשבונית ' + inv.num + '?\n\nהזיכוי יקזז את החשבונית המקורית לצורכי דיווח מעִ׳מ.')) return;
-  try{
-    var num = await _nextCreditNum();
-    var credit = {
-      type:         'credit_note',
-      num:          num,
-      date:         new Date().toISOString().slice(0,10),
-      name:         inv.name,
-      email:        inv.email,
-      plan:         inv.plan,
-      beforeVat:    -Math.abs(inv.beforeVat||0),
-      vat:          -Math.abs(inv.vat||0),
-      total:        -Math.abs(inv.total||0),
-      method:       inv.method,
-      status:       'pending_send',
-      originalInvKey: key,
-      originalInvNum: inv.num,
-      createdAt:    new Date().toISOString()
-    };
-    var ckey = 'credit_' + Date.now() + '_' + Math.random().toString(36).slice(2,5);
-    await _fbPut('/invoices/'+ckey, credit);
-    _cache.invoices.push(Object.assign({_key:ckey}, credit));
-    /* סמן חשבונית מקורית כמבוטלת */
-    var updOrig = Object.assign({}, inv, {status:'cancelled', cancelledAt: new Date().toISOString(), creditNoteKey: ckey});
-    await _fbPut('/invoices/'+key, updOrig);
-    _cache.invoices = _cache.invoices.map(function(i){ return i._key===key ? Object.assign({},i,{status:'cancelled'}) : i; });
-    _updateInvoiceBadge();
-    renderInvoices();
-    toast('✅ הודעת זיכוי ' + num + ' נוצרה — שלח ללקוח');
-  }catch(e){ toast('❌ שגיאה: '+e.message); }
-}
-
-async function sendCreditNote(key){
-  var cr = (_cache.invoices||[]).find(function(i){ return i._key===key; });
-  if(!cr){ toast('❌ לא נמצא'); return; }
-  var s = loadSettings();
-  var bizName = (s && s.bizName) ? s.bizName : 'LexTime';
-  var d = cr.date ? new Date(cr.date+'T00:00:00').toLocaleDateString('he-IL') : '';
-  var subject = encodeURIComponent('הודעת זיכוי ' + cr.num + ' — ' + bizName);
-  var lines = [
-    'שלום ' + (cr.name||'') + ',',
-    '',
-    'להלן פרטי הודעת הזיכוי עבור ביטול חשבונית ' + (cr.originalInvNum||'') + '.',
-    '',
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
-    'הודעת זיכוי מספר: ' + cr.num,
-    'תאריך: ' + d,
-    'מתייחס לחשבונית: ' + (cr.originalInvNum||''),
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
-    'סכום לפני מעִ׳מ:  ₪' + Math.abs(cr.beforeVat||0).toFixed(2) + ' (זיכוי)',
-    'מעִ׳מ:             ₪' + Math.abs(cr.vat||0).toFixed(2) + ' (זיכוי)',
-    'סה׳כ זיכוי:      ₪' + Math.abs(cr.total||0),
-    '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
-    '',
-    'לשאלות — ענה למייל זה.',
-    '',
-    'בברכה,',
-    'צוות ' + bizName
-  ];
-  var body = encodeURIComponent(lines.join('\n'));
-  window.open('mailto:' + cr.email + '?subject=' + subject + '&body=' + body);
-  var updated = Object.assign({}, cr, {status:'sent', sentAt: new Date().toISOString()});
-  await _fbPut('/invoices/'+key, updated).catch(function(){});
-  _cache.invoices = _cache.invoices.map(function(i){ return i._key===key ? Object.assign({},i,{status:'sent'}) : i; });
-  renderInvoices();
-  toast('✅ הודעת הזיכוי נשלחה');
-}
-
-function previewCreditNote(key){
-  var cr = (_cache.invoices||[]).find(function(i){ return i._key===key; });
-  if(!cr){ toast('❌ לא נמצא'); return; }
-  var s = loadSettings();
-  var w = window.open('','_blank','width=800,height=900');
-  w.document.write(generateCreditNoteHTML(cr, s));
-  w.document.close();
-}
-
-function generateCreditNoteHTML(cr, s){
-  var bizName  = (s && s.bizName)  ? s.bizName  : 'LexTime';
-  var bizFax   = (s && s.bizFax)   ? s.bizFax   : '';
-  var vatNum   = (s && s.vatNum)   ? s.vatNum   : '';
-  var bizAddr  = (s && s.bizAddr)  ? s.bizAddr  : '';
-  var bizPhone = (s && s.bizPhone) ? s.bizPhone : '';
-  var bizEmail = (s && s.adminEmail) ? s.adminEmail : '';
-  var d = cr.date ? new Date(cr.date+'T00:00:00').toLocaleDateString('he-IL') : '';
-  var absBeforeVat = Math.abs(cr.beforeVat||0).toFixed(2);
-  var absVat       = Math.abs(cr.vat||0).toFixed(2);
-  var absTotal     = Math.abs(cr.total||0);
-  return '<!DOCTYPE html><html dir="rtl" lang="he"><head><meta charset="UTF-8">'+
-  '<title>הודעת זיכוי ' + cr.num + '</title>'+
-  '<style>*{box-sizing:border-box;margin:0;padding:0}'+
-  'body{font-family:Arial,sans-serif;color:#1a202c;background:#f7fafc;padding:32px;direction:rtl}'+
-  '.page{background:#fff;max-width:720px;margin:0 auto;padding:48px;box-shadow:0 4px 24px rgba(0,0,0,.1);border-radius:12px}'+
-  '.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px;padding-bottom:24px;border-bottom:3px solid #7c3aed}'+
-  '.biz-name{font-size:28px;font-weight:900;color:#0a1628;margin-bottom:4px}'+
-  '.biz-detail{font-size:13px;color:#64748b;line-height:1.8}'+
-  '.inv-badge{background:#5b21b6;color:#fff;padding:12px 20px;border-radius:10px;text-align:center}'+
-  '.inv-badge-title{font-size:11px;letter-spacing:1px;opacity:.7;margin-bottom:4px}'+
-  '.inv-badge-num{font-size:22px;font-weight:900;color:#ddd6fe}'+
-  '.inv-badge-date{font-size:12px;opacity:.7;margin-top:4px}'+
-  '.ref-box{background:#faf5ff;border:1px solid #ddd6fe;border-radius:8px;padding:10px 16px;margin-bottom:24px;font-size:13px;color:#5b21b6}'+
-  '.section-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#94a3b8;margin-bottom:8px}'+
-  '.client-box{background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px 20px;margin-bottom:32px}'+
-  '.client-name{font-size:18px;font-weight:700;color:#0a1628;margin-bottom:4px}'+
-  '.client-email{font-size:13px;color:#64748b}'+
-  'table{width:100%;border-collapse:collapse;margin-bottom:0}'+
-  'thead th{background:#5b21b6;color:#fff;padding:11px 16px;font-size:12px;font-weight:700;text-align:right}'+
-  'tbody td{padding:13px 16px;border-bottom:1px solid #f1f5f9;font-size:14px}'+
-  '.totals{background:#faf5ff;border:1px solid #ddd6fe;border-radius:8px;padding:20px 24px;margin-top:24px}'+
-  '.total-row{display:flex;justify-content:space-between;padding:6px 0;font-size:14px;color:#475569}'+
-  '.total-row.grand{border-top:2px solid #5b21b6;margin-top:10px;padding-top:14px;font-size:18px;font-weight:900;color:#0a1628}'+
-  '.total-row.grand span:last-child{color:#7c3aed}'+
-  '.footer{margin-top:40px;padding-top:20px;border-top:1px solid #e2e8f0;text-align:center;font-size:12px;color:#94a3b8;line-height:1.8}'+
-  '@media print{body{padding:0;background:#fff}.page{box-shadow:none;padding:32px}button{display:none}}'+
-  '</style></head><body>'+
-  '<div class="page">'+
-  '<div class="header">'+
-  '<div><div class="biz-name">' + bizName + '</div>'+
-  '<div class="biz-detail">'+
-  (vatNum ? 'עוסק מורשה: ' + vatNum + '<br>' : '')+
-  (bizAddr ? bizAddr + '<br>' : '')+
-  (bizPhone ? 'טל׳: ' + bizPhone + (bizFax ? ' | פקס: ' + bizFax : '') + '<br>' : '')+
-  (bizEmail ? bizEmail : '')+
-  '</div></div>'+
-  '<div class="inv-badge"><div class="inv-badge-title">הודעת זיכוי</div>'+
-  '<div class="inv-badge-num">' + cr.num + '</div>'+
-  '<div class="inv-badge-date">תאריך: ' + d + '</div></div></div>'+
-  '<div class="ref-box">🔗 מתייחס לחשבונית מס מספר: <strong>' + (cr.originalInvNum||'') + '</strong></div>'+
-  '<div class="section-title">פרטי לקוח</div>'+
-  '<div class="client-box"><div class="client-name">' + (cr.name||'') + '</div>'+
-  '<div class="client-email">' + (cr.email||'') + '</div></div>'+
-  '<div class="section-title">פירוט זיכוי</div>'+
-  '<table><thead><tr><th>תיאור</th><th>לפני מע״מ</th><th>מע״מ</th><th>סה״כ זיכוי</th></tr></thead>'+
-  '<tbody><tr>'+
-  '<td><strong>ביטול מנוי LexTime</strong><br><span style="font-size:12px;color:#64748b">מסלול ' + (cr.plan||'') + ' — זיכוי מלא</span></td>'+
-  '<td style="color:#7c3aed;font-weight:600">−₪' + absBeforeVat + '</td>'+
-  '<td style="color:#64748b">−₪' + absVat + '</td>'+
-  '<td style="font-weight:700;color:#7c3aed">−₪' + absTotal + '</td>'+
-  '</tr></tbody></table>'+
-  '<div class="totals">'+
-  '<div class="total-row"><span>זיכוי לפני מע״מ</span><span>−₪' + absBeforeVat + '</span></div>'+
-  '<div class="total-row"><span>מע״מ מוחזר</span><span>−₪' + absVat + '</span></div>'+
-  '<div class="total-row grand"><span>סה״כ זיכוי</span><span>−₪' + absTotal + '</span></div>'+
-  '</div>'+
-  '<div class="footer">'+
-  bizName + (vatNum ? ' | ע.מ. ' + vatNum : '') + '<br>'+
-  'מסמך זה מהווה הודעת זיכוי לצורכי מע״מ בהתאם לסעיף 23 לחוק מע״מ, תשל״ו-1975'+
-  '</div>'+
-  '<div style="text-align:center;margin-top:24px">'+
-  '<button onclick="window.print()" style="background:#7c3aed;color:#fff;border:none;padding:12px 28px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:Arial">🖨️ הדפס / שמור PDF</button>'+
-  '</div>'+
-  '</div></body></html>';
-}
-
-/* ═══ CANCEL INVOICE ═══ */
-async function cancelInvoice(key){
-  var inv = (_cache.invoices||[]).find(function(i){ return i._key===key; });
-  if(!inv){ toast('❌ חשבונית לא נמצאה'); return; }
-  if(!confirm('לבטל את חשבונית מס ' + (inv.num||'') + '?\n\nהחשבונית תסומן כמבוטלת ולא תימחק מהמערכת.')) return;
-  var updated = Object.assign({}, inv, { status:'cancelled', cancelledAt: new Date().toISOString() });
-  try{
-    await _fbPut('/invoices/'+key, updated);
-    _cache.invoices = _cache.invoices.map(function(i){ return i._key===key ? Object.assign({},i,{status:'cancelled'}) : i; });
-    _updateInvoiceBadge();
-    renderInvoices();
-    toast('🚫 חשבונית ' + (inv.num||'') + ' בוטלה');
-  }catch(e){ toast('❌ שגיאת ביטול: '+e.message); }
-}
 </script>
-
-<!-- ══ מודל עריכת חשבונית ══ -->
-<div class="mo hidden" id="modalEditInv" onclick="if(event.target===this)closeModal('modalEditInv')">
-  <div class="modal" style="max-width:480px;direction:rtl">
-    <div class="mh"><div class="mt">✏️ עריכת חשבונית מס <span id="editInvNum" style="color:var(--gold)"></span></div><button class="mc" onclick="closeModal('modalEditInv')">✕</button></div>
-    <div class="mb" style="display:grid;gap:14px">
-      <input type="hidden" id="editInvKey">
-      <div class="fgrid">
-        <div class="fg"><label class="fl">שם לקוח</label><input class="fi" id="editInvName" placeholder="שם מלא"></div>
-        <div class="fg"><label class="fl">אימייל</label><input class="fi" id="editInvEmail" type="email" placeholder="email@example.com"></div>
-      </div>
-      <div class="fgrid">
-        <div class="fg"><label class="fl">תאריך חשבונית</label><input class="fi" id="editInvDate" type="date"></div>
-        <div class="fg"><label class="fl">שיעור מע״מ (%)</label><input class="fi" id="editInvVatRate" type="number" min="0" max="100" step="0.1" placeholder="18" oninput="recalcEditInvTotal()"></div>
-      </div>
-      <div class="fgrid">
-        <div class="fg"><label class="fl">סכום לפני מע״מ (₪)</label><input class="fi" id="editInvBeforeVat" type="number" min="0" step="0.01" placeholder="0.00" oninput="recalcEditInvTotal()"></div>
-        <div class="fg"><label class="fl">סה״כ כולל מע״מ (₪)</label><input class="fi" id="editInvTotal" type="number" min="0" step="0.01" placeholder="0.00" oninput="recalcEditInvFromTotal()" style="background:var(--bg-alt,#f8fafc)"></div>
-      </div>
-      <div style="font-size:11px;color:var(--gray);padding:2px 2px">↑ שינוי בכל אחד מהשדות יעדכן את האחר אוטומטית</div>
-      <div class="fgrid">
-        <div class="fg"><label class="fl">מסלול</label>
-          <select class="fi" id="editInvPlan">
-            <option value="עצמאי">עצמאי</option>
-            <option value="ניסיון">ניסיון</option>
-          </select>
-        </div>
-        <div class="fg"><label class="fl">אמצעי תשלום</label>
-          <select class="fi" id="editInvMethod">
-            <option value="paypal">PayPal</option>
-            <option value="card">כרטיס אשראי</option>
-            <option value="bank">העברה בנקאית</option>
-          </select>
-        </div>
-      </div>
-      <div class="fg"><label class="fl">הערות (לשימוש פנימי)</label><input class="fi" id="editInvNotes" placeholder="הערה אופציונלית..."></div>
-
-    </div>
-    <div class="mf">
-      <button class="btn btn-gh" onclick="closeModal('modalEditInv')">ביטול</button>
-      <button class="btn btn-gold" onclick="saveEditInvoice()">💾 שמור שינויים</button>
-    </div>
-  </div>
-</div>
-
 </body>
 </html>
