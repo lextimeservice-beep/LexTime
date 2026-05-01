@@ -573,69 +573,105 @@ body{
 body{padding-bottom:46px}
 
 /* ── LIBRARY BACKGROUND (ספריית התיקים) ── */
-#viewCS{position:relative;min-height:60vh}
-#viewCS::before{
-  content:'';
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  z-index:0;pointer-events:none;
 
-  /* Deep wood-dark background + grain texture */
-  background-color:#130a03;
-  background-image:
-    /* wood grain subtle noise */
-    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='600'%3E%3Cdefs%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.65' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3C/defs%3E%3Crect width='400' height='600' filter='url(%23n)' opacity='.06'/%3E%3C/svg%3E"),
-    /* horizontal shelf planks (5 shelves) */
-    repeating-linear-gradient(
-      0deg,
-      transparent 0%,
-      transparent calc(20% - 22px),
-      #2c1204 calc(20% - 22px),
-      #6b3010 calc(20% - 16px),
-      #8b4418 calc(20% - 11px),
-      #9e4e1c calc(20% - 8px),
-      #8b4418 calc(20% - 5px),
-      #5a2a0e calc(20% - 1px),
-      #2c1204 20%,
-      transparent calc(20% + 0px)
-    ),
-    /* vertical dividers (4 columns: 3 dividers) */
-    repeating-linear-gradient(
-      90deg,
-      transparent 0%,
-      transparent calc(25% - 18px),
-      #1e0c02 calc(25% - 18px),
-      #5a2a0e calc(25% - 12px),
-      #7a3812 calc(25% - 7px),
-      #5a2a0e calc(25% - 2px),
-      #1e0c02 25%,
-      transparent calc(25% + 0px)
-    );
+/* The shelf outer frame / back-of-shelf */
+#viewCS{
+  background:#120802;
+  min-height:70vh;
 }
-/* outer frame border effect */
-#viewCS::after{
-  content:'';
-  position:fixed;top:0;left:0;right:0;bottom:0;
-  z-index:0;pointer-events:none;
-  box-shadow:inset 0 0 0 18px #2c1204, inset 0 0 0 22px #5a2a0e, inset 0 0 60px rgba(0,0,0,.7);
-  pointer-events:none;
-}
-#viewCS .shelf-bg{display:none}
+
+/* Remove old pseudo-elements */
+#viewCS::before,#viewCS::after{display:none!important}
+.shelf-bg{display:none!important}
+
+/* The case-grid IS the wooden shelf — its background shows through gaps as wood */
 #viewCS .case-grid{
-  position:relative;
-  z-index:1;
+  position:relative;z-index:1;
+
+  /* Warm wood grain background (shows through gaps between cards = wooden dividers) */
+  background-color:#7a3812;
+  background-image:
+    /* subtle wood grain lines */
+    repeating-linear-gradient(
+      92deg,
+      transparent 0px,
+      rgba(255,255,255,.04) 1px,
+      transparent 2px,
+      transparent 40px
+    ),
+    /* top-to-bottom warmth gradient */
+    linear-gradient(180deg, #9e5022 0%, #7a3812 40%, #6b3010 100%);
+
+  /* gaps = wood divider thickness */
+  column-gap:20px;
+  row-gap:34px; /* extra space for shelf plank below each row */
+  padding:20px;
+
+  /* outer frame border */
+  border:4px solid #4a2208;
+  border-top:6px solid #5a2a0e;
+  border-radius:6px;
+  box-shadow:
+    inset 3px 3px 12px rgba(0,0,0,.5),
+    inset -2px -2px 8px rgba(0,0,0,.3),
+    0 6px 32px rgba(0,0,0,.7);
 }
+
+/* Each card = a file sitting in a shelf slot */
 #viewCS .cc{
-  background:rgba(255,255,255,.93);
-  backdrop-filter:blur(4px);
-  -webkit-backdrop-filter:blur(4px);
-  border:1.5px solid rgba(255,255,255,.7);
-  box-shadow:0 4px 18px rgba(0,0,0,.5),0 1px 4px rgba(0,0,0,.2);
+  overflow:visible!important; /* allow ::after plank to extend below */
+  border:none!important;
+  border-radius:5px 5px 0 0!important;
+  background:rgba(255,252,245,.94)!important;
+  backdrop-filter:none!important;
+  -webkit-backdrop-filter:none!important;
+
+  /* inner depth: card sits inside the shelf recess */
+  box-shadow:
+    inset 0 4px 12px rgba(0,0,0,.22),
+    inset 3px 0 6px rgba(0,0,0,.08),
+    inset -3px 0 6px rgba(0,0,0,.08),
+    0 2px 8px rgba(0,0,0,.35)!important;
 }
+
+/* Wooden shelf plank below each card */
+#viewCS .cc::after{
+  content:'';
+  position:absolute;
+  bottom:-22px;
+  left:-4px;right:-4px;
+  height:22px;
+  background:linear-gradient(
+    to bottom,
+    #c0712e 0px,
+    #a85a22 4px,
+    #924e1c 9px,
+    #7a3f14 15px,
+    #4a250a 22px
+  );
+  border-radius:0 0 3px 3px;
+  z-index:3;
+  /* subtle plank highlight */
+  box-shadow:inset 0 2px 3px rgba(255,200,150,.2);
+}
+
+/* Hover: card lifts slightly off the shelf */
 #viewCS .cc:hover{
-  background:rgba(255,255,255,.98);
-  border-color:rgba(201,146,42,.5);
-  box-shadow:0 8px 32px rgba(0,0,0,.55);
-  transform:translateY(-2px);
+  background:rgba(255,253,248,.99)!important;
+  box-shadow:
+    inset 0 2px 8px rgba(0,0,0,.12),
+    0 -4px 16px rgba(0,0,0,.25),
+    0 2px 10px rgba(0,0,0,.4)!important;
+  transform:translateY(-4px)!important;
+}
+#viewCS .cc:hover::after{
+  box-shadow:inset 0 2px 3px rgba(255,200,150,.3), 0 4px 8px rgba(0,0,0,.4);
+}
+
+/* Keep the colored left strip (::before) visible */
+#viewCS .cc::before{
+  z-index:4;
+  border-radius:0 0 0 0;
 }
 
 
