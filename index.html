@@ -41,8 +41,8 @@ body{font-family:'Heebo',sans-serif;color:var(--ink);background:var(--white);ove
 .tag-gold{background:var(--gold-pale);color:var(--gold-text);border:1px solid var(--gold-muted)}
 .tag-white{background:rgba(255,255,255,.12);color:rgba(255,255,255,.85);border:1px solid rgba(255,255,255,.2)}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:14px 28px;border-radius:8px;font-size:15px;font-weight:700;font-family:'Heebo',sans-serif;cursor:pointer;border:none;transition:.2s;text-decoration:none;white-space:nowrap}
-.btn-primary{background:var(--gold);color:var(--white);box-shadow:0 4px 20px rgba(201,146,42,.35)}
-.btn-primary:hover{background:var(--gold-l);transform:translateY(-1px);box-shadow:0 8px 28px rgba(201,146,42,.45)}
+.btn-primary{background:var(--gold);color:var(--ink);box-shadow:0 4px 20px rgba(201,146,42,.35)}
+.btn-primary:hover{background:var(--gold-l);color:var(--ink);transform:translateY(-1px);box-shadow:0 8px 28px rgba(201,146,42,.45)}
 .btn-outline{background:transparent;color:var(--ink);border:2px solid var(--border)}
 .btn-outline:hover{border-color:var(--gold);color:var(--gold)}
 .btn-white{background:var(--white);color:var(--ink);box-shadow:0 2px 12px rgba(0,0,0,.12)}
@@ -133,8 +133,8 @@ nav.scrolled{background:rgba(10,22,40,.95);backdrop-filter:blur(12px);box-shadow
 .stats-inner{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap}
 .stat-item{text-align:center;padding:8px 48px;border-left:1px solid rgba(255,255,255,.25)}
 .stat-item:first-child{border-left:none}
-.stat-num{font-family:'Frank Ruhl Libre',serif;font-size:32px;font-weight:900;color:var(--white);line-height:1}
-.stat-label{font-size:12px;font-weight:600;color:rgba(255,255,255,.8);margin-top:3px;letter-spacing:.3px}
+.stat-num{font-family:'Frank Ruhl Libre',serif;font-size:32px;font-weight:900;color:var(--ink);line-height:1}
+.stat-label{font-size:12px;font-weight:600;color:var(--ink);margin-top:3px;letter-spacing:.3px}
 
 /* ─── PROBLEM SECTION ─── */
 .problem{background:var(--off);padding:96px 0}
@@ -268,7 +268,7 @@ footer{background:var(--ink);padding:60px 0 32px;border-top:1px solid rgba(255,2
 .footer-grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:48px;margin-bottom:48px}
 .footer-brand .logo-text{font-size:20px}
 .footer-desc{font-size:13px;color:rgba(255,255,255,.70);line-height:1.75;margin-top:12px;max-width:240px}
-.footer-col h4{font-size:12px;font-weight:700;letter-spacing:.8px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-bottom:16px}
+.footer-col h3,.footer-col-title{font-size:12px;font-weight:700;letter-spacing:.8px;color:rgba(255,255,255,.5);text-transform:uppercase;margin-bottom:16px}
 .footer-col a{display:block;font-size:13px;color:rgba(255,255,255,.55);text-decoration:none;margin-bottom:10px;transition:.2s}
 .footer-col a:hover{color:var(--gold)}
 .footer-bottom{display:flex;align-items:center;justify-content:space-between;padding-top:24px;border-top:1px solid rgba(255,255,255,.07)}
@@ -1117,32 +1117,32 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
         </a>
         <p class="footer-desc">הפלטפורמה המקצועית לניהול מועדים משפטיים לעורכי דין עצמאיים ומשרדי עורכי דין בישראל.</p>
         <div style="margin-top:20px;display:flex;gap:12px">
-          <a href="#" style="color:rgba(255,255,255,.4);font-size:20px;text-decoration:none" title="LinkedIn">in</a>
-          <a href="#" style="color:rgba(255,255,255,.4);font-size:18px;text-decoration:none">📘</a>
+          <a href="#" style="color:rgba(255,255,255,.75);font-size:20px;text-decoration:none" title="LinkedIn">in</a>
+          <a href="#" style="color:rgba(255,255,255,.75);font-size:18px;text-decoration:none">📘</a>
         </div>
       </div>
       <div class="footer-col">
-        <h4>מוצר</h4>
+        <h3 class="footer-col-title">מוצר</h3>
         <a href="#features">יתרונות</a>
         <a href="#how">איך עובד</a>
         <a href="#regulations">תקנות</a>
         <a href="#pricing">מחירים</a>
       </div>
       <div class="footer-col">
-        <h4>תמיכה</h4>
+        <h3 class="footer-col-title">תמיכה</h3>
         <a href="#faq">שאלות נפוצות</a>
         <a href="contact.html">צור קשר</a>
         <a href="guide.html">📖 מדריך שימוש</a>
         <a href="platform.html">🚀 כניסה לפלטפורמה</a>
         <a href="admin.html">⚙️ ממשק ניהול</a>
         <div style="margin-top:14px;padding:10px 12px;background:rgba(201,146,42,.1);border:1px solid rgba(201,146,42,.25);border-radius:8px">
-          <div style="font-size:10px;font-weight:700;letter-spacing:.5px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px">⏰ שירות טכני</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.5px;color:rgba(255,255,255,.80);text-transform:uppercase;margin-bottom:5px">⏰ שירות טכני</div>
           <div style="font-size:13px;font-weight:700;color:#e8b84b;margin-bottom:2px">08:00 – 22:00</div>
-          <div style="font-size:11px;color:rgba(255,255,255,.4);line-height:1.6">כל ימות השבוע</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.80);line-height:1.6">כל ימות השבוע</div>
         </div>
       </div>
       <div class="footer-col">
-        <h4>משפטי</h4>
+        <h3 class="footer-col-title">משפטי</h3>
         <a href="javascript:void(0)" onclick="openLegal('disclaimer')">הגבלת אחריות</a>
         <a href="javascript:void(0)" onclick="openLegal('terms')">תנאי שימוש</a>
         <a href="javascript:void(0)" onclick="openLegal('privacy')">מדיניות פרטיות</a>
@@ -2024,12 +2024,12 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
         שלח קוד לאיפוס ←
       </button>
       <div style="margin-bottom:12px;padding:10px 14px;background:rgba(201,146,42,.06);border:1px solid rgba(201,146,42,.18);border-radius:8px;text-align:center">
-        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:3px">⏰ שירות טכני זמין</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.80);margin-bottom:3px">⏰ שירות טכני זמין</div>
         <div style="font-size:13px;font-weight:700;color:#e8b84b">08:00 – 22:00</div>
-        <div style="font-size:11px;color:rgba(255,255,255,.3)">כל ימות השבוע</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.80)">כל ימות השבוע</div>
       </div>
       <div style="text-align:center">
-        <a href="javascript:void(0)" onclick="hideForgotPassword()" style="color:rgba(255,255,255,.35);font-size:13px;text-decoration:none">← חזרה לכניסה</a>
+        <a href="javascript:void(0)" onclick="hideForgotPassword()" style="color:rgba(255,255,255,.75);font-size:13px;text-decoration:none">← חזרה לכניסה</a>
       </div>
     </div>
   </div>
