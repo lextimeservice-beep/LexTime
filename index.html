@@ -259,7 +259,7 @@ nav.scrolled{background:rgba(10,22,40,.95);backdrop-filter:blur(12px);box-shadow
 .cta-title{font-size:clamp(28px,4vw,50px);color:var(--white);margin:16px 0 20px}
 .cta-desc{font-size:17px;color:rgba(255,255,255,.65);margin-bottom:40px;max-width:500px;margin-left:auto;margin-right:auto;line-height:1.75}
 .cta-actions{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
-.cta-note{margin-top:20px;font-size:13px;color:rgba(255,255,255,1)}
+.cta-note{margin-top:20px;font-size:13px;color:rgba(255,255,255,.4)}
 
 /* ─── FOOTER ─── */
 footer{background:var(--ink);padding:60px 0 32px;border-top:1px solid rgba(255,255,255,.07)}
@@ -420,15 +420,15 @@ footer{background:var(--ink);padding:60px 0 32px;border-top:1px solid rgba(255,2
 #a11y-font-row button{flex:1;padding:6px 4px;border:1.5px solid #e2e8f0;border-radius:6px;background:#f8fafc;cursor:pointer;font-family:'Heebo',Arial,sans-serif;font-weight:700;transition:all .15s}
 #a11y-font-row button:hover{background:#eff6ff;border-color:#b8862a}
 #a11y-font-row span{font-size:11px;color:#374151;font-family:'Heebo',Arial,sans-serif;min-width:30px;text-align:center}
-body.a11y-contrast{filter:contrast(1.5) brightness(1.05)}
+body.a11y-contrast #a11y-root{filter:contrast(1.5) brightness(1.05)}
 body.a11y-links a{text-decoration:underline !important;outline:1px dotted #b8862a !important}
 body.a11y-no-anim *,body.a11y-no-anim *::before,body.a11y-no-anim *::after{animation-duration:.001s !important;transition-duration:.001s !important}
 body.a11y-no-anim .floating-chip{animation:none !important;transition:none !important;transform:none !important;}
 #a11y-guide{position:fixed;left:0;width:100%;height:38px;background:rgba(184,134,42,.15);border-top:2px solid rgba(184,134,42,.45);border-bottom:2px solid rgba(184,134,42,.45);pointer-events:none;z-index:9997;display:none}
 /* ─── נגישות: מצבים נוספים ─── */
-body.a11y-grayscale{filter:grayscale(100%)}
-body.a11y-contrast.a11y-grayscale{filter:grayscale(100%) contrast(1.5) brightness(1.05)}
-body.a11y-invert{filter:invert(1) hue-rotate(180deg)}
+body.a11y-grayscale #a11y-root{filter:grayscale(100%)}
+body.a11y-contrast.a11y-grayscale #a11y-root{filter:grayscale(100%) contrast(1.5) brightness(1.05)}
+body.a11y-invert #a11y-root{filter:invert(1) hue-rotate(180deg)}
 body.a11y-high-contrast{background:#000 !important;color:#fff !important}
 body.a11y-high-contrast *{background-color:transparent !important;color:#fff !important;border-color:#fff !important}
 body.a11y-high-contrast a{color:#ff0 !important}
@@ -438,16 +438,12 @@ body.a11y-dyslexia *{font-family:Arial,sans-serif !important;letter-spacing:.06e
 body.a11y-big-cursor,body.a11y-big-cursor *{cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Cpath d='M8,2 L8,32 L14,26 L18,36 L22,34 L18,24 L26,24 Z' fill='black' stroke='white' stroke-width='2'/%3E%3C/svg%3E") 8 2,auto !important}
 body.a11y-focus-visible *:focus{outline:3px solid #ff0 !important;outline-offset:3px !important}
 
+/* ─── #a11y-root: wrapper לכל התוכן (מבטיח שה-filter לא ישבש position:fixed) ─── */
+#a11y-root{display:block;min-height:100vh}
+
 /* ─── הגנה על סרגל הנגישות מפני מצבי הנגישות עצמם ─── */
-
-/* היפוך צבעים: double-invert מחזיר את הסרגל לצבעים המקוריים */
-body.a11y-invert #a11y-bar{filter:invert(1) hue-rotate(180deg)}
-
-/* ניגודיות גבוהה: מחזיר ניגודיות לסרגל */
-body.a11y-contrast #a11y-bar{filter:contrast(0.667) brightness(0.952)}
-
-/* גווני אפור: מחזיר רוויה לסרגל */
-body.a11y-grayscale #a11y-bar{filter:saturate(5) brightness(1.05)}
+/* הערה: counter-filters הוסרו — הפילטרים מופעלים עכשיו על #a11y-root ולא על body,
+   כך ש-#a11y-bar (position:fixed מחוץ ל-wrapper) אינו מושפע כלל */
 
 /* ניגודיות מרבית: מונע ביטול עיצוב הסרגל */
 body.a11y-high-contrast #a11y-toggle{background:#0f2d5a !important;color:#fff !important;border:none !important}
@@ -551,12 +547,15 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
 <div id="a11y-guide" aria-hidden="true"></div>
 
 
+<!-- ═══ a11y-root: wrapper לכל התוכן — הפילטרים מופעלים כאן ולא על body ═══ -->
+<div id="a11y-root">
+
 <!-- ═══ NAV ═══ -->
 <nav id="navbar">
   <div class="container">
     <div class="nav-inner">
       <a href="#" class="logo">
-        <div class="logo-icon" style="background:none;padding:0;overflow:hidden"><img src="image-01.jpeg" style="width:38px;height:38px;object-fit:cover;border-radius:8px;display:block" alt="לוגו LexTime"></div>
+        <div class="logo-icon" style="background:none;padding:0;overflow:hidden"><img src="image-01.jpeg" style="width:38px;height:38px;object-fit:cover;border-radius:8px;display:block"></div>
         <div>
           <div class="logo-text">LexTime</div>
           <div class="logo-sub" style="color:rgba(255,255,255,.45)">ניהול מועדים משפטיים</div>
@@ -589,7 +588,7 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
     <div class="hero-content">
       <div>
         <div style="margin-bottom:28px">
-          <img src="image-02.jpeg" style="width:110px;height:110px;object-fit:contain;border-radius:50%;box-shadow:0 8px 32px rgba(0,0,0,.35);display:block" alt="לוגו LexTime">
+          <img src="image-02.jpeg" style="width:110px;height:110px;object-fit:contain;border-radius:50%;box-shadow:0 8px 32px rgba(0,0,0,.35);display:block">
         </div>
         <div class="hero-eyebrow">
           <span class="tag tag-white">⚖️ &nbsp;תקנות סדר הדין האזרחי 2018</span>
@@ -713,10 +712,10 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
             <div class="sol-dot" style="background:#ef4444"></div>
             <div class="sol-dot" style="background:#f59e0b"></div>
             <div class="sol-dot" style="background:#22c55e"></div>
-            <span style="font-size:12px;color:rgba(255,255,255,1);margin-right:10px">LexTime — ניהול מועדים</span>
+            <span style="font-size:12px;color:rgba(255,255,255,.4);margin-right:10px">LexTime — ניהול מועדים</span>
           </div>
           <div class="sol-content">
-            <div style="font-size:11px;color:rgba(255,255,255,1);margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">דיון מקדמי</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">דיון מקדמי</div>
             <div class="sol-row done">
               <span class="sol-badge done">✓ בוצע</span>
               <span class="sol-task-name">כתב הגנה — תקנה 9(ב)</span>
@@ -728,12 +727,12 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
               <span class="sol-date">14.04.26</span>
             </div>
             <div class="sol-row muted">
-              <span class="sol-badge" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,1)">ממתין</span>
+              <span class="sol-badge" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.4)">ממתין</span>
               <span class="sol-task-name">מינוי מגשר — תקנה 37(ב)</span>
               <span class="sol-date" style="color:rgba(255,255,255,.3)">28.04.26</span>
             </div>
             <div class="sol-row muted">
-              <span class="sol-badge" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,1)">ממתין</span>
+              <span class="sol-badge" style="background:rgba(255,255,255,.1);color:rgba(255,255,255,.4)">ממתין</span>
               <span class="sol-task-name">גילוי מסמכים — תקנה 57</span>
               <span class="sol-date" style="color:rgba(255,255,255,.3)">08.05.26</span>
             </div>
@@ -1109,39 +1108,39 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
     <div class="footer-grid">
       <div class="footer-brand">
         <a href="#" class="logo">
-          <div class="logo-icon" style="background:none;padding:0;overflow:hidden"><img src="image-03.jpeg" style="width:38px;height:38px;object-fit:cover;border-radius:8px;display:block" alt="LexTime"></div>
+          <div class="logo-icon" style="background:none;padding:0;overflow:hidden"><img src="image-03.jpeg" style="width:38px;height:38px;object-fit:cover;border-radius:8px;display:block"></div>
           <div>
             <div class="logo-text">LexTime</div>
           </div>
         </a>
         <p class="footer-desc">הפלטפורמה המקצועית לניהול מועדים משפטיים לעורכי דין עצמאיים ומשרדי עורכי דין בישראל.</p>
         <div style="margin-top:20px;display:flex;gap:12px">
-          <a href="#" style="color:rgba(255,255,255,1);font-size:20px;text-decoration:none" title="LinkedIn">in</a>
-          <a href="#" style="color:rgba(255,255,255,1);font-size:18px;text-decoration:none">📘</a>
+          <a href="#" style="color:rgba(255,255,255,.4);font-size:20px;text-decoration:none" title="LinkedIn">in</a>
+          <a href="#" style="color:rgba(255,255,255,.4);font-size:18px;text-decoration:none">📘</a>
         </div>
       </div>
       <div class="footer-col">
-        <h3>מוצר</h3>
+        <h4>מוצר</h4>
         <a href="#features">יתרונות</a>
         <a href="#how">איך עובד</a>
         <a href="#regulations">תקנות</a>
         <a href="#pricing">מחירים</a>
       </div>
       <div class="footer-col">
-        <h3>תמיכה</h3>
+        <h4>תמיכה</h4>
         <a href="#faq">שאלות נפוצות</a>
         <a href="contact.html">צור קשר</a>
         <a href="guide.html">📖 מדריך שימוש</a>
         <a href="platform.html">🚀 כניסה לפלטפורמה</a>
         <a href="admin.html">⚙️ ממשק ניהול</a>
         <div style="margin-top:14px;padding:10px 12px;background:rgba(201,146,42,.1);border:1px solid rgba(201,146,42,.25);border-radius:8px">
-          <div style="font-size:10px;font-weight:700;letter-spacing:.5px;color:rgba(255,255,255,1);text-transform:uppercase;margin-bottom:5px">⏰ שירות טכני</div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.5px;color:rgba(255,255,255,.4);text-transform:uppercase;margin-bottom:5px">⏰ שירות טכני</div>
           <div style="font-size:13px;font-weight:700;color:#e8b84b;margin-bottom:2px">08:00 – 22:00</div>
-          <div style="font-size:11px;color:rgba(255,255,255,1);line-height:1.6">כל ימות השבוע</div>
+          <div style="font-size:11px;color:rgba(255,255,255,.4);line-height:1.6">כל ימות השבוע</div>
         </div>
       </div>
       <div class="footer-col">
-        <h3>משפטי</h3>
+        <h4>משפטי</h4>
         <a href="javascript:void(0)" onclick="openLegal('disclaimer')">הגבלת אחריות</a>
         <a href="javascript:void(0)" onclick="openLegal('terms')">תנאי שימוש</a>
         <a href="javascript:void(0)" onclick="openLegal('privacy')">מדיניות פרטיות</a>
@@ -1266,7 +1265,7 @@ function toggleMenu(){
 
     <!-- RIGHT: Form -->
     <div class="sreg-right">
-      <button style="background:none;border:none;color:rgba(255,255,255,1);font-size:14px;cursor:pointer;font-family:'Heebo',sans-serif;margin-bottom:24px;padding:0;text-align:right" onclick="closeSignup()">← חזרה לדף הבית</button>
+      <button style="background:none;border:none;color:rgba(255,255,255,.4);font-size:14px;cursor:pointer;font-family:'Heebo',sans-serif;margin-bottom:24px;padding:0;text-align:right" onclick="closeSignup()">← חזרה לדף הבית</button>
 
       <!-- Steps bar -->
       <div class="sreg-steps">
@@ -1394,7 +1393,7 @@ function toggleMenu(){
         <div id="sregProcessing" style="text-align:center;padding:60px 0">
           <div style="font-size:52px;margin-bottom:18px">⏳</div>
           <div class="sreg-title" style="text-align:center">מאמת תשלום...</div>
-          <div style="color:rgba(255,255,255,1);font-size:14px;margin-top:10px;text-align:center">מתחבר ל- חשבונית ירוקה - Morning , אנא המתן</div>
+          <div style="color:rgba(255,255,255,.4);font-size:14px;margin-top:10px;text-align:center">מתחבר ל- חשבונית ירוקה - Morning , אנא המתן</div>
         </div>
         <div id="sregSuccess" style="display:none;text-align:center;padding:20px 0">
           <div style="font-size:60px;margin-bottom:16px">🎉</div>
@@ -1941,9 +1940,9 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
   <div style="background:#0f1e38;border:1px solid rgba(201,146,42,.25);border-radius:20px;width:100%;max-width:420px;padding:40px 36px;position:relative;box-shadow:0 32px 80px rgba(0,0,0,.5)">
     <button onclick="closeLogin()" style="position:absolute;top:16px;left:16px;background:rgba(255,255,255,.1);border:none;color:#fff;width:32px;height:32px;border-radius:50%;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
     <div style="font-family:'Frank Ruhl Libre',serif;font-size:24px;color:#c9922a;text-align:center;margin-bottom:6px">⚖️ LexTime</div>
-    <div style="text-align:center;color:rgba(255,255,255,1);font-size:13px;margin-bottom:28px">ניהול מועדים משפטיים</div>
+    <div style="text-align:center;color:rgba(255,255,255,.4);font-size:13px;margin-bottom:28px">ניהול מועדים משפטיים</div>
     <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:4px">כניסת עורכי דין</div>
-    <div style="color:rgba(255,255,255,1);font-size:13px;margin-bottom:24px">הזן את כתובת הדוא&quot;ל והסיסמה שבחרת בהרשמה</div>
+    <div style="color:rgba(255,255,255,.4);font-size:13px;margin-bottom:24px">הזן את כתובת הדוא&quot;ל והסיסמה שבחרת בהרשמה</div>
     <div id="loginErr" style="display:none;background:rgba(185,28,28,.15);border:1px solid rgba(185,28,28,.35);border-radius:8px;padding:10px 14px;font-size:13px;color:#f87171;margin-bottom:8px"></div>
     <div id="loginContactWrap" style="display:none;margin-bottom:14px">
       <button onclick="openContactForm()"
@@ -1978,7 +1977,7 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
     </button>
     <div style="text-align:center;margin-bottom:12px">
       <a href="javascript:void(0)" onclick="showForgotPassword()"
-        style="color:rgba(255,255,255,1);font-size:13px;text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.2);padding-bottom:1px">
+        style="color:rgba(255,255,255,.4);font-size:13px;text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.2);padding-bottom:1px">
         שכחתי סיסמה
       </a>
     </div>
@@ -1991,7 +1990,7 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
     <!-- ══ FORGOT PASSWORD PANEL ══ -->
     <div id="forgotPanel" style="display:none;margin-top:20px;border-top:1px solid rgba(255,255,255,.1);padding-top:20px">
       <div style="font-size:16px;font-weight:700;color:#fff;margin-bottom:6px">איפוס סיסמה</div>
-      <div style="font-size:13px;color:rgba(255,255,255,1);margin-bottom:14px">הזן את כתובת הדוא"ל שלך ונשלח לך קוד לאיפוס הסיסמה</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.4);margin-bottom:14px">הזן את כתובת הדוא"ל שלך ונשלח לך קוד לאיפוס הסיסמה</div>
       <div id="forgotMsg" style="display:none;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:14px"></div>
       <div style="margin-bottom:12px">
         <input id="forgotEmail" type="email" placeholder="name@lawfirm.co.il"
@@ -2023,7 +2022,7 @@ if(_lm)_lm.addEventListener('click',function(e){if(e.target===this)closeLogin();
         שלח קוד לאיפוס ←
       </button>
       <div style="margin-bottom:12px;padding:10px 14px;background:rgba(201,146,42,.06);border:1px solid rgba(201,146,42,.18);border-radius:8px;text-align:center">
-        <div style="font-size:11px;color:rgba(255,255,255,1);margin-bottom:3px">⏰ שירות טכני זמין</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);margin-bottom:3px">⏰ שירות טכני זמין</div>
         <div style="font-size:13px;font-weight:700;color:#e8b84b">08:00 – 22:00</div>
         <div style="font-size:11px;color:rgba(255,255,255,.3)">כל ימות השבוע</div>
       </div>
@@ -2993,5 +2992,6 @@ document.addEventListener('keydown', function(e) {
   }
 });
 </script>
+</div><!-- /#a11y-root -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"f5712c3c09e94ab3ae431c7ff40dcb01","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
 </html>
