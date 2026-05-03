@@ -1006,7 +1006,7 @@ body{padding-bottom:46px}
   </div>
 
   <div class="stats-bar">
-    <div class="sp urg"><span class="n" id="sUrgent">0</span> דחוף (עד 14 יום)</div>
+    <div class="sp urg"><span class="n" id="sUrgent">0</span> דחוף (עד 14 ימים)</div>
     <div class="sp pnd"><span class="n" id="sPending">0</span> ממתינים</div>
     <div class="sp don"><span class="n" id="sDone">0</span> בוצע</div>
     <div class="sp tot"><span class="n" id="sTotal">0</span> סה"כ מטלות</div>
@@ -1403,7 +1403,8 @@ function _syncRecessButtons(){
 /* ══ CASE TYPE ══ */
 function getDefenseDays(c){
   var t=(c.type||'').trim();
-  if(t==='נזק גוף'||t==='רשלנות רפואית')return 120;
+  if(t==='רשלנות רפואית')return 120;
+  if(t==='נזק גוף')return 60;
   if(t==='פינוי מושכר'||t==='ביטוח לאומי')return 30;
   if(t==='דיון מהיר')return 45;
   return 60;
@@ -1519,7 +1520,7 @@ var COMMENTS={
 /* ══ STAGE / TASK DEFINITIONS ══ */
 var STAGES=[
   {id:'preliminary',name:'דיון מקדמי',color:'#1a4fa0',tasks:[
-    {id:'t1',desc:"הגשת כתב הגנה — 60 יום (נזק גוף/רשלנות רפואית: 120 יום | ביטוח לאומי/פינוי מושכר: 30 יום) — תקנה 9(ב) — הגשת תביעה שכנגד והודעת צד ג׳ — תקנות 23-21",reg:'תקנה 9(ב)',isRoot:true},
+    {id:'t1',desc:"הגשת כתב הגנה — 60 ימים (נזק גוף: 60 ימים | רשלנות רפואית: 120 ימים | ביטוח לאומי/פינוי מושכר: 30 ימים) — תקנה 9(ב) — הגשת תביעה שכנגד והודעת צד ג׳ — תקנות 23-21",reg:'תקנה 9(ב)',isRoot:true},
     {id:'t2',desc:'הגשת כתב הטענות האחרון / כתב תשובה לכתב ההגנה — תקנה 6 ו/או תקנה 18',reg:'תקנות 6, 18'},
     {id:'t4',desc:'דיון מקדמי — תקנות 35-34 — החלפת תצהירי גילוי מסמכים — תקנה 57 — שליחת שאלונים — תקנה 56(א)',reg:'תקנות 35-34, 57, 56(א)'},
     {id:'t3',desc:'מינוי מגשר מהו"ת — 45 ימים לאחר כתב הטענות האחרון / כתב התשובה — תקנה 37(ב)',reg:'תקנה 37(ב)'},
@@ -1546,8 +1547,8 @@ var STAGES=[
   {id:'trial',name:'דיון הוכחות',color:'#854f0b',
    anchors:[{key:'trial',actualKey:'trialActual',label:'דיון הוכחות',commentKey:null}],
    tasks:[
-    {id:'t17',desc:'בקשה להזמנת עדים — תקנה 83(ב) — לא יאוחר מ-30 יום לפני',reg:'תקנה 83(ב)'},
-    {id:'t18',desc:'בקשה להזמנת עדים — תקנה 83(ב) — ולא יאוחר מ-14 יום לפני',reg:'תקנה 83(ב)'},
+    {id:'t17',desc:'בקשה להזמנת עדים — תקנה 83(ב) — לא יאוחר מ-30 ימים לפני',reg:'תקנה 83(ב)'},
+    {id:'t18',desc:'בקשה להזמנת עדים — תקנה 83(ב) — ולא יאוחר מ-14 ימים לפני',reg:'תקנה 83(ב)'},
     {id:'t19',desc:'בקשה להציג ראיה במדיה אלקטרונית / דיגיטלית — תקנה 71',reg:'תקנה 71'},
     {id:'t20',desc:'ישיבת הוכחות ראשונה',reg:'—'},
     {id:'t21',desc:'המשך הדיון',reg:'ברצף',noDate:true},
@@ -1555,7 +1556,7 @@ var STAGES=[
    ]
   },
   {id:'judgment',name:'החלטה שיפוטית',color:'#7c2d8a',
-   preTaskNote:{id:'t23',desc:'פסק הדין יינתן לאחר הסיכומים בהקדם האפשרי ולא יאוחר מ-90 יום — תקנה 129',reg:'תקנה 129'},
+   preTaskNote:{id:'t23',desc:'פסק הדין יינתן לאחר הסיכומים בהקדם האפשרי ולא יאוחר מ-90 ימים — תקנה 129',reg:'תקנה 129'},
    anchors:[{key:'decision',actualKey:'decisionActual',label:'מועד ההחלטה השיפוטית',commentKey:null}],
    tasks:[
     {id:'t25',desc:'בקשה לביטול החלטה במעמד צד אחד — תקנה 131',reg:'תקנה 131'},
