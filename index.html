@@ -1379,7 +1379,7 @@ function toggleMenu(){
               </div>
               <button onclick="verifyMorningPayment()"
                 style="width:100%;padding:13px;background:linear-gradient(135deg,#1a7a4a,#28a060);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;font-family:'Heebo',sans-serif;cursor:pointer">
-                🔍 אימות תשלום וכניסה לפלטפורמה
+                🔍 אימות הרשמה וכניסה לפלטפורמה
               </button>
               <div id="morningVerifyMsg" style="display:none;margin-top:10px;font-size:13px;color:rgba(255,255,255,.5);text-align:center">
                 מאמת תשלום...
@@ -1698,7 +1698,7 @@ function verifyMorningPayment(){
       if(sub&&sub.status==='active'){
         grantAndRedirect(sub.plan||_plan);
       } else {
-        verifyMsg.textContent='התשלום ב- חשבונית ירוקה - Morning  טרם אושר. אם סיימת לשלם, נסה שוב בעוד דקה.';
+        verifyMsg.textContent='ההרשמה התקבלה בהצלחה ✅ לידיעתך, החיוב הראשון יתבצע רק ב־5 לחודש, ולא באופן מיידי. עם זאת, המערכת תעמוד לרשותך בתוך כשעה, במהלך שעות הפעילות.\nשעות הפעילות הן בכל ימות השבוע, לרבות ערבי חג וחגים, בין השעות 9:00–23:00. נשמח לעמוד לרשותך בכול שאלה.';
       }
     }).catch(function(){
       verifyMsg.textContent='שגיאת חיבור. נסה שוב.';
