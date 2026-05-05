@@ -1,0 +1,1089 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexTime — איך המערכת עובדת</title>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700;900&family=Rubik:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d2347;--navy-d:#071629;--navy-l:#1e3f7a;
+  --gold:#c9a84c;--gold-d:#a07c2a;--gold-l:#e8d5a0;--gold-ll:#fdf8ef;
+  --green:#0f6e56;--red:#b91c1c;--blue:#1a4fa0;
+  --purple:#7c2d8a;--amber:#854f0b;--teal:#0f766e;
+  --white:#fff;--gray:#64748b;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family:'Rubik',sans-serif;
+  background:#000;
+  color:#fff;
+  width:100%;
+  height:100vh;
+  overflow:hidden;
+  direction:rtl;
+}
+
+/* ── PLAYER SHELL ── */
+#player{
+  position:relative;
+  width:100%;
+  height:100vh;
+  background:var(--navy-d);
+  overflow:hidden;
+}
+
+/* ── SCENE CONTAINER ── */
+#sceneWrap{
+  position:absolute;inset:0;
+}
+.scene{
+  position:absolute;inset:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  opacity:0;
+  transition:opacity .6s ease;
+  pointer-events:none;
+  padding:20px;
+}
+.scene.active{opacity:1;pointer-events:auto}
+
+/* ── BACKGROUND PATTERN ── */
+.scene::before{
+  content:'';
+  position:absolute;inset:0;
+  background-image:radial-gradient(circle at 1px 1px,rgba(201,168,76,.07) 1px,transparent 0);
+  background-size:32px 32px;
+  pointer-events:none;
+}
+
+/* ── CONTROLS ── */
+#controls{
+  position:absolute;bottom:0;left:0;right:0;
+  background:linear-gradient(0deg,rgba(7,22,41,.98) 0%,rgba(7,22,41,.8) 70%,transparent 100%);
+  padding:16px 28px 20px;
+  display:flex;flex-direction:column;gap:10px;
+  z-index:100;
+}
+#progressWrap{
+  position:relative;height:4px;background:rgba(255,255,255,.15);border-radius:4px;cursor:pointer;
+}
+#progressFill{
+  position:absolute;top:0;right:0;height:100%;
+  background:linear-gradient(90deg,var(--gold-d),var(--gold));
+  border-radius:4px;transition:width .1s linear;
+}
+#progressDot{
+  position:absolute;top:50%;transform:translate(50%,-50%);
+  width:12px;height:12px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 8px rgba(201,168,76,.8);
+  transition:right .1s linear;
+}
+#ctrlRow{
+  display:flex;align-items:center;gap:14px;
+}
+.ctrl-btn{
+  background:none;border:none;cursor:pointer;color:#fff;
+  font-size:18px;width:36px;height:36px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  transition:.15s;opacity:.8;
+}
+.ctrl-btn:hover{background:rgba(255,255,255,.12);opacity:1}
+#sceneLabel{
+  flex:1;font-size:12px;font-weight:600;color:rgba(255,255,255,.5);
+  letter-spacing:.5px;text-transform:uppercase;
+}
+#timeLabel{font-size:12px;color:rgba(255,255,255,.4);font-weight:500;}
+#chaptersRow{
+  display:flex;gap:6px;flex-wrap:wrap;
+}
+.chap-btn{
+  padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,.15);
+  background:rgba(255,255,255,.06);color:rgba(255,255,255,.55);
+  font-size:11px;font-weight:600;cursor:pointer;
+  font-family:'Rubik',sans-serif;transition:.15s;
+  letter-spacing:.2px;
+}
+.chap-btn:hover{background:rgba(201,168,76,.2);color:var(--gold);border-color:var(--gold-d);}
+.chap-btn.active{background:rgba(201,168,76,.25);color:var(--gold);border-color:var(--gold);}
+
+/* ── SCENE ELEMENTS ── */
+.scene-title{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:clamp(22px,4vw,44px);
+  font-weight:900;color:#fff;
+  text-align:center;
+  line-height:1.2;
+  margin-bottom:10px;
+}
+.scene-sub{
+  font-size:clamp(13px,2vw,18px);
+  color:rgba(255,255,255,.55);
+  text-align:center;
+  line-height:1.6;
+  max-width:600px;
+  font-weight:400;
+}
+.gold-bar{
+  width:60px;height:4px;
+  background:linear-gradient(90deg,var(--gold-d),var(--gold));
+  border-radius:4px;margin:16px auto;
+}
+
+/* Stage badge */
+.stage-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  padding:6px 18px;border-radius:24px;
+  font-size:12px;font-weight:700;letter-spacing:.5px;
+  margin-bottom:20px;
+  border:1.5px solid currentColor;
+}
+
+/* Timeline visual */
+.timeline-visual{
+  display:flex;align-items:center;gap:0;
+  margin:20px auto;
+  max-width:700px;
+  position:relative;
+}
+.tl-step{
+  display:flex;flex-direction:column;align-items:center;
+  flex:1;
+  opacity:0;
+  transform:translateY(16px);
+  transition:opacity .4s ease, transform .4s ease;
+}
+.tl-step.vis{opacity:1;transform:translateY(0)}
+.tl-dot{
+  width:40px;height:40px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+  border:3px solid;
+  background:rgba(255,255,255,.05);
+  position:relative;z-index:2;
+  flex-shrink:0;
+}
+.tl-line{
+  height:2px;background:rgba(255,255,255,.2);
+  flex:1;
+  position:relative;top:-20px;
+}
+.tl-label{
+  font-size:10px;font-weight:700;text-align:center;
+  margin-top:8px;letter-spacing:.3px;
+  line-height:1.4;
+  max-width:90px;
+}
+.tl-days{
+  font-size:9px;color:var(--gold);font-weight:600;
+  margin-top:3px;
+}
+
+/* Task card list */
+.task-list{
+  display:flex;flex-direction:column;gap:8px;
+  width:100%;max-width:640px;
+  margin:12px auto;
+}
+.task-card{
+  display:flex;align-items:flex-start;gap:12px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:10px;
+  padding:12px 16px;
+  opacity:0;
+  transform:translateX(20px);
+  transition:opacity .35s ease, transform .35s ease;
+}
+.task-card.vis{opacity:1;transform:translateX(0)}
+.task-icon{
+  width:32px;height:32px;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:15px;flex-shrink:0;
+  border:1.5px solid;
+}
+.task-body{flex:1}
+.task-desc{font-size:13px;font-weight:600;color:#fff;line-height:1.4}
+.task-reg{font-size:11px;color:var(--gold);font-weight:500;margin-top:2px}
+.task-days{
+  font-size:10px;color:rgba(255,255,255,.45);
+  background:rgba(255,255,255,.06);
+  padding:2px 8px;border-radius:8px;
+  flex-shrink:0;white-space:nowrap;
+  font-weight:600;
+}
+
+/* Modal mockup */
+.modal-mock{
+  background:rgba(13,35,71,.85);
+  backdrop-filter:blur(20px);
+  border:1px solid rgba(201,168,76,.3);
+  border-radius:16px;
+  padding:24px 28px;
+  max-width:480px;
+  width:100%;
+  box-shadow:0 32px 80px rgba(0,0,0,.6);
+}
+.modal-title{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:20px;font-weight:700;color:#fff;
+  border-bottom:2px solid rgba(201,168,76,.3);
+  padding-bottom:14px;margin-bottom:18px;
+}
+.field-row{
+  display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;
+}
+.field-mock{
+  display:flex;flex-direction:column;gap:4px;
+}
+.field-label{
+  font-size:10px;font-weight:700;color:rgba(255,255,255,.45);
+  letter-spacing:.5px;text-transform:uppercase;
+}
+.field-val{
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.15);
+  border-radius:8px;
+  padding:8px 12px;
+  font-size:13px;color:#fff;font-weight:500;
+  min-height:36px;display:flex;align-items:center;
+}
+.field-val.typing::after{
+  content:'|';animation:blink .7s infinite;color:var(--gold);
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+.field-val.filled{
+  border-color:rgba(201,168,76,.4);
+  background:rgba(201,168,76,.08);
+  animation:fillPop .3s ease;
+}
+@keyframes fillPop{from{transform:scale(.98)}to{transform:scale(1)}}
+.btn-gold-mock{
+  margin-top:16px;
+  background:linear-gradient(135deg,var(--gold-d),var(--gold));
+  color:#fff;border:none;border-radius:10px;
+  padding:12px 24px;font-size:15px;font-weight:700;
+  width:100%;cursor:pointer;
+  font-family:'Rubik',sans-serif;
+  box-shadow:0 4px 20px rgba(201,168,76,.35);
+  transition:.2s;
+}
+.btn-gold-mock:hover{transform:translateY(-1px)}
+
+/* Auto-calc strip */
+.calc-strip{
+  background:rgba(26,79,160,.2);
+  border:1px solid rgba(26,79,160,.4);
+  border-radius:10px;
+  padding:10px 16px;
+  font-size:12px;
+  color:rgba(255,255,255,.7);
+  margin-top:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.calc-strip .icon{font-size:16px;}
+
+/* Stats row */
+.stats-row{
+  display:flex;gap:10px;margin:16px auto;max-width:560px;
+  flex-wrap:wrap;justify-content:center;
+}
+.stat-pill{
+  display:flex;align-items:center;gap:8px;
+  padding:8px 16px;border-radius:20px;
+  font-size:13px;font-weight:700;
+  border:1.5px solid;
+  opacity:0;transform:scale(.9);
+  transition:.3s ease;
+}
+.stat-pill.vis{opacity:1;transform:scale(1)}
+
+/* Big chapter heading */
+.chapter-header{
+  text-align:center;
+  margin-bottom:24px;
+}
+.chapter-num{
+  font-size:12px;font-weight:700;color:var(--gold);
+  letter-spacing:2px;text-transform:uppercase;margin-bottom:8px;
+}
+.chapter-title{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:clamp(24px,5vw,52px);
+  font-weight:900;color:#fff;
+  line-height:1.1;
+}
+.chapter-rule{
+  font-size:13px;color:rgba(255,255,255,.4);margin-top:8px;font-weight:400;
+}
+
+/* Glow orb */
+.glow-orb{
+  position:absolute;border-radius:50%;
+  filter:blur(80px);opacity:.18;pointer-events:none;
+  animation:orbFloat 6s ease-in-out infinite;
+}
+@keyframes orbFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+
+/* Intro logo */
+.logo-wrap{text-align:center}
+.logo-name{
+  font-family:'Frank Ruhl Libre',serif;
+  font-size:clamp(36px,8vw,80px);
+  font-weight:900;
+  background:linear-gradient(135deg,var(--gold-d),var(--gold),var(--gold-l));
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  letter-spacing:-1px;
+}
+.logo-tagline{
+  font-size:clamp(13px,2vw,18px);
+  color:rgba(255,255,255,.45);font-weight:400;margin-top:8px;
+}
+
+/* Arrow connector */
+.arrow-down{
+  font-size:20px;color:var(--gold);opacity:.5;
+  animation:arrowBounce 1.5s ease-in-out infinite;
+}
+@keyframes arrowBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(6px)}}
+
+/* Recess note */
+.recess-note{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(201,168,76,.12);
+  border:1px solid rgba(201,168,76,.3);
+  border-radius:8px;
+  padding:6px 14px;
+  font-size:11px;color:var(--gold);font-weight:600;
+  margin-top:10px;
+}
+
+/* ── SCENE-SPECIFIC ── */
+#s0 .glow-orb{width:500px;height:500px;background:var(--blue);top:-100px;right:-100px}
+#s1 .glow-orb{width:400px;height:400px;background:var(--blue);bottom:-80px;left:-80px}
+#s2 .glow-orb{width:350px;height:350px;background:var(--green);top:-60px;left:-60px}
+#s3 .glow-orb{width:350px;height:350px;background:var(--teal);bottom:-60px;right:-60px}
+#s4 .glow-orb{width:350px;height:350px;background:var(--amber);top:-60px;right:-60px}
+#s5 .glow-orb{width:350px;height:350px;background:var(--red);bottom:-60px;left:-60px}
+#s6 .glow-orb{width:350px;height:350px;background:var(--purple);top:-60px;left:-60px}
+#s7 .glow-orb{width:400px;height:400px;background:var(--gold-d);bottom:-80px;right:-80px}
+
+/* Overview timeline */
+.overview-tl{
+  display:flex;
+  gap:0;
+  margin:20px auto;
+  max-width:760px;
+  position:relative;
+  padding-bottom:40px;
+}
+.ov-step{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  position:relative;
+  opacity:0;transform:translateY(12px);
+  transition:.4s ease;
+}
+.ov-step.vis{opacity:1;transform:translateY(0)}
+.ov-line{
+  position:absolute;top:22px;right:50%;left:-50%;height:2px;
+  background:linear-gradient(90deg,rgba(255,255,255,.1),rgba(255,255,255,.25));
+}
+.ov-dot{
+  width:44px;height:44px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;border:2px solid;
+  position:relative;z-index:2;
+}
+.ov-label{font-size:10px;font-weight:700;text-align:center;margin-top:8px;line-height:1.4;max-width:80px;}
+
+/* Scroll indicator */
+#scrollHint{
+  position:absolute;top:24px;left:50%;transform:translateX(-50%);
+  display:flex;align-items:center;gap:8px;
+  font-size:11px;color:rgba(255,255,255,.3);font-weight:600;letter-spacing:.5px;
+  pointer-events:none;
+}
+.kbd{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  border-radius:4px;padding:2px 7px;font-size:10px;
+}
+
+/* Save indicator */
+.save-anim{
+  display:inline-flex;align-items:center;gap:6px;
+  background:rgba(15,110,86,.25);border:1px solid rgba(15,110,86,.5);
+  border-radius:8px;padding:6px 14px;
+  font-size:12px;color:#4ade80;font-weight:600;
+  margin-top:12px;
+}
+
+/* Responsive */
+@media(max-width:600px){
+  .field-row{grid-template-columns:1fr}
+  .overview-tl{flex-wrap:wrap;justify-content:center;gap:12px}
+  .ov-line{display:none}
+  .task-card{padding:10px 12px}
+  .modal-mock{padding:16px 18px}
+}
+</style>
+</head>
+<body>
+<div id="player">
+
+  <!-- SCROLL HINT -->
+  <div id="scrollHint">← → מקשים לניווט <span class="kbd">Space</span> נגן/עצור</div>
+
+  <div id="sceneWrap">
+
+    <!-- ══ SCENE 0: INTRO ══ -->
+    <div class="scene" id="s0">
+      <div class="glow-orb"></div>
+      <div class="logo-wrap">
+        <div class="logo-name">LexTime</div>
+        <div class="logo-tagline">ניהול תיקים לפי תקנות סדר הדין האזרחי 2018</div>
+        <div class="gold-bar"></div>
+        <div class="scene-sub" style="margin-top:4px">
+          איך המערכת עובדת —<br>
+          ממועד פתיחת התיק ועד פסק הדין
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SCENE 1: OVERVIEW ══ -->
+    <div class="scene" id="s1">
+      <div class="glow-orb"></div>
+      <div class="chapter-header">
+        <div class="chapter-num">מבט על</div>
+        <div class="chapter-title">מסלול התיק</div>
+        <div class="chapter-rule">5 שלבים מרגע הגשת התביעה ועד פסיקה</div>
+      </div>
+      <div class="overview-tl" id="ovTl">
+        <div class="ov-step" id="ov0">
+          <div class="ov-dot" style="color:#1a4fa0;border-color:#1a4fa0;background:rgba(26,79,160,.15)">📝</div>
+          <div class="ov-label" style="color:#7bb0ff">דיון מקדמי</div>
+        </div>
+        <div class="ov-step" id="ov1">
+          <div class="ov-line"></div>
+          <div class="ov-dot" style="color:#0f6e56;border-color:#0f6e56;background:rgba(15,110,86,.15)">⚖️</div>
+          <div class="ov-label" style="color:#4ade80">קדם משפט</div>
+        </div>
+        <div class="ov-step" id="ov2">
+          <div class="ov-line"></div>
+          <div class="ov-dot" style="color:#854f0b;border-color:#854f0b;background:rgba(133,79,11,.15)">🔍</div>
+          <div class="ov-label" style="color:#fbbf24">הוכחות</div>
+        </div>
+        <div class="ov-step" id="ov3">
+          <div class="ov-line"></div>
+          <div class="ov-dot" style="color:#7c2d8a;border-color:#7c2d8a;background:rgba(124,45,138,.15)">⚡</div>
+          <div class="ov-label" style="color:#d8b4fe">החלטה</div>
+        </div>
+        <div class="ov-step" id="ov4">
+          <div class="ov-line"></div>
+          <div class="ov-dot" style="color:#5b21b6;border-color:#5b21b6;background:rgba(91,33,182,.15)">🏛️</div>
+          <div class="ov-label" style="color:#a78bfa">ערעור</div>
+        </div>
+      </div>
+      <div class="scene-sub" style="font-size:13px;max-width:550px">
+        המערכת מחשבת אוטומטית את כל המועדים הקבועים בתקנות<br>
+        ומתריעה בזמן אמת על הגבלות ודדליינים קריטיים
+      </div>
+    </div>
+
+    <!-- ══ SCENE 2: OPEN CASE ══ -->
+    <div class="scene" id="s2">
+      <div class="glow-orb"></div>
+      <div class="chapter-header" style="margin-bottom:16px">
+        <div class="chapter-num">שלב ראשון</div>
+        <div class="chapter-title">פתיחת תיק</div>
+        <div class="chapter-rule">הזנת הנתונים הבסיסיים — המערכת עושה את השאר</div>
+      </div>
+      <div class="modal-mock" id="modalMock">
+        <div class="modal-title">+ פתיחת תיק חדש</div>
+        <div class="field-row">
+          <div class="field-mock">
+            <div class="field-label">מספר תיק *</div>
+            <div class="field-val" id="fNum">45821-01-25</div>
+          </div>
+          <div class="field-mock">
+            <div class="field-label">סוג תיק</div>
+            <div class="field-val" id="fType">נזיקין</div>
+          </div>
+        </div>
+        <div class="field-mock" style="margin-bottom:10px">
+          <div class="field-label">שם הצדדים *</div>
+          <div class="field-val" id="fParties">כהן ישראל נ׳ חברת ביטוח ישיר</div>
+        </div>
+        <div class="field-row">
+          <div class="field-mock">
+            <div class="field-label">הגשת כתב תביעה *</div>
+            <div class="field-val" id="fFiling">15.01.2025</div>
+          </div>
+          <div class="field-mock">
+            <div class="field-label">המצאה לנתבע *</div>
+            <div class="field-val" id="fService">20.01.2025</div>
+          </div>
+        </div>
+        <div class="calc-strip" id="calcStrip" style="opacity:0;transition:opacity .5s">
+          <span class="icon">⚡</span>
+          <span>המערכת מחשבת אוטומטית <strong>8+ מועדי חובה</strong> לפי תקנות סד"א 2018</span>
+        </div>
+        <div class="save-anim" id="saveAnim" style="opacity:0;transition:opacity .5s">
+          ✅ התיק נשמר בענן (Firebase) וגם מקומית אצלכם בדפדפן
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SCENE 3: PRELIMINARY ══ -->
+    <div class="scene" id="s3">
+      <div class="glow-orb"></div>
+      <div class="chapter-header" style="margin-bottom:12px">
+        <div class="chapter-num" style="color:#7bb0ff">שלב 1 — דיון מקדמי</div>
+        <div class="chapter-title">כתבי הטענות וגילוי</div>
+        <div class="chapter-rule">מיום המצאת כתב התביעה לנתבע</div>
+      </div>
+      <div class="task-list">
+        <div class="task-card" id="tc1">
+          <div class="task-icon" style="color:#7bb0ff;border-color:rgba(123,176,255,.3);background:rgba(123,176,255,.08)">📋</div>
+          <div class="task-body">
+            <div class="task-desc">הגשת כתב הגנה — תקנה 9(ב)</div>
+            <div class="task-reg">תביעה שכנגד / הודעת צד ג׳ — תקנות 21–23</div>
+          </div>
+          <div class="task-days" style="color:#7bb0ff">60 יום</div>
+        </div>
+        <div class="task-card" id="tc2">
+          <div class="task-icon" style="color:#60a5fa;border-color:rgba(96,165,250,.3);background:rgba(96,165,250,.08)">📄</div>
+          <div class="task-body">
+            <div class="task-desc">כתב הטענות האחרון / כתב תשובה — תקנות 6, 18</div>
+            <div class="task-reg">⚠ מועד זה מפעיל את שרשרת החישוב כולה</div>
+          </div>
+          <div class="task-days" style="color:#60a5fa">+14 יום</div>
+        </div>
+        <div class="task-card" id="tc3">
+          <div class="task-icon" style="color:#34d399;border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.08)">🔎</div>
+          <div class="task-body">
+            <div class="task-desc">גילוי מסמכים + שאלונים — תקנות 35–34, 57, 56(א)</div>
+            <div class="task-reg">שלום: עד 25 שאלות | מחוזי: עד 50 שאלות</div>
+          </div>
+          <div class="task-days" style="color:#34d399">+30 יום</div>
+        </div>
+        <div class="task-card" id="tc4">
+          <div class="task-icon" style="color:#fbbf24;border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.08)">🤝</div>
+          <div class="task-body">
+            <div class="task-desc">מינוי מגשר מהו"ת — תקנה 37(ב)</div>
+            <div class="task-reg">45 ימים לאחר כתב הטענות האחרון</div>
+          </div>
+          <div class="task-days" style="color:#fbbf24">+45 יום</div>
+        </div>
+        <div class="task-card" id="tc5">
+          <div class="task-icon" style="color:#f472b6;border-color:rgba(244,114,182,.3);background:rgba(244,114,182,.08)">✅</div>
+          <div class="task-body">
+            <div class="task-desc">השלמת עיון מסמכים + מענה שאלונים — תקנות 58, 56(א)</div>
+            <div class="task-reg">דיווח גישור לבית המשפט — תקנה 37(ו)</div>
+          </div>
+          <div class="task-days" style="color:#f472b6">+60 יום</div>
+        </div>
+      </div>
+      <div class="recess-note">
+        ⚖️ כל המועדים מותאמים אוטומטית לפגרות בתי המשפט (סוכות, פסח, קיץ)
+      </div>
+    </div>
+
+    <!-- ══ SCENE 4: PRE-TRIAL ══ -->
+    <div class="scene" id="s4">
+      <div class="glow-orb"></div>
+      <div class="chapter-header" style="margin-bottom:12px">
+        <div class="chapter-num" style="color:#4ade80">שלב 2 — קדם משפט</div>
+        <div class="chapter-title">הכנה לדיון</div>
+        <div class="chapter-rule">ממועד קדם המשפט הראשון שנקבע ע"י בית המשפט</div>
+      </div>
+      <div class="task-list">
+        <div class="task-card" id="tp1">
+          <div class="task-icon" style="color:#4ade80;border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.08)">📨</div>
+          <div class="task-body">
+            <div class="task-desc">פנייה לצד שכנגד — הודעה על כוונה להגיש בקשות — תקנה 49(ד)</div>
+            <div class="task-reg">מקושר אוטומטית למועד השלמת עיון המסמכים</div>
+          </div>
+          <div class="task-days" style="color:#4ade80">27 יום לפני</div>
+        </div>
+        <div class="task-card" id="tp2">
+          <div class="task-icon" style="color:#86efac;border-color:rgba(134,239,172,.3);background:rgba(134,239,172,.08)">👥</div>
+          <div class="task-body">
+            <div class="task-desc">הגשת רשימת עדים — תובע — תקנה 62</div>
+            <div class="task-reg">הגשת רשימת הבקשות לביהמ"ש — תקנה 49(ג)</div>
+          </div>
+          <div class="task-days" style="color:#86efac">20 יום לפני</div>
+        </div>
+        <div class="task-card" id="tp3">
+          <div class="task-icon" style="color:#bbf7d0;border-color:rgba(187,247,208,.3);background:rgba(187,247,208,.08)">🏛️</div>
+          <div class="task-body">
+            <div class="task-desc">ישיבת קדם משפט ראשון — קביעת דרכי הדיון</div>
+            <div class="task-reg">ניתן לקבוע ישיבת קדם נוספת ומסכמת לפי תקנה 63(א)</div>
+          </div>
+          <div class="task-days" style="color:#bbf7d0">מועד ביהמ"ש</div>
+        </div>
+        <div class="task-card" id="tp4">
+          <div class="task-icon" style="color:#34d399;border-color:rgba(52,211,153,.3);background:rgba(52,211,153,.08)">📋</div>
+          <div class="task-body">
+            <div class="task-desc">דיווח תוצאות הדיון המקדמי — טופס 4 — תקנה 36</div>
+            <div class="task-reg">תגובת הצד השכנגד לרשימת הבקשות — תקנה 49(ה)</div>
+          </div>
+          <div class="task-days" style="color:#34d399">+14 יום</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SCENE 5: TRIAL ══ -->
+    <div class="scene" id="s5">
+      <div class="glow-orb"></div>
+      <div class="chapter-header" style="margin-bottom:12px">
+        <div class="chapter-num" style="color:#fbbf24">שלב 3 — הוכחות</div>
+        <div class="chapter-title">דיון ההוכחות</div>
+        <div class="chapter-rule">ממועד ישיבת ההוכחות שנקבעה ע"י בית המשפט</div>
+      </div>
+      <div class="task-list">
+        <div class="task-card" id="tt1">
+          <div class="task-icon" style="color:#fbbf24;border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.08)">📜</div>
+          <div class="task-body">
+            <div class="task-desc">בקשה להזמנת עדים — תקנה 83(ב)</div>
+            <div class="task-reg">לא יאוחר מ-30 ימים לפני הדיון</div>
+          </div>
+          <div class="task-days" style="color:#fbbf24">30 יום לפני</div>
+        </div>
+        <div class="task-card" id="tt2">
+          <div class="task-icon" style="color:#f59e0b;border-color:rgba(245,158,11,.3);background:rgba(245,158,11,.08)">🎬</div>
+          <div class="task-body">
+            <div class="task-desc">בקשה להצגת ראיה דיגיטלית — תקנה 71</div>
+            <div class="task-reg">לא יאוחר מ-14 ימים / 3 ימים לפני</div>
+          </div>
+          <div class="task-days" style="color:#f59e0b">14/3 יום לפני</div>
+        </div>
+        <div class="task-card" id="tt3">
+          <div class="task-icon" style="color:#d97706;border-color:rgba(217,119,6,.3);background:rgba(217,119,6,.08)">⚖️</div>
+          <div class="task-body">
+            <div class="task-desc">ישיבת הוכחות ראשונה — חקירות עדים</div>
+            <div class="task-reg">ניתן לקבוע ישיבות המשך ברצף עד להשלמה</div>
+          </div>
+          <div class="task-days" style="color:#d97706">מועד ביהמ"ש</div>
+        </div>
+        <div class="task-card" id="tt4">
+          <div class="task-icon" style="color:#92400e;border-color:rgba(146,64,14,.4);background:rgba(146,64,14,.15)">📝</div>
+          <div class="task-body">
+            <div class="task-desc">הגשת סיכומים — בהקדם האפשרי לאחר תום ההוכחות</div>
+            <div class="task-reg">המערכת מסמנת מועד זה כ"הבא בתור" אוטומטית</div>
+          </div>
+          <div class="task-days" style="color:#92400e">אחרי הוכחות</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SCENE 6: JUDGMENT ══ -->
+    <div class="scene" id="s6">
+      <div class="glow-orb"></div>
+      <div class="chapter-header" style="margin-bottom:12px">
+        <div class="chapter-num" style="color:#d8b4fe">שלב 4 — החלטה שיפוטית</div>
+        <div class="chapter-title">פסק הדין</div>
+        <div class="chapter-rule">ניתן לאחר הסיכומים — לא יאוחר מ-90 ימים — תקנה 129</div>
+      </div>
+      <div class="task-list">
+        <div class="task-card" id="tj1">
+          <div class="task-icon" style="color:#c084fc;border-color:rgba(192,132,252,.3);background:rgba(192,132,252,.08)">⏱️</div>
+          <div class="task-body">
+            <div class="task-desc">מועד מרבי למתן פסק הדין — תקנה 129</div>
+            <div class="task-reg">המערכת מחשבת 90 יום מיום הסיכומים ומסמנת אזהרה</div>
+          </div>
+          <div class="task-days" style="color:#c084fc">90 יום</div>
+        </div>
+        <div class="task-card" id="tj2">
+          <div class="task-icon" style="color:#a855f7;border-color:rgba(168,85,247,.3);background:rgba(168,85,247,.08)">🚫</div>
+          <div class="task-body">
+            <div class="task-desc">בקשה לביטול החלטה במעמד צד אחד — תקנה 131</div>
+            <div class="task-reg">30 יום ממועד ההחלטה</div>
+          </div>
+          <div class="task-days" style="color:#a855f7">30 יום</div>
+        </div>
+        <div class="task-card" id="tj3">
+          <div class="task-icon" style="color:#9333ea;border-color:rgba(147,51,234,.3);background:rgba(147,51,234,.08)">📤</div>
+          <div class="task-body">
+            <div class="task-desc">הגשת ערעור / בר"ע + הפקדת ערובה — תקנות 137(א), 135(א)</div>
+            <div class="task-reg">60 יום ממועד ההחלטה — משיב לערעור 60 ימים נוספים</div>
+          </div>
+          <div class="task-days" style="color:#9333ea">60 יום</div>
+        </div>
+      </div>
+      <div class="stats-row" style="margin-top:8px">
+        <div class="stat-pill" id="sp1" style="color:#4ade80;border-color:rgba(74,222,128,.3);background:rgba(74,222,128,.06)">
+          ✓ <span>4 בוצעו</span>
+        </div>
+        <div class="stat-pill" id="sp2" style="color:#fbbf24;border-color:rgba(251,191,36,.3);background:rgba(251,191,36,.06)">
+          ⏳ <span>2 ממתינים</span>
+        </div>
+        <div class="stat-pill" id="sp3" style="color:#f87171;border-color:rgba(248,113,113,.3);background:rgba(248,113,113,.06)">
+          ⚡ <span>1 דחוף</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SCENE 7: APPEAL ══ -->
+    <div class="scene" id="s7">
+      <div class="glow-orb"></div>
+      <div class="chapter-header" style="margin-bottom:12px">
+        <div class="chapter-num" style="color:#a78bfa">שלב 5 — ערעור</div>
+        <div class="chapter-title">הליך הערעור</div>
+        <div class="chapter-rule">לאחר קבלת ההחלטה על הגשת תשובה</div>
+      </div>
+      <div class="task-list" style="max-width:560px">
+        <div class="task-card" id="ta1">
+          <div class="task-icon" style="color:#a78bfa;border-color:rgba(167,139,250,.3);background:rgba(167,139,250,.08)">📩</div>
+          <div class="task-body">
+            <div class="task-desc">תשובה לערעור — תקנה 140(א)(1)</div>
+            <div class="task-reg">מיום החלטת ביהמ"ש על הגשת תשובה</div>
+          </div>
+          <div class="task-days" style="color:#a78bfa">לפי החלטה</div>
+        </div>
+        <div class="task-card" id="ta2">
+          <div class="task-icon" style="color:#c4b5fd;border-color:rgba(196,181,253,.3);background:rgba(196,181,253,.08)">🏛️</div>
+          <div class="task-body">
+            <div class="task-desc">דיון בערעור בפני ביהמ"ש המחוזי / עליון</div>
+            <div class="task-reg">המערכת עוקבת אחר ערעור שכנגד ותשובת המשיב</div>
+          </div>
+          <div class="task-days" style="color:#c4b5fd">מועד ביהמ"ש</div>
+        </div>
+      </div>
+
+      <!-- Cloud sync highlight -->
+      <div style="margin-top:20px;max-width:520px;width:100%;display:flex;flex-direction:column;gap:10px;">
+        <div style="background:rgba(13,35,71,.6);border:1px solid rgba(201,168,76,.25);border-radius:12px;padding:14px 18px;display:flex;align-items:flex-start;gap:14px;">
+          <div style="font-size:26px;flex-shrink:0">☁️</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px">שמירה כפולה — ענן + מקומי</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.45);line-height:1.6">כל שינוי נשמר <strong style="color:var(--gold)">גם ב-Firebase</strong> (ענן) <strong style="color:var(--gold)">וגם ב-localStorage</strong> של הדפדפן — במקביל, בכל לחיצה.</div>
+          </div>
+        </div>
+        <div style="background:rgba(13,35,71,.6);border:1px solid rgba(52,211,153,.25);border-radius:12px;padding:14px 18px;display:flex;align-items:flex-start;gap:14px;">
+          <div style="font-size:26px;flex-shrink:0">📴</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px">עובד גם ללא אינטרנט</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.45);line-height:1.6">אין חיבור? הפלטפורמה טוענת את הנתונים <strong style="color:#4ade80">מהדפדפן המקומי</strong> ומאפשרת עבודה רגילה. כשהחיבור חוזר — הנתונים עולים אוטומטית לענן.</div>
+          </div>
+        </div>
+        <div style="background:rgba(13,35,71,.6);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:14px 18px;display:flex;align-items:flex-start;gap:14px;">
+          <div style="font-size:26px;flex-shrink:0">🔄</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:3px">סנכרון בין מכשירים</div>
+            <div style="font-size:11px;color:rgba(255,255,255,.45);line-height:1.6">הענן גובר תמיד בעת טעינה — PC, טאבלט או נייד מציגים תמיד את הגרסה העדכנית ביותר.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SCENE 8: SUMMARY ══ -->
+    <div class="scene" id="s8">
+      <div style="position:absolute;inset:0;background:linear-gradient(135deg,rgba(7,22,41,.95),rgba(13,35,71,.95));"></div>
+      <div style="position:relative;z-index:1;text-align:center;max-width:600px">
+        <div class="logo-name" style="font-size:clamp(28px,5vw,52px);margin-bottom:8px">LexTime</div>
+        <div class="gold-bar"></div>
+        <div class="scene-sub" style="margin:16px auto;font-size:16px;color:rgba(255,255,255,.7)">
+          ניהול מועדים חכם לעורכי דין —<br>לפי תקנות סדר הדין האזרחי 2018
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin:20px auto;max-width:400px;text-align:right">
+          <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 16px">
+            <span style="font-size:20px">⚡</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff">חישוב אוטומטי מלא</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.4)">8+ מועדי חובה נגזרים מ-2 תאריכי עוגן</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 16px">
+            <span style="font-size:20px">⚖️</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff">פגרות בתי משפט</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.4)">מעל 40 פגרות מחושבות עד 2033</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 16px">
+            <span style="font-size:20px">☁️</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff">ענן + מקומי + ריבוי מכשירים</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.4)">Firebase RTDB + localStorage — עובד גם אופליין</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:12px 16px">
+            <span style="font-size:20px">🔗</span>
+            <div>
+              <div style="font-size:13px;font-weight:700;color:#fff">קישור ישיר לתקנות</div>
+              <div style="font-size:11px;color:rgba(255,255,255,.4)">לחיצה על תקנה פותחת את הנוסח המלא</div>
+            </div>
+          </div>
+        </div>
+        <div style="font-size:13px;color:var(--gold);font-weight:700;margin-top:8px;letter-spacing:.5px">
+          www.lextime.co.il
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /sceneWrap -->
+
+  <!-- ══ CONTROLS ══ -->
+  <div id="controls">
+    <div id="progressWrap">
+      <div id="progressFill" style="width:0%"></div>
+      <div id="progressDot" style="right:0%"></div>
+    </div>
+    <div id="ctrlRow">
+      <button class="ctrl-btn" id="btnPrev" onclick="prevScene()" title="הקודם">◀</button>
+      <button class="ctrl-btn" id="btnPlay" onclick="togglePlay()" title="נגן/עצור">⏸</button>
+      <button class="ctrl-btn" id="btnNext" onclick="nextScene()" title="הבא">▶</button>
+      <div id="sceneLabel">מבוא</div>
+      <div id="timeLabel">0:00 / 2:00</div>
+    </div>
+    <div id="chaptersRow">
+      <button class="chap-btn active" onclick="goScene(0)">מבוא</button>
+      <button class="chap-btn" onclick="goScene(1)">מסלול</button>
+      <button class="chap-btn" onclick="goScene(2)">פתיחת תיק</button>
+      <button class="chap-btn" onclick="goScene(3)">דיון מקדמי</button>
+      <button class="chap-btn" onclick="goScene(4)">קדם משפט</button>
+      <button class="chap-btn" onclick="goScene(5)">הוכחות</button>
+      <button class="chap-btn" onclick="goScene(6)">החלטה</button>
+      <button class="chap-btn" onclick="goScene(7)">ערעור</button>
+      <button class="chap-btn" onclick="goScene(8)">סיכום</button>
+    </div>
+  </div>
+
+</div><!-- /player -->
+
+<script>
+const SCENES=[
+  {id:'s0',label:'מבוא',dur:4000},
+  {id:'s1',label:'מסלול התיק',dur:6000},
+  {id:'s2',label:'פתיחת תיק',dur:8000},
+  {id:'s3',label:'דיון מקדמי',dur:9000},
+  {id:'s4',label:'קדם משפט',dur:8000},
+  {id:'s5',label:'דיון הוכחות',dur:8000},
+  {id:'s6',label:'החלטה שיפוטית',dur:8000},
+  {id:'s7',label:'הערעור',dur:7000},
+  {id:'s8',label:'סיכום',dur:6000},
+];
+
+const TOTAL_DUR=SCENES.reduce((a,s)=>a+s.dur,0);
+
+let cur=0, playing=true;
+let startTime=Date.now(), elapsed=0, pauseAt=0;
+let animTimers=[];
+
+function g(id){return document.getElementById(id);}
+
+function showScene(idx){
+  if(idx<0||idx>=SCENES.length) return;
+  SCENES.forEach((s,i)=>{
+    var el=g(s.id);
+    if(el) el.classList.toggle('active',i===idx);
+  });
+  cur=idx;
+  // Update labels
+  g('sceneLabel').textContent=SCENES[idx].label;
+  // Update chapter buttons
+  document.querySelectorAll('.chap-btn').forEach((b,i)=>{
+    b.classList.toggle('active',i===idx);
+  });
+  // Trigger scene animations
+  triggerAnimations(idx);
+}
+
+function triggerAnimations(idx){
+  // Clear previous timers
+  animTimers.forEach(clearTimeout);
+  animTimers=[];
+
+  const delay=(ms,fn)=>{animTimers.push(setTimeout(fn,ms));};
+
+  if(idx===1){
+    // Overview timeline
+    ['ov0','ov1','ov2','ov3','ov4'].forEach((id,i)=>{
+      delay(200+i*220,()=>{var el=g(id);if(el)el.classList.add('vis');});
+    });
+  }
+  if(idx===2){
+    // Modal fields appear
+    ['fNum','fType','fParties','fFiling','fService'].forEach((id,i)=>{
+      delay(300+i*400,()=>{var el=g(id);if(el)el.classList.add('filled');});
+    });
+    delay(2200,()=>{var el=g('calcStrip');if(el)el.style.opacity='1';});
+    delay(3400,()=>{var el=g('saveAnim');if(el)el.style.opacity='1';});
+  }
+  if(idx===3){
+    ['tc1','tc2','tc3','tc4','tc5'].forEach((id,i)=>{
+      delay(200+i*380,()=>{var el=g(id);if(el)el.classList.add('vis');});
+    });
+  }
+  if(idx===4){
+    ['tp1','tp2','tp3','tp4'].forEach((id,i)=>{
+      delay(200+i*420,()=>{var el=g(id);if(el)el.classList.add('vis');});
+    });
+  }
+  if(idx===5){
+    ['tt1','tt2','tt3','tt4'].forEach((id,i)=>{
+      delay(200+i*420,()=>{var el=g(id);if(el)el.classList.add('vis');});
+    });
+  }
+  if(idx===6){
+    ['tj1','tj2','tj3'].forEach((id,i)=>{
+      delay(200+i*450,()=>{var el=g(id);if(el)el.classList.add('vis');});
+    });
+    ['sp1','sp2','sp3'].forEach((id,i)=>{
+      delay(1600+i*200,()=>{var el=g(id);if(el)el.classList.add('vis');});
+    });
+  }
+  if(idx===7){
+    ['ta1','ta2'].forEach((id,i)=>{
+      delay(200+i*450,()=>{var el=g(id);if(el)el.classList.add('vis');});
+    });
+  }
+
+  // Reset vis classes when leaving
+  // (they'll be re-added on next visit)
+}
+
+// Also reset vis on scene leave
+function resetScene(idx){
+  var ids=['ov0','ov1','ov2','ov3','ov4',
+    'tc1','tc2','tc3','tc4','tc5',
+    'tp1','tp2','tp3','tp4',
+    'tt1','tt2','tt3','tt4',
+    'tj1','tj2','tj3','sp1','sp2','sp3',
+    'ta1','ta2'];
+  ids.forEach(id=>{var el=g(id);if(el)el.classList.remove('vis');});
+  // Reset modal fields
+  ['fNum','fType','fParties','fFiling','fService'].forEach(id=>{
+    var el=g(id);if(el)el.classList.remove('filled');
+  });
+  var cs=g('calcStrip');if(cs)cs.style.opacity='0';
+  var sa=g('saveAnim');if(sa)sa.style.opacity='0';
+}
+
+// Progress tracking
+let rafId=null;
+let sceneStartReal=Date.now();
+let sceneElapsed=0; // ms elapsed in current scene before pause
+
+function startPlayback(){
+  playing=true;
+  g('btnPlay').textContent='⏸';
+  sceneStartReal=Date.now()-sceneElapsed;
+  tick();
+}
+function pausePlayback(){
+  playing=false;
+  g('btnPlay').textContent='▶';
+  sceneElapsed=Date.now()-sceneStartReal;
+  if(rafId) cancelAnimationFrame(rafId);
+}
+
+function tick(){
+  if(!playing) return;
+  var now=Date.now();
+  var elapsed=now-sceneStartReal;
+  var sceneDur=SCENES[cur].dur;
+
+  // Scene progress (0-1)
+  var sp=Math.min(elapsed/sceneDur,1);
+
+  // Total progress
+  var totalBefore=SCENES.slice(0,cur).reduce((a,s)=>a+s.dur,0);
+  var totalProg=(totalBefore+elapsed)/TOTAL_DUR;
+  totalProg=Math.min(totalProg,1);
+  updateProgress(totalProg);
+
+  // Update time label
+  var totalElapsed=totalBefore+elapsed;
+  var totalSec=Math.floor(totalElapsed/1000);
+  var totalMin=Math.floor(totalSec/60);
+  var totalFull=Math.floor(TOTAL_DUR/1000);
+  var fullMin=Math.floor(totalFull/60);
+  g('timeLabel').textContent=`${totalMin}:${String(totalSec%60).padStart(2,'0')} / ${fullMin}:${String(totalFull%60).padStart(2,'0')}`;
+
+  if(sp>=1){
+    // Auto-advance
+    if(cur<SCENES.length-1){
+      resetScene(cur);
+      showScene(cur+1);
+      sceneElapsed=0;
+      sceneStartReal=Date.now();
+    } else {
+      pausePlayback();
+      return;
+    }
+  }
+
+  rafId=requestAnimationFrame(tick);
+}
+
+function updateProgress(pct){
+  var w=(pct*100).toFixed(2)+'%';
+  g('progressFill').style.width=w;
+  g('progressDot').style.right=w;
+}
+
+function togglePlay(){
+  if(playing) pausePlayback();
+  else startPlayback();
+}
+function nextScene(){
+  if(cur<SCENES.length-1){
+    pausePlayback();
+    resetScene(cur);
+    showScene(cur+1);
+    sceneElapsed=0;
+    startPlayback();
+  }
+}
+function prevScene(){
+  if(cur>0){
+    pausePlayback();
+    resetScene(cur);
+    showScene(cur-1);
+    sceneElapsed=0;
+    startPlayback();
+  }
+}
+function goScene(idx){
+  pausePlayback();
+  resetScene(cur);
+  showScene(idx);
+  sceneElapsed=0;
+  startPlayback();
+}
+
+// Keyboard
+document.addEventListener('keydown',e=>{
+  if(e.key===' '||e.key==='k'){e.preventDefault();togglePlay();}
+  if(e.key==='ArrowRight'||e.key==='ArrowLeft'){
+    e.key==='ArrowRight'?prevScene():nextScene();
+  }
+});
+
+// Progress bar click
+g('progressWrap').addEventListener('click',e=>{
+  var rect=g('progressWrap').getBoundingClientRect();
+  // RTL: right side = start
+  var pct=1-(e.clientX-rect.left)/rect.width;
+  var targetMs=Math.floor(pct*TOTAL_DUR);
+  // Find scene
+  var acc=0;
+  for(var i=0;i<SCENES.length;i++){
+    if(acc+SCENES[i].dur>=targetMs){
+      pausePlayback();
+      resetScene(cur);
+      showScene(i);
+      sceneElapsed=targetMs-acc;
+      startPlayback();
+      break;
+    }
+    acc+=SCENES[i].dur;
+  }
+});
+
+// Init
+showScene(0);
+startPlayback();
+</script>
+</body>
+</html>

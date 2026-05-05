@@ -1,0 +1,1119 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LexTime — אפקט הדומינו של המועדים</title>
+<link href="https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;700;900&family=Rubik:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0d2347;--navy-d:#071629;
+  --gold:#c9a84c;--gold-d:#a07c2a;--gold-l:#e8d5a0;
+  --green:#166534;--green-l:#bbf7d0;--green-ll:#f0fdf4;
+  --red:#b91c1c;--red-l:#fee2e2;
+  --orange:#c2410c;--orange-l:#ffedd5;
+  --amber:#d97706;--amber-l:#fef3c7;
+  --blue:#1d4ed8;--blue-ll:#eff6ff;
+  --border:#e5e7eb;--gray:#6b7280;--gray-l:#9ca3af;--gray-ll:#f9fafb;
+  --purple:#7c3aed;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Rubik',sans-serif;background:#111827;color:#fff;width:100%;height:100vh;overflow:hidden;direction:rtl;}
+#player{position:relative;width:100%;height:100vh;overflow:hidden;}
+
+/* dot bg */
+#player::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle at 1px 1px,rgba(201,168,76,.05) 1px,transparent 0);background-size:28px 28px;pointer-events:none;}
+
+/* ── CONTROLS ── */
+#controls{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(7,22,41,.98),rgba(7,22,41,.8) 70%,transparent);padding:10px 20px 14px;z-index:100;display:flex;flex-direction:column;gap:6px;}
+#pw{height:4px;background:rgba(255,255,255,.15);border-radius:4px;cursor:pointer;position:relative;}
+#pf{position:absolute;top:0;right:0;height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold));border-radius:4px;transition:width .1s linear;}
+#pd{position:absolute;top:50%;transform:translate(50%,-50%);width:11px;height:11px;border-radius:50%;background:var(--gold);box-shadow:0 0 8px rgba(201,168,76,.8);transition:right .1s linear;}
+#cr{display:flex;align-items:center;gap:10px;}
+.cb{background:none;border:none;cursor:pointer;color:#fff;font-size:16px;width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;opacity:.8;transition:.15s;}
+.cb:hover{background:rgba(255,255,255,.12);opacity:1}
+#sl{flex:1;font-size:10px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.5px;text-transform:uppercase;}
+#tl{font-size:10px;color:rgba(255,255,255,.35);}
+#chs{display:flex;gap:4px;flex-wrap:wrap;}
+.ch{padding:2px 9px;border-radius:14px;border:1px solid rgba(255,255,255,.13);background:rgba(255,255,255,.05);color:rgba(255,255,255,.5);font-size:9px;font-weight:700;cursor:pointer;font-family:'Rubik',sans-serif;transition:.15s;}
+.ch:hover{background:rgba(201,168,76,.2);color:var(--gold);border-color:var(--gold-d);}
+.ch.active{background:rgba(201,168,76,.25);color:var(--gold);border-color:var(--gold);}
+
+/* ── SCENES ── */
+.scene{position:absolute;inset:0;opacity:0;transition:opacity .45s;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:14px 14px 105px;}
+.scene.active{opacity:1;pointer-events:auto;}
+
+/* ── TITLE SCENE ── */
+.big-title{font-family:'Frank Ruhl Libre',serif;font-size:clamp(22px,4.5vw,50px);font-weight:900;line-height:1.1;text-align:center;}
+.accent{background:linear-gradient(135deg,var(--gold-d),var(--gold),var(--gold-l));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.gold-line{width:50px;height:3px;background:linear-gradient(90deg,var(--gold-d),var(--gold));border-radius:3px;margin:12px auto;}
+.cpill{display:inline-flex;align-items:center;background:rgba(201,168,76,.12);border:1.5px solid rgba(201,168,76,.3);border-radius:18px;padding:4px 14px;font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.4px;margin-bottom:10px;}
+
+/* ── ACTUAL PLATFORM SHELL ── */
+.plat{width:100%;max-width:1060px;border-radius:10px;overflow:hidden;box-shadow:0 24px 64px rgba(0,0,0,.7);direction:rtl;font-family:'Rubik',sans-serif;}
+
+/* topbar */
+.topbar{background:linear-gradient(135deg,#0a1628,#0d2347);padding:7px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(201,168,76,.2);}
+.tb-brand{font-family:'Frank Ruhl Libre',serif;font-size:12px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px;}
+.tb-brand span{font-size:9px;opacity:.4;font-weight:400;}
+.tb-btns{display:flex;gap:5px;align-items:center;}
+.btn-new{background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:700;cursor:pointer;font-family:'Rubik',sans-serif;white-space:nowrap;}
+.btn-ghost{background:rgba(255,255,255,.08);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.15);border-radius:6px;padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer;font-family:'Rubik',sans-serif;}
+.tb-user{font-size:10px;color:rgba(255,255,255,.5);margin-right:8px;}
+
+/* case header */
+.casehdr{background:#fff;border-bottom:3px solid var(--gold);padding:7px 14px;display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:6px;color:#111827;}
+.case-left{display:flex;flex-direction:column;gap:2px;}
+.case-name{font-family:'Frank Ruhl Libre',serif;font-size:13px;font-weight:700;color:var(--navy);}
+.case-num{font-size:9px;color:var(--gray);}
+.case-metas{display:flex;gap:16px;flex-wrap:wrap;align-items:center;}
+.cmeta{display:flex;flex-direction:column;gap:1px;}
+.cml{font-size:8px;color:var(--gray-l);text-transform:uppercase;letter-spacing:.5px;font-weight:700;}
+.cmv{font-size:11px;font-weight:700;color:var(--navy);}
+.cmv.inp{
+  background:#fff;border:1.5px solid var(--border);border-radius:5px;
+  padding:3px 7px;font-size:11px;font-weight:600;font-family:'Rubik',sans-serif;
+  color:var(--navy);min-width:100px;display:inline-block;transition:.3s;
+}
+.cmv.inp.typing{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,168,76,.15);}
+.cmv.inp.filled{border-color:#16a34a;background:#f0fdf4;}
+.cur::after{content:'|';animation:blink .6s infinite;color:var(--gold);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+/* stats bar */
+.statsbar{background:#fff;border-bottom:1px solid var(--border);padding:5px 14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:5px;}
+.holiday-pills{display:flex;gap:5px;flex-wrap:wrap;}
+.hpill{padding:2px 9px;border-radius:12px;font-size:9px;font-weight:700;border:1px solid;}
+.stat-pills{display:flex;gap:6px;align-items:center;}
+.spill{display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:10px;font-weight:700;border:1px solid;white-space:nowrap;}
+
+/* tab bar */
+.tabbar{background:#f9fafb;border-bottom:1px solid var(--border);padding:0 14px;display:flex;justify-content:flex-end;gap:0;}
+.tab{padding:6px 14px;font-size:10px;font-weight:700;color:var(--gray);cursor:pointer;border-bottom:2px solid transparent;transition:.15s;}
+.tab.active{color:var(--navy);border-bottom-color:var(--gold);}
+
+/* stage block */
+.stage{background:#fff;border-bottom:1px solid var(--border);}
+.stagehead{display:flex;align-items:center;justify-content:space-between;padding:7px 14px;background:linear-gradient(90deg,#f9fafb,#fff);border-bottom:1px solid var(--border);cursor:pointer;}
+.sh-left{display:flex;align-items:center;gap:8px;}
+.sdot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.sname{font-size:12px;font-weight:700;color:var(--navy);}
+.scount{font-size:10px;color:var(--gray);background:#f3f4f6;border:1px solid var(--border);padding:1px 8px;border-radius:8px;font-weight:600;}
+.sprogbar{height:3px;background:#f3f4f6;}
+.sprogfill{height:100%;background:linear-gradient(90deg,var(--gold-d),var(--gold));transition:width .7s ease;}
+.spct{font-size:9px;font-weight:700;color:var(--gray);padding:1px 8px 0;background:#f9fafb;}
+
+/* table */
+.tt{width:100%;border-collapse:collapse;font-size:11px;}
+.tt th{padding:5px 9px;font-size:8px;font-weight:700;color:var(--gray-l);text-align:right;border-bottom:2px solid var(--border);text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;background:#f9fafb;}
+.th-orig{color:var(--blue)!important;background:#eff6ff!important;}
+.th-act{color:var(--green)!important;background:#f0fdf4!important;}
+.th-judge{color:var(--purple)!important;background:#f5f3ff!important;}
+.tt td{padding:6px 9px;border-bottom:1px solid #f3f4f6;vertical-align:top;color:#111827;}
+.tt tr:last-child td{border-bottom:none;}
+
+/* task description */
+.tdesc{font-size:11px;font-weight:600;color:#111827;line-height:1.35;}
+.treg{font-size:9px;color:var(--blue);margin-top:1px;font-weight:500;cursor:pointer;}
+.treg:hover{text-decoration:underline;}
+
+/* ORIG date — never changes */
+.orig-date{font-size:11px;font-weight:700;color:var(--navy);white-space:nowrap;opacity:0;transform:translateX(-4px);transition:opacity .4s,transform .4s;}
+.orig-date.vis{opacity:1;transform:translateX(0);}
+.orig-date.pop{animation:dpop .4s ease;}
+@keyframes dpop{0%{transform:scale(1.2);color:var(--gold)}100%{transform:scale(1);color:var(--navy)}}
+
+/* days badge */
+.days-badge{display:inline-flex;align-items:center;justify-content:center;padding:2px 7px;border-radius:8px;font-size:10px;font-weight:800;white-space:nowrap;min-width:40px;}
+.days-badge.ok{background:#f0fdf4;color:var(--green);border:1px solid #bbf7d0;}
+.days-badge.warn{background:#fef3c7;color:var(--amber);border:1px solid #fde68a;}
+.days-badge.urg{background:#fee2e2;color:var(--red);border:1px solid #fca5a5;}
+.days-badge.na{background:#f3f4f6;color:var(--gray-l);border:1px solid var(--border);}
+
+/* date input field */
+.date-fld{background:#fff;border:1.5px solid var(--border);border-radius:5px;padding:3px 7px;font-size:10px;font-weight:600;font-family:'Rubik',sans-serif;color:var(--navy);width:100%;max-width:105px;cursor:default;display:flex;align-items:center;gap:4px;}
+.date-fld::before{content:'📅';font-size:9px;}
+.date-fld.teal-done{border-color:#16a34a;background:#f0fdf4;color:var(--green);}
+.date-fld.purple-in{border-color:var(--purple);background:#f5f3ff;color:var(--purple);}
+
+/* RED recalc note */
+.recalc{font-size:9px;font-weight:700;color:var(--red);margin-top:2px;display:none;animation:rcin .35s ease;}
+.recalc.show{display:flex;align-items:center;gap:3px;}
+@keyframes rcin{from{opacity:0;transform:translateY(-3px)}to{opacity:1;transform:translateY(0)}}
+
+/* status dropdown */
+.ss{font-size:9px;font-weight:600;border:1px solid var(--border);border-radius:5px;padding:3px 6px;background:#fff;color:var(--gray);cursor:pointer;font-family:'Rubik',sans-serif;min-width:80px;}
+.ss.done{background:#f0fdf4;color:var(--green);border-color:#bbf7d0;}
+.ss.urgent{background:#fee2e2;color:var(--red);border-color:#fca5a5;}
+.ss.imm{background:#fef3c7;color:var(--amber);border-color:#fde68a;}
+
+/* next-task highlight */
+.tr-row{transition:background .3s;}
+.tr-row.nxt td{background:linear-gradient(90deg,rgba(201,168,76,.08),rgba(201,168,76,.01));border-right:3px solid var(--gold);}
+.tr-row.nxt .tdesc{font-weight:700;}
+.nbadge{display:inline-flex;align-items:center;background:linear-gradient(135deg,var(--gold-d),var(--gold));color:#fff;font-size:8px;font-weight:800;padding:1px 6px;border-radius:6px;margin-left:4px;vertical-align:middle;animation:bp 1.5s ease-in-out infinite;}
+@keyframes bp{0%,100%{box-shadow:0 1px 4px rgba(201,168,76,.4)}50%{box-shadow:0 2px 10px rgba(201,168,76,.7)}}
+
+/* "הגש X ימים לפני" badge */
+.deadline-badge{display:inline-flex;align-items:center;gap:3px;background:#fef3c7;color:var(--amber);border:1px solid #fde68a;border-radius:5px;font-size:8px;font-weight:700;padding:1px 6px;white-space:nowrap;}
+.deadline-badge.red{background:#fee2e2;color:var(--red);border-color:#fca5a5;}
+
+/* platform body scroll */
+.pbody{max-height:calc(100vh - 240px);overflow-y:auto;background:#fff;}
+.pbody::-webkit-scrollbar{width:4px;}
+.pbody::-webkit-scrollbar-thumb{background:rgba(201,168,76,.3);border-radius:4px;}
+
+/* ripple */
+.rpl{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 60% 30%,rgba(201,168,76,.07),transparent 65%);opacity:0;transition:opacity .5s;z-index:1;}
+.rpl.on{opacity:1;}
+
+/* annotation */
+.ann{position:absolute;background:rgba(7,22,41,.93);border:1.5px solid var(--gold);border-radius:9px;padding:7px 11px;font-size:10px;font-weight:600;color:#fff;pointer-events:none;opacity:0;transition:opacity .4s,transform .4s;transform:translateY(7px);z-index:30;max-width:200px;line-height:1.5;box-shadow:0 6px 20px rgba(0,0,0,.4);}
+.ann.show{opacity:1;transform:translateY(0);}
+
+/* toast */
+.toast{position:absolute;bottom:14px;left:50%;transform:translateX(-50%) translateY(55px);background:linear-gradient(135deg,#0d2347,#1e3f7a);color:#fff;padding:8px 16px;border-radius:9px;font-size:10px;font-weight:700;border:1px solid rgba(201,168,76,.35);box-shadow:0 6px 28px rgba(7,22,41,.5);white-space:nowrap;transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .4s;opacity:0;z-index:50;}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+
+/* explain card */
+.ecard{display:flex;gap:10px;border-radius:10px;padding:12px 14px;border:1.5px solid;opacity:0;transform:translateY(10px);transition:.4s ease;color:#111827;}
+.ecard.show{opacity:1;transform:translateY(0);}
+
+/* done checkmark anim */
+.done-row td{background:linear-gradient(90deg,rgba(16,185,129,.06),transparent)!important;border-right:3px solid #10b981!important;}
+
+/* stage progress bar animated */
+@keyframes progressGrow{from{width:0%}to{width:var(--w)}}
+
+/* ── CASE CARDS (התיקים שלי) ── */
+.case-card{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.08);border:1px solid var(--border);display:flex;flex-direction:column;border-bottom:4px solid var(--gold);}
+.cc-top{padding:12px 14px;flex:1;}
+.cc-type{font-size:9px;font-weight:700;color:var(--gray-l);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.cc-name{font-family:'Frank Ruhl Libre',serif;font-size:13px;font-weight:700;color:var(--navy);margin-bottom:5px;line-height:1.3;}
+.cc-meta{font-size:10px;color:var(--gray);margin-bottom:1px;}
+.cc-progress{margin-top:8px;}
+.cc-btns{padding:8px 10px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:5px;}
+.cc-btn-main{background:linear-gradient(135deg,#1e3a5f,#1d4ed8);color:#fff;border:none;border-radius:7px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:'Rubik',sans-serif;width:100%;}
+.cc-btn-edit{background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:7px;padding:4px 12px;font-size:10px;font-weight:600;cursor:pointer;font-family:'Rubik',sans-serif;width:100%;}
+
+#kh{position:absolute;top:14px;left:50%;transform:translateX(-50%);font-size:9px;color:rgba(255,255,255,.2);font-weight:600;pointer-events:none;}
+.kbd{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.17);border-radius:3px;padding:1px 5px;font-size:8px;}
+</style>
+</head>
+<body>
+<div id="player">
+<div id="kh">← → ניווט &nbsp;|&nbsp; <span class="kbd">Space</span> נגן/עצור</div>
+<div id="sw">
+
+<!-- ══ S0: TITLE ══ -->
+<div class="scene active" id="s0">
+  <div style="text-align:center">
+    <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:10px">LEXTIME — הדגמה</div>
+    <div class="big-title">אפקט <span class="accent">הדומינו</span><br>של המועדים</div>
+    <div class="gold-line"></div>
+    <div style="font-size:clamp(12px,2vw,16px);color:rgba(255,255,255,.5);line-height:1.7;max-width:500px;margin:0 auto;text-align:center">
+      ברגע שמזינים את תאריך ההמצאה לנתבע —<br>
+      המערכת מחשבת אוטומטית את כל המועדים בתיק.<br>
+      <span style="color:rgba(255,255,255,.3);font-size:11px">כל תאריך גורר את הבא. כל מטלה שמסתיימת — מדליקה את הבאה.</span>
+    </div>
+  </div>
+</div>
+
+<!-- ══ sA: ALL STAGES OVERVIEW ══ -->
+<div class="scene" id="sA">
+  <div class="cpill">מבט על — כל שלבי התיק</div>
+  <div class="plat" style="position:relative;max-width:900px;">
+    <div class="topbar">
+      <div class="tb-brand">LexTime <span>ניהול מועדים משפטיים | תקנות סד"א, תשע"ס-2018</span></div>
+      <div class="tb-btns">
+        <div class="tb-user">שלום, עו"ד ישראל</div>
+        <button class="btn-new">+ פתיחת תיק חדש</button>
+        <button class="btn-ghost">התיקים שלי</button>
+      </div>
+    </div>
+    <div class="casehdr">
+      <div class="case-left">
+        <div class="case-name">567676יעכיבעייע – 56767</div>
+        <div class="case-num">מספר תיק: 45656 | 56767 | ביטוח לאומי</div>
+      </div>
+      <div class="case-metas">
+        <div class="cmeta"><div class="cml">הגשת כתב תביעה</div><div class="cmv">02.04.2026</div></div>
+        <div class="cmeta"><div class="cml">מועד לנתבע</div><div class="cmv">07.05.2026</div></div>
+        <div class="cmeta"><div class="cml">תאריך נוכחי</div><div class="cmv">04.05.2026</div></div>
+        <div class="cmeta"><div class="cml">ימי הגנה</div><div class="cmv">30 יום</div></div>
+      </div>
+    </div>
+    <div class="statsbar">
+      <div class="holiday-pills">
+        <span class="hpill" style="color:#9d174d;border-color:#fce7f3;background:#fdf2f8">🎖 כלל פגרה</span>
+        <span class="hpill" style="color:#065f46;border-color:#a7f3d0;background:#ecfdf5">מלל פגרה</span>
+        <span style="font-size:9px;color:var(--gray)">📅 פגרת קיץ בעוד 78 ימים (21.07.2026) | מועד מקורי</span>
+      </div>
+      <div class="stat-pills">
+        <div class="spill" style="background:#f0fdf4;color:var(--green);border-color:#bbf7d0">סה"כ מטלות <strong>23</strong></div>
+        <div class="spill" style="background:#fff;color:var(--gray);border-color:var(--border)">בוצע <strong>0</strong></div>
+        <div class="spill" style="background:#fff;color:var(--gray);border-color:var(--border)">ממתינים <strong>23</strong></div>
+        <div class="spill" style="background:#fee2e2;color:var(--red);border-color:#fca5a5">דחוף (עד 14 ימים) <strong>0</strong></div>
+      </div>
+    </div>
+    <div class="tabbar"><div class="tab">התיקים שלי</div><div class="tab active">ציר זמנים</div></div>
+
+    <div class="pbody" style="padding:0">
+      <!-- All 6 stages collapsed -->
+      <div id="stg1" class="stage" style="opacity:0;transform:translateY(8px);transition:.35s ease">
+        <div class="stagehead">
+          <div class="sh-left"><span style="font-size:10px;color:var(--gray);margin-left:4px">▶</span><div class="sdot" style="background:#1d4ed8"></div><div class="sname">דיון מקדמי</div></div>
+          <div class="scount">0/8 בוצע</div>
+        </div>
+        <div class="sprogbar"><div class="sprogfill" style="width:0%"></div></div>
+        <div class="spct">0%</div>
+      </div>
+      <div id="stg2" class="stage" style="opacity:0;transform:translateY(8px);transition:.35s ease">
+        <div class="stagehead">
+          <div class="sh-left"><span style="font-size:10px;color:var(--gray);margin-left:4px">▶</span><div class="sdot" style="background:#10b981"></div><div class="sname">קדם משפט</div></div>
+          <div class="scount">0/6 בוצע</div>
+        </div>
+        <div class="sprogbar"><div class="sprogfill" style="width:0%"></div></div>
+        <div class="spct">0%</div>
+      </div>
+      <div id="stg3" class="stage" style="opacity:0;transform:translateY(8px);transition:.35s ease">
+        <div class="stagehead">
+          <div class="sh-left"><span style="font-size:10px;color:var(--gray);margin-left:4px">▶</span><div class="sdot" style="background:#f59e0b"></div><div class="sname">דיון הוכחות</div></div>
+          <div class="scount">0/4 בוצע</div>
+        </div>
+        <div class="sprogbar"><div class="sprogfill" style="width:0%"></div></div>
+        <div class="spct">0%</div>
+      </div>
+      <div id="stg4" class="stage" style="opacity:0;transform:translateY(8px);transition:.35s ease">
+        <div class="stagehead">
+          <div class="sh-left"><span style="font-size:10px;color:var(--gray);margin-left:4px">▶</span><div class="sdot" style="background:#8b5cf6"></div><div class="sname">החלטה שיפוטית</div></div>
+          <div class="scount">0/4 בוצע</div>
+        </div>
+        <div class="sprogbar"><div class="sprogfill" style="width:0%"></div></div>
+        <div class="spct">0%</div>
+      </div>
+      <div id="stg5" class="stage" style="opacity:0;transform:translateY(8px);transition:.35s ease">
+        <div class="stagehead">
+          <div class="sh-left"><span style="font-size:10px;color:var(--gray);margin-left:4px">▶</span><div class="sdot" style="background:#6366f1"></div><div class="sname">הערעור</div></div>
+          <div class="scount">0/1 בוצע</div>
+        </div>
+        <div class="sprogbar"><div class="sprogfill" style="width:0%"></div></div>
+        <div class="spct">0%</div>
+      </div>
+      <div id="stg6" class="stage" style="opacity:0;transform:translateY(8px);transition:.35s ease;border-bottom:none">
+        <div class="stagehead">
+          <div class="sh-left"><span style="font-size:10px;color:var(--gray);margin-left:4px">▶</span><div class="sdot" style="background:#111827"></div><div class="sname">פסק דין – סיום ההליך</div></div>
+          <div class="scount" style="color:#6b7280"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ann" id="aA1" style="top:92px;left:12px">6 שלבים מסודרים<br>לפי ציר ההליך —<br>מקוים בלחיצה</div>
+    <div class="ann" id="aA2" style="top:200px;left:12px">כל שלב נפתח<br>ומציג את רשימת<br>המטלות המלאה</div>
+  </div>
+</div>
+
+<!-- ══ s1 continues below (unchanged) ══ -->
+
+<!-- ══ sB: MY CASES SHELF ══ -->
+<div class="scene" id="sB">
+  <div class="cpill">התיקים שלי — ארון התיקים</div>
+  <div class="plat" style="position:relative;max-width:960px;">
+    <div class="topbar">
+      <div class="tb-brand">LexTime <span>ניהול מועדים משפטיים | תקנות סד"א, תשע"ס-2018</span></div>
+      <div class="tb-btns">
+        <div class="tb-user">שלום, עו"ד ישראל</div>
+        <button class="btn-new">+ פתיחת תיק חדש</button>
+        <button class="btn-ghost">התיקים שלי</button>
+      </div>
+    </div>
+    <div class="tabbar" style="background:#fff;border-bottom:2px solid var(--gold)">
+      <div class="tab" style="color:var(--gray)">ציר זמנים</div>
+      <div class="tab active" style="border-bottom-color:var(--gold);color:var(--navy)">התיקים שלי 📁</div>
+    </div>
+
+    <div class="pbody" style="padding:12px;background:#f9fafb;display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+      <!-- Case cards -->
+      <div class="case-card" id="cc1" style="opacity:0;transform:translateY(10px);transition:.35s ease">
+        <div class="cc-top">
+          <div class="cc-type">קאראא</div>
+          <div class="cc-name">דארארקאראראר</div>
+          <div class="cc-meta">רשלנות רפואית</div>
+          <div class="cc-meta">ראראי</div>
+          <div class="cc-meta">המצאה: 12.05.2026</div>
+          <div class="cc-progress"><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--gray);margin-bottom:3px"><span>0/23</span><span style="color:var(--green)">בוצע 0</span></div><div style="height:3px;background:#e5e7eb;border-radius:2px"><div style="width:0%;height:100%;background:var(--gold);border-radius:2px"></div></div></div>
+        </div>
+        <div class="cc-btns">
+          <button class="cc-btn-main">עבור לתיק</button>
+          <button class="cc-btn-edit">✏️ עריכה</button>
+        </div>
+      </div>
+
+      <div class="case-card" id="cc2" style="opacity:0;transform:translateY(10px);transition:.35s ease">
+        <div class="cc-top">
+          <div class="cc-type">בעעענג</div>
+          <div class="cc-name">גנכעגנעכעבנג</div>
+          <div class="cc-meta">קניין</div>
+          <div class="cc-meta">ראראקארא</div>
+          <div class="cc-meta">המצאה: 13.05.2026</div>
+          <div class="cc-progress"><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--gray);margin-bottom:3px"><span>0/23</span><span style="color:var(--green)">בוצע 0</span></div><div style="height:3px;background:#e5e7eb;border-radius:2px"><div style="width:0%;height:100%;background:var(--gold);border-radius:2px"></div></div></div>
+        </div>
+        <div class="cc-btns">
+          <button class="cc-btn-main">עבור לתיק</button>
+          <button class="cc-btn-edit">✏️ עריכה</button>
+        </div>
+      </div>
+
+      <div class="case-card" id="cc3" style="opacity:0;transform:translateY(10px);transition:.35s ease">
+        <div class="cc-top">
+          <div class="cc-type">יעיעיי</div>
+          <div class="cc-name">ע'יע'יע'יע</div>
+          <div class="cc-meta">קניין</div>
+          <div class="cc-meta">—</div>
+          <div class="cc-meta">המצאה: 07.05.2026</div>
+          <div class="cc-progress"><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--gray);margin-bottom:3px"><span>1/23</span><span style="color:var(--green)">בוצע 1</span></div><div style="height:3px;background:#e5e7eb;border-radius:2px"><div style="width:4%;height:100%;background:var(--gold);border-radius:2px"></div></div></div>
+        </div>
+        <div class="cc-btns">
+          <button class="cc-btn-main">עבור לתיק</button>
+          <button class="cc-btn-edit">✏️ עריכה</button>
+        </div>
+      </div>
+
+      <div class="case-card" id="cc4" style="opacity:0;transform:translateY(10px);transition:.35s ease">
+        <div class="cc-top">
+          <div class="cc-type" style="color:#9d174d">56767</div>
+          <div class="cc-name">567676יעכיבעייע</div>
+          <div class="cc-meta">ביטוח לאומי</div>
+          <div class="cc-meta">45656</div>
+          <div class="cc-meta">המצאה: 07.05.2026</div>
+          <div class="cc-progress">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--gray);margin-bottom:3px">
+              <span>0/23</span>
+              <span style="background:#fee2e2;color:var(--red);padding:0 5px;border-radius:4px;font-weight:700">דחוף 2</span>
+            </div>
+            <div style="height:3px;background:#e5e7eb;border-radius:2px"><div style="width:0%;height:100%;background:var(--gold);border-radius:2px"></div></div>
+          </div>
+        </div>
+        <div class="cc-btns">
+          <button class="cc-btn-main" style="background:linear-gradient(135deg,#1e40af,#1d4ed8)">עבור לתיק</button>
+          <button class="cc-btn-edit">✏️ עריכה</button>
+        </div>
+      </div>
+
+      <div class="case-card" id="cc5" style="opacity:0;transform:translateY(10px);transition:.35s ease">
+        <div class="cc-top">
+          <div class="cc-type">fgfghg</div>
+          <div class="cc-name">hghghgfh</div>
+          <div class="cc-meta">אזרחי</div>
+          <div class="cc-meta">fghghfh</div>
+          <div class="cc-meta">המצאה: 10.04.2026</div>
+          <div class="cc-progress">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--gray);margin-bottom:3px">
+              <span>1/23</span>
+              <span style="background:#fef3c7;color:var(--amber);padding:0 5px;border-radius:4px;font-weight:700">דחוף 1</span>
+            </div>
+            <div style="height:3px;background:#e5e7eb;border-radius:2px"><div style="width:4%;height:100%;background:var(--gold);border-radius:2px"></div></div>
+          </div>
+        </div>
+        <div class="cc-btns">
+          <button class="cc-btn-main" style="background:linear-gradient(135deg,var(--gold-d),var(--gold))">עבור לתיק ⭐ פעיל</button>
+          <button class="cc-btn-edit">✏️ עריכה</button>
+        </div>
+      </div>
+
+      <div class="case-card" id="cc6" style="opacity:0;transform:translateY(10px);transition:.35s ease">
+        <div class="cc-top">
+          <div class="cc-type">יעיעיי</div>
+          <div class="cc-name">ע'רצהצמצמי</div>
+          <div class="cc-meta">פיצוי מוסכם</div>
+          <div class="cc-meta">—</div>
+          <div class="cc-meta">המצאה: 14.05.2026</div>
+          <div class="cc-progress"><div style="display:flex;justify-content:space-between;font-size:9px;color:var(--gray);margin-bottom:3px"><span>0/23</span><span style="color:var(--green)">בוצע 0</span></div><div style="height:3px;background:#e5e7eb;border-radius:2px"><div style="width:0%;height:100%;background:var(--gold);border-radius:2px"></div></div></div>
+        </div>
+        <div class="cc-btns">
+          <button class="cc-btn-main">עבור לתיק</button>
+          <button class="cc-btn-edit">✏️ עריכה</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ann" id="aBann1" style="top:56px;left:12px">כל תיק = כרטיסייה<br>עם סטטוס, מועד<br>המצאה והתקדמות</div>
+    <div class="ann" id="aBann2" style="top:56px;right:12px">לחיצה "עבור לתיק"<br>→ ציר הזמנים<br>המלא של התיק</div>
+  </div>
+</div>
+<div class="scene" id="s1">
+  <div class="cpill">שלב 1 — ברגע שמזינים את תאריך ההמצאה</div>
+  <div class="plat" style="position:relative;">
+    <div class="rpl" id="r1"></div>
+
+    <!-- topbar -->
+    <div class="topbar">
+      <div class="tb-brand">LexTime <span>ניהול מועדים משפטיים | תקנות סד"א, תשע"ס-2018</span></div>
+      <div class="tb-btns">
+        <div class="tb-user">שלום, עו"ד ישראל</div>
+        <button class="btn-new">+ פתיחת תיק חדש</button>
+        <button class="btn-ghost">התיקים שלי</button>
+      </div>
+    </div>
+
+    <!-- case header -->
+    <div class="casehdr">
+      <div class="case-left">
+        <div class="case-name">כהן ישראל נ׳ חברת ביטוח ישיר בע"מ</div>
+        <div class="case-num">מספר תיק: 45821 | 45821-01-25 | בית משפט שלום תל אביב</div>
+      </div>
+      <div class="case-metas">
+        <div class="cmeta"><div class="cml">הגשת כתב תביעה</div><div class="cmv">02.04.2026</div></div>
+        <div class="cmeta"><div class="cml">המצאה לנתבע – תקנה 9(א)</div>
+          <div class="cmv inp cur" id="si">&#8203;</div>
+        </div>
+        <div class="cmeta"><div class="cml">סוג תיק</div><div class="cmv">ביטוח לאומי</div></div>
+        <div class="cmeta"><div class="cml">ימי הגנה</div><div class="cmv">30 יום</div></div>
+      </div>
+    </div>
+
+    <!-- stats bar -->
+    <div class="statsbar">
+      <div class="holiday-pills">
+        <span class="hpill" style="color:#9d174d;border-color:#fce7f3;background:#fdf2f8">🎖 כלל פגרה</span>
+        <span class="hpill" style="color:#065f46;border-color:#a7f3d0;background:#ecfdf5">מלל פגרה</span>
+        <span style="font-size:9px;color:var(--gray)">📅 פגרת קיץ בעוד 78 ימים (21.07.2026) &nbsp;|&nbsp; מועד מקורי</span>
+      </div>
+      <div class="stat-pills">
+        <div class="spill" style="background:#f0fdf4;color:var(--green);border-color:#bbf7d0">סה"כ מטלות <strong>23</strong></div>
+        <div class="spill" style="background:#fff;color:var(--gray);border-color:var(--border)">בוצע <strong id="s1-done">0</strong></div>
+        <div class="spill" style="background:#fff;color:var(--gray);border-color:var(--border)">ממתינים <strong id="s1-pnd">0</strong></div>
+        <div class="spill" style="background:#fee2e2;color:var(--red);border-color:#fca5a5">דחוף (עד 14 ימים) <strong>0</strong></div>
+      </div>
+    </div>
+
+    <!-- tab bar -->
+    <div class="tabbar">
+      <div class="tab">התיקים שלי</div>
+      <div class="tab active">ציר זמנים</div>
+    </div>
+
+    <!-- STAGE: דיון מקדמי -->
+    <div class="stage">
+      <div class="stagehead">
+        <div class="sh-left">
+          <div class="sdot" style="background:#1d4ed8"></div>
+          <div class="sname">דיון מקדמי</div>
+        </div>
+        <div class="scount" id="s1-cnt">0/8 בוצע</div>
+      </div>
+      <div class="sprogbar"><div class="sprogfill" id="s1-pfill" style="width:0%"></div></div>
+      <div class="spct" id="s1-ppct">0%</div>
+
+      <table class="tt">
+        <thead>
+          <tr>
+            <th style="width:35%">מטלות לביצוע על פי ציר הזמנים</th>
+            <th>ימים</th>
+            <th class="th-orig">מועד מקורי להגשה (ללא פגרות)</th>
+            <th class="th-act">מועד ביצוע בפועל</th>
+            <th class="th-judge">מועד תלוי החלטות שופט</th>
+            <th>ימים נותרו</th>
+            <th>סטטוס</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="tr-row nxt" id="s1r1">
+            <td>
+              <span class="nbadge" id="nb1">▶ מטלה הבאה</span>
+              <div class="tdesc">הגשת כתב הגנה – <strong>תקנה 9(ב)</strong> – 60 ימים – הגשת התביעה שכנגד והודעת צד ג׳ – תקנות 23-21</div>
+              <div class="treg">תקנה 9(ב)</div>
+            </td>
+            <td><div class="days-badge na">60+ ימים</div></td>
+            <td><div class="orig-date" id="od1">—</div></td>
+            <td><div style="display:flex;flex-direction:column;gap:1px"><div class="date-fld">mm/dd/yyyy</div><div class="recalc" id="rc1"></div></div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge na" id="db1">—</div></td>
+            <td><select class="ss" id="ss1" onchange="doMark(1,this)"><option value="p">עדיין לא בוצע</option><option value="d">בוצע ✓</option><option value="u">⚡ לטיפול מיידי</option><option value="m">△ חוסר מענה</option></select></td>
+          </tr>
+          <tr class="tr-row" id="s1r2">
+            <td>
+              <div class="tdesc"><span class="nbadge" id="nb2" style="display:none">▶ מטלה הבאה</span>הגשת כתב הטענות האחרון / כתב תשובה לכתב ההגנה – <strong>תקנה 6</strong> 1/או <strong>תקנה 18</strong></div>
+              <div class="treg">תקנה 18,6</div>
+            </td>
+            <td><div class="days-badge na">14 לאחר הגנה</div></td>
+            <td><div class="orig-date" id="od2">—</div></td>
+            <td><div style="display:flex;flex-direction:column;gap:1px"><div class="date-fld">mm/dd/yyyy</div><div class="recalc" id="rc2"></div></div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge na" id="db2">—</div></td>
+            <td><select class="ss" id="ss2" onchange="doMark(2,this)"><option value="p">עדיין לא בוצע</option><option value="d">בוצע ✓</option><option value="u">⚡ לטיפול מיידי</option></select></td>
+          </tr>
+          <tr class="tr-row" id="s1r3">
+            <td>
+              <div class="tdesc"><span class="nbadge" id="nb3" style="display:none">▶ מטלה הבאה</span>דיון מקדמי – <strong>תקנות 35-34</strong> – החלפת תצהירי גילוי מסמכים – שליחת שאלונים – <strong>תקנה 57</strong> – <strong>תקנה 56(א)</strong></div>
+              <div class="treg">תקנה 56(א),57,35-34</div>
+            </td>
+            <td><div class="days-badge na">30 לאחר תשובה</div></td>
+            <td><div class="orig-date" id="od3">—</div></td>
+            <td><div style="display:flex;flex-direction:column;gap:1px"><div class="date-fld">mm/dd/yyyy</div><div class="recalc" id="rc3"></div></div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge na" id="db3">—</div></td>
+            <td><select class="ss" id="ss3" onchange="doMark(3,this)"><option value="p">עדיין לא בוצע</option><option value="d">בוצע ✓</option></select></td>
+          </tr>
+          <tr class="tr-row" id="s1r4">
+            <td>
+              <div class="tdesc"><span class="nbadge" id="nb4" style="display:none">▶ מטלה הבאה</span>מינוי מגשר מהו"ת – 45 ימים לאחר כתב הטענות האחרון / כתב תשובה – <strong>תקנה 37(ב)</strong></div>
+              <div class="treg">תקנה 37(ב)</div>
+            </td>
+            <td><div class="days-badge na">45 לאחר תשובה</div></td>
+            <td><div class="orig-date" id="od4">—</div></td>
+            <td><div style="display:flex;flex-direction:column;gap:1px"><div class="date-fld">mm/dd/yyyy</div><div class="recalc" id="rc4"></div></div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge na" id="db4">—</div></td>
+            <td><select class="ss" id="ss4"><option value="p">עדיין לא בוצע</option><option value="d">בוצע ✓</option></select></td>
+          </tr>
+          <tr class="tr-row" id="s1r5">
+            <td>
+              <div class="tdesc"><span class="nbadge" id="nb5" style="display:none">▶ מטלה הבאה</span>פגישת מהו"ת – <strong>תקנה 37(ד)</strong></div>
+              <div class="treg">תקנה 37(ד)</div>
+            </td>
+            <td><div class="days-badge na">30 לאחר מגשר</div></td>
+            <td><div class="orig-date" id="od5">—</div></td>
+            <td><div style="display:flex;flex-direction:column;gap:1px"><div class="date-fld">mm/dd/yyyy</div></div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge na" id="db5">—</div></td>
+            <td><select class="ss"><option value="p">עדיין לא בוצע</option><option value="d">בוצע ✓</option></select></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- collapsed stage: קדם משפט -->
+    <div class="stage" style="opacity:.45">
+      <div class="stagehead">
+        <div class="sh-left"><div class="sdot" style="background:#10b981"></div><div class="sname">קדם משפט</div></div>
+        <div class="scount">0/6 בוצע</div>
+      </div>
+    </div>
+
+    <div class="ann" id="a1" style="top:88px;left:12px">⚡ ברגע שמזינים ←<br>עמודת <strong>"מועד מקורי"</strong><br>מתמלאת אוטומטית</div>
+    <div class="ann" id="a2" style="top:162px;left:12px">🔗 כל תאריך יורש<br>מהקודם — שרשרת<br>אחת רציפה</div>
+    <div class="toast" id="t1">⚡ 5 מועדי חובה חושבו אוטומטית!</div>
+  </div>
+</div>
+
+<!-- ══ S2: EXPLAIN EXTRA COLUMNS ══ -->
+<div class="scene" id="s2">
+  <div class="cpill">שלב 2 — שתי העמודות הנוספות: למה הן קיימות?</div>
+  <div style="display:flex;flex-direction:column;gap:10px;max-width:720px;width:100%">
+    <div class="ecard" id="ec1" style="background:#f0fdf4;border-color:#bbf7d0">
+      <div style="font-size:24px;flex-shrink:0">✍️</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--green);margin-bottom:4px">מועד ביצוע בפועל</div>
+        <div style="font-size:11px;color:#374151;line-height:1.65">
+          מתי הפעולה בוצעה בפועל — לא בהכרח ביום שחישבה המערכת.<br>
+          לדוגמה: כתב הגנה הוגש מאוחר, מסמכים נשלחו לפני המועד.<br>
+          <strong style="color:var(--navy)">עמודת "מועד מקורי" נשארת ללא שינוי.</strong><br>
+          בשורות הבאות מופיע <span style="color:var(--red);font-weight:700">🔴 מחושב: XX.XX.XXXX</span> — המועד המעודכן.
+        </div>
+      </div>
+    </div>
+    <div class="ecard" id="ec2" style="background:#f5f3ff;border-color:#ddd6fe">
+      <div style="font-size:24px;flex-shrink:0">⚖️</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--purple);margin-bottom:4px">מועד תלוי החלטות שופט</div>
+        <div style="font-size:11px;color:#374151;line-height:1.65">
+          כאשר השופט קבע מועד שונה — ארכה, דחיית דיון, הסרה מגישור.<br>
+          <strong style="color:var(--navy)">גם כאן "מועד מקורי" נשאר ללא שינוי.</strong><br>
+          בשורות הבאות מופיע <span style="color:var(--red);font-weight:700">🔴 מחושב: XX.XX.XXXX</span> — לפי החלטת השופט.
+        </div>
+      </div>
+    </div>
+    <div class="ecard" id="ec3" style="background:#fff7ed;border-color:#fed7aa">
+      <div style="font-size:24px;flex-shrink:0">🔴</div>
+      <div>
+        <div style="font-size:12px;font-weight:700;color:var(--orange);margin-bottom:4px">מחושב: XX.XX.XXXX — מופיע באדום מתחת לשדה הביצוע</div>
+        <div style="font-size:11px;color:#374151;line-height:1.65">
+          המועד המחושב מחדש מוצג <strong>מתחת לשדה "ביצוע בפועל"</strong> בכל שורה שהושפעה.<br>
+          עמודת "מועד מקורי להגשה" <strong>לעולם לא משתנה</strong> — היא נקודת הייחוס הקבועה.
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ S3: EXTENSION EXAMPLE ══ -->
+<div class="scene" id="s3">
+  <div class="cpill">שלב 3 — דוגמה: ניתנה ארכה לכתב הגנה</div>
+  <div class="plat" style="position:relative;">
+    <div class="rpl" id="r3"></div>
+    <div class="topbar">
+      <div class="tb-brand">LexTime <span>ניהול מועדים משפטיים</span></div>
+      <div class="tb-btns"><button class="btn-new">+ פתיחת תיק חדש</button></div>
+    </div>
+    <div class="casehdr">
+      <div class="case-left">
+        <div class="case-name">כהן ישראל נ׳ חברת ביטוח ישיר בע"מ</div>
+        <div class="case-num">45821-01-25 | נזיקין</div>
+      </div>
+      <div class="case-metas">
+        <div class="cmeta"><div class="cml">המצאה לנתבע</div><div class="cmv">07.05.2026</div></div>
+      </div>
+    </div>
+    <div class="tabbar"><div class="tab active">ציר זמנים</div></div>
+    <div class="stage">
+      <div class="stagehead">
+        <div class="sh-left"><div class="sdot" style="background:#1d4ed8"></div><div class="sname">דיון מקדמי</div></div>
+        <div class="scount">0/8 בוצע</div>
+      </div>
+      <div class="sprogbar"><div class="sprogfill" style="width:0%"></div></div>
+      <div class="spct">0%</div>
+      <table class="tt">
+        <thead>
+          <tr>
+            <th style="width:34%">מטלות לביצוע</th>
+            <th>ימים</th>
+            <th class="th-orig">מועד מקורי להגשה</th>
+            <th class="th-act">מועד ביצוע בפועל</th>
+            <th class="th-judge">מועד תלוי החלטות שופט</th>
+            <th>ימים נותרו</th>
+            <th>סטטוס</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- ROW 1 — judge gives extension -->
+          <tr class="tr-row nxt" id="s3r1">
+            <td>
+              <span class="nbadge">▶ מטלה הבאה</span>
+              <div class="tdesc">הגשת כתב הגנה – <strong>תקנה 9(ב)</strong></div>
+              <div class="treg">תקנה 9(ב) &nbsp;|&nbsp; <span style="color:var(--red);font-weight:700">🕐 ניתנה ארכה ע"י שופט</span></div>
+            </td>
+            <td><div class="days-badge warn">39 ימים</div></td>
+            <!-- ORIG — never changes -->
+            <td>
+              <div class="orig-date vis">05.01.2026</div>
+              <div style="font-size:8px;color:var(--gray-l);margin-top:1px;font-style:italic">המקורי — נשמר</div>
+            </td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td>
+              <!-- judge types here -->
+              <div style="display:flex;flex-direction:column;gap:2px">
+                <input class="date-fld purple-in" id="ji3" value="" placeholder="mm/dd/yyyy" readonly>
+              </div>
+            </td>
+            <td><div class="days-badge warn">39</div></td>
+            <td><select class="ss"><option>עדיין לא בוצע</option><option>בוצע ✓</option></select></td>
+          </tr>
+          <!-- ROW 2 — orig stays, red recalc appears below actual -->
+          <tr class="tr-row" id="s3r2">
+            <td><div class="tdesc">הגשת כתב הטענות האחרון / כתב תשובה</div><div class="treg">תקנה 18,6</div></td>
+            <td><div class="days-badge na">14 לאחר הגנה</div></td>
+            <td><div class="orig-date vis">19.01.2026</div></td><!-- STAYS -->
+            <td>
+              <div style="display:flex;flex-direction:column;gap:1px">
+                <div class="date-fld">mm/dd/yyyy</div>
+                <div class="recalc" id="rc3-2">🔴 מחושב: <span id="rcv3-2"></span></div>
+              </div>
+            </td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge na" id="db3-2">—</div></td>
+            <td><select class="ss"><option>עדיין לא בוצע</option></select></td>
+          </tr>
+          <tr class="tr-row" id="s3r3">
+            <td><div class="tdesc">גילוי מסמכים + שאלונים</div><div class="treg">תקנה 57, 56(א)</div></td>
+            <td><div class="days-badge na">30 לאחר תשובה</div></td>
+            <td><div class="orig-date vis">17.02.2026</div></td><!-- STAYS -->
+            <td>
+              <div style="display:flex;flex-direction:column;gap:1px">
+                <div class="date-fld">mm/dd/yyyy</div>
+                <div class="recalc" id="rc3-3">🔴 מחושב: <span id="rcv3-3"></span></div>
+              </div>
+            </td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge na">—</div></td>
+            <td><select class="ss"><option>עדיין לא בוצע</option></select></td>
+          </tr>
+          <tr class="tr-row">
+            <td><div class="tdesc">מינוי מגשר מהו"ת</div><div class="treg">תקנה 37(ב)</div></td>
+            <td><div class="days-badge na">45 לאחר תשובה</div></td>
+            <td><div class="orig-date vis">05.03.2026</div></td><!-- STAYS -->
+            <td>
+              <div style="display:flex;flex-direction:column;gap:1px">
+                <div class="date-fld">mm/dd/yyyy</div>
+                <div class="recalc" id="rc3-4">🔴 מחושב: <span id="rcv3-4"></span></div>
+              </div>
+            </td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge na">—</div></td>
+            <td><select class="ss"><option>עדיין לא בוצע</option></select></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="ann" id="a3" style="top:90px;right:12px">⚖️ מזינים הארכה<br>ב<strong style="color:#c084fc">"תלוי החלטות שופט"</strong></div>
+    <div class="ann" id="a4" style="top:90px;left:12px">🔵 <strong>"מועד מקורי"</strong><br>נשאר ללא שינוי</div>
+    <div class="ann" id="a5" style="top:172px;left:12px"><span style="color:#f87171">🔴 מחושב:</span> מופיע<br>באדום מתחת לביצוע<br>בכל שורה שהושפעה</div>
+    <div class="toast" id="t3">🔄 ארכה הוזנה — מועדים מחושבים מחדש באדום</div>
+  </div>
+</div>
+
+<!-- ══ S4: MARK DONE → NEXT ══ -->
+<div class="scene" id="s4">
+  <div class="cpill">שלב 4 — מסמנים "בוצע" → המטלה הבאה מוסמנת</div>
+  <div class="plat" style="position:relative;">
+    <div class="topbar">
+      <div class="tb-brand">LexTime <span>ניהול מועדים משפטיים</span></div>
+      <div class="tb-btns"><button class="btn-new">+ פתיחת תיק חדש</button></div>
+    </div>
+    <div class="casehdr">
+      <div class="case-left">
+        <div class="case-name">כהן ישראל נ׳ חברת ביטוח ישיר בע"מ</div>
+        <div class="case-num">45821-01-25 | נזיקין</div>
+      </div>
+      <div class="case-metas">
+        <div class="cmeta"><div class="cml">המצאה לנתבע</div><div class="cmv">07.05.2026</div></div>
+      </div>
+    </div>
+    <!-- stats bar live -->
+    <div class="statsbar">
+      <div></div>
+      <div class="stat-pills">
+        <div class="spill" style="background:#f0fdf4;color:var(--green);border-color:#bbf7d0">בוצעו <strong id="s4dn">0</strong></div>
+        <div class="spill" style="background:#fff;color:var(--gray);border-color:var(--border)">ממתינים <strong id="s4pn">5</strong></div>
+        <div class="spill" id="s4np" style="background:#fef3c7;color:var(--amber);border-color:#fde68a;opacity:0;transition:opacity .4s">▶ הבא: <span id="s4nl">—</span></div>
+      </div>
+    </div>
+    <div class="tabbar"><div class="tab active">ציר זמנים</div></div>
+    <div class="stage">
+      <div class="stagehead">
+        <div class="sh-left"><div class="sdot" style="background:#1d4ed8"></div><div class="sname">דיון מקדמי</div></div>
+        <div class="scount" id="s4cnt">0/5 בוצע</div>
+      </div>
+      <div class="sprogbar"><div class="sprogfill" id="s4pf" style="width:0%"></div></div>
+      <div class="spct" id="s4pp">0%</div>
+      <table class="tt">
+        <thead>
+          <tr>
+            <th style="width:36%">מטלות לביצוע</th>
+            <th>ימים</th>
+            <th class="th-orig">מועד מקורי להגשה</th>
+            <th class="th-act">מועד ביצוע בפועל</th>
+            <th class="th-judge">מועד תלוי החלטות שופט</th>
+            <th>ימים נותרו</th>
+            <th>סטטוס</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="tr-row nxt" id="r4-1">
+            <td><span class="nbadge" id="nb4-1">▶ מטלה הבאה</span><div class="tdesc">הגשת כתב הגנה – <strong>תקנה 9(ב)</strong></div><div class="treg">תקנה 9(ב)</div></td>
+            <td><div class="deadline-badge">✓ הגנ 3 ימים לפני המועד</div></td>
+            <td><div class="orig-date vis">05.01.2026</div></td>
+            <td><div style="display:flex;flex-direction:column;gap:1px"><input class="date-fld" id="af4-1" readonly placeholder="mm/dd/yyyy"><div class="recalc" id="rc4-1"></div></div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge ok" id="db4-1">39</div></td>
+            <td><select class="ss" id="ss4-1" onchange="s4mark(1,this)"><option value="p">עדיין לא בוצע</option><option value="d">בוצע ✓</option><option value="u">⚡ לטיפול מיידי</option><option value="m">△ חוסר מענה</option></select></td>
+          </tr>
+          <tr class="tr-row" id="r4-2">
+            <td><div class="tdesc"><span class="nbadge" id="nb4-2" style="display:none">▶ מטלה הבאה</span>הגשת כתב הטענות האחרון</div><div class="treg">תקנה 18,6</div></td>
+            <td><div class="days-badge na">13 ימים</div></td>
+            <td><div class="orig-date vis">19.01.2026</div></td>
+            <td><div style="display:flex;flex-direction:column;gap:1px"><input class="date-fld" id="af4-2" readonly placeholder="mm/dd/yyyy"><div class="recalc" id="rc4-2" style="color:var(--red);font-size:9px;font-weight:700;margin-top:2px;display:none">מחושב: <span id="rcv4-2"></span></div></div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge warn" id="db4-2">13</div></td>
+            <td><select class="ss" id="ss4-2" onchange="s4mark(2,this)"><option value="p">עדיין לא בוצע</option><option value="d">בוצע ✓</option></select></td>
+          </tr>
+          <tr class="tr-row" id="r4-3">
+            <td><div class="tdesc"><span class="nbadge" id="nb4-3" style="display:none">▶ מטלה הבאה</span>גילוי מסמכים + שאלונים</div><div class="treg">תקנה 57, 56(א)</div></td>
+            <td><div class="days-badge na">43 ימים</div></td>
+            <td><div class="orig-date vis">17.02.2026</div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge ok">43</div></td>
+            <td><select class="ss" id="ss4-3" onchange="s4mark(3,this)"><option value="p">עדיין לא בוצע</option><option value="d">בוצע ✓</option></select></td>
+          </tr>
+          <tr class="tr-row" id="r4-4">
+            <td><div class="tdesc"><span class="nbadge" id="nb4-4" style="display:none">▶ מטלה הבאה</span>מינוי מגשר מהו"ת</div><div class="treg">תקנה 37(ב)</div></td>
+            <td><div class="days-badge na">58 ימים</div></td>
+            <td><div class="orig-date vis">05.03.2026</div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge ok">58</div></td>
+            <td><select class="ss" id="ss4-4"><option value="p">עדיין לא בוצע</option><option value="d">בוצע ✓</option></select></td>
+          </tr>
+          <tr class="tr-row" id="r4-5">
+            <td><div class="tdesc"><span class="nbadge" id="nb4-5" style="display:none">▶ מטלה הבאה</span>פגישת מהו"ת</div><div class="treg">תקנה 37(ד)</div></td>
+            <td><div class="days-badge na">90 ימים</div></td>
+            <td><div class="orig-date vis">02.05.2026</div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="date-fld">mm/dd/yyyy</div></td>
+            <td><div class="days-badge ok">90</div></td>
+            <td><select class="ss"><option value="p">עדיין לא בוצע</option><option value="d">בוצע ✓</option></select></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="ann" id="a6" style="top:90px;left:12px">✅ מסמנים "בוצע ✓" —<br>הבאדג׳ "▶ מטלה הבאה"<br>עובר לשורה הבאה</div>
+    <div class="toast" id="t4">✅ כתב הגנה בוצע — הבא: כתב תשובה</div>
+  </div>
+</div>
+
+<!-- ══ S5: SUMMARY ══ -->
+<div class="scene" id="s5">
+  <div style="text-align:center;max-width:560px">
+    <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:2px;margin-bottom:10px">סיכום</div>
+    <div class="big-title" style="font-size:clamp(20px,4vw,40px)">שלוש עמודות —<br><span class="accent">שלוש מציאויות</span></div>
+    <div class="gold-line"></div>
+    <div style="display:flex;flex-direction:column;gap:9px;margin:13px auto;max-width:480px;text-align:right">
+      <div style="display:flex;gap:11px;background:rgba(29,78,216,.12);border:1.5px solid rgba(29,78,216,.3);border-radius:11px;padding:11px 14px"><div style="font-size:20px;flex-shrink:0">📐</div><div><div style="font-size:11px;font-weight:700;color:#93c5fd;margin-bottom:3px">מועד מקורי להגשה</div><div style="font-size:10px;color:rgba(255,255,255,.5);line-height:1.6">חישוב אוטומטי לפי תקנות סד"א 2018. <strong style="color:#93c5fd">לעולם לא משתנה</strong> — נקודת ייחוס קבועה.</div></div></div>
+      <div style="display:flex;gap:11px;background:rgba(16,185,129,.1);border:1.5px solid rgba(16,185,129,.3);border-radius:11px;padding:11px 14px"><div style="font-size:20px;flex-shrink:0">✍️ ⚖️</div><div><div style="font-size:11px;font-weight:700;color:#6ee7b7;margin-bottom:3px">ביצוע בפועל / תלוי החלטות שופט</div><div style="font-size:10px;color:rgba(255,255,255,.5);line-height:1.6">מזינים תאריך חדש — ארכה, דחייה, הגשה מוקדמת. <strong style="color:#6ee7b7">המועד המקורי נשאר.</strong></div></div></div>
+      <div style="display:flex;gap:11px;background:rgba(185,28,28,.1);border:1.5px solid rgba(185,28,28,.3);border-radius:11px;padding:11px 14px"><div style="font-size:20px;flex-shrink:0">🔴</div><div><div style="font-size:11px;font-weight:700;color:#f87171;margin-bottom:3px">מחושב: XX.XX.XXXX — באדום מתחת לביצוע</div><div style="font-size:10px;color:rgba(255,255,255,.5);line-height:1.6">מופיע <strong style="color:#f87171">מתחת לשדה "ביצוע בפועל"</strong> בכל שורה שהושפעה.</div></div></div>
+      <div style="display:flex;gap:11px;background:rgba(201,168,76,.1);border:1.5px solid rgba(201,168,76,.3);border-radius:11px;padding:11px 14px"><div style="font-size:20px;flex-shrink:0">▶</div><div><div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:3px">מטלה הבאה — עובר אוטומטי</div><div style="font-size:10px;color:rgba(255,255,255,.5);line-height:1.6">בכל פעם שמסמנים "בוצע", הבאדג׳ הזהוב עובר למטלה הבאה בתור.</div></div></div>
+    </div>
+    <div style="font-size:12px;color:var(--gold);font-weight:700;letter-spacing:.5px;margin-top:4px">www.lextime.co.il</div>
+  </div>
+</div>
+
+</div><!-- /sw -->
+
+<div id="controls">
+  <div id="pw"><div id="pf" style="width:0%"></div><div id="pd" style="right:0%"></div></div>
+  <div id="cr">
+    <button class="cb" onclick="prevScene()">◀</button>
+    <button class="cb" id="btnPlay" onclick="togglePlay()">⏸</button>
+    <button class="cb" onclick="nextScene()">▶</button>
+    <div id="sl">כותרת</div>
+    <div id="tl">0:00 / 1:05</div>
+  </div>
+  <div id="chs">
+    <button class="ch active" onclick="goScene(0)">כותרת</button>
+    <button class="ch" onclick="goScene(1)">כל השלבים</button>
+    <button class="ch" onclick="goScene(2)">הזנת תאריך</button>
+    <button class="ch" onclick="goScene(3)">שתי העמודות</button>
+    <button class="ch" onclick="goScene(4)">דוגמה: ארכה</button>
+    <button class="ch" onclick="goScene(5)">בוצע → הבא</button>
+    <button class="ch" onclick="goScene(6)">התיקים שלי</button>
+    <button class="ch" onclick="goScene(7)">סיכום</button>
+  </div>
+</div>
+</div>
+
+<script>
+var SC=[
+  {id:'s0',label:'כותרת',dur:4000},
+  {id:'sA',label:'מבט על — כל שלבי התיק',dur:8000},
+  {id:'s1',label:'ברגע שמזינים את תאריך ההמצאה',dur:12000},
+  {id:'s2',label:'שתי העמודות — למה?',dur:9000},
+  {id:'s3',label:'דוגמה: ניתנה ארכה',dur:13000},
+  {id:'s4',label:'בוצע → מטלה הבאה',dur:13000},
+  {id:'sB',label:'התיקים שלי — ארון התיקים',dur:8000},
+  {id:'s5',label:'סיכום',dur:7000},
+];
+var TOT=SC.reduce(function(a,s){return a+s.dur;},0);
+var cur=0,play=true,ss=Date.now(),se=0,raf=null,tmrs=[];
+function g(id){return document.getElementById(id);}
+function T(ms,fn){tmrs.push(setTimeout(fn,ms));}
+function clrT(){tmrs.forEach(clearTimeout);tmrs=[];}
+function addD(s,n){var p=s.split('.');var d=new Date(p[2]+'-'+p[1]+'-'+p[0]);d.setDate(d.getDate()+n);return ('0'+d.getDate()).slice(-2)+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+d.getFullYear();}
+
+// Dates for S1 (service 07.05.2026)
+var SVC='07.05.2026';
+var D1=addD(SVC,60),D2=addD(D1,14),D3=addD(D2,30),D4=addD(D2,45),D5=addD(D4,30);
+
+// Dates for S3 (extension: +30 days on D1)
+var D1J=addD(SVC,90),D2J=addD(D1J,14),D3J=addD(D2J,30),D4J=addD(D2J,45);
+
+function showToast(id){var t=g(id);if(!t)return;t.classList.add('show');T(3200,function(){if(t)t.classList.remove('show');});}
+
+function triggerAnim(idx){
+  clrT();
+
+  if(idx===1){
+    // stages cascade in one by one
+    ['stg1','stg2','stg3','stg4','stg5','stg6'].forEach(function(id,i){
+      T(300+i*500,function(){var el=g(id);if(el){el.style.opacity='1';el.style.transform='translateY(0)';}});
+    });
+    T(1200,function(){var a=g('aA1');if(a)a.classList.add('show');});
+    T(3800,function(){var a=g('aA2');if(a)a.classList.add('show');});
+  }
+
+  if(idx===6){
+    // case cards pop in
+    ['cc1','cc2','cc3','cc4','cc5','cc6'].forEach(function(id,i){
+      T(200+i*280,function(){var el=g(id);if(el){el.style.opacity='1';el.style.transform='translateY(0)';}});
+    });
+    T(600,function(){var a=g('aBann1');if(a)a.classList.add('show');});
+    T(2200,function(){var a=g('aBann2');if(a)a.classList.add('show');});
+  }
+
+  if(idx===2){
+    // type service date
+    var inp=g('si');if(inp){inp.textContent='\u200B';inp.className='cmv inp cur typing';}
+    var typed=SVC;
+    for(var i=0;i<typed.length;i++){(function(i){T(120+i*85,function(){var el=g('si');if(el)el.textContent=typed.slice(0,i+1);});})(i);}
+    T(1180,function(){
+      var el=g('si');if(el)el.className='cmv inp filled';
+      var r=g('r1');if(r){r.classList.add('on');T(700,function(){r.classList.remove('on');});}
+    });
+    // cascade dates appear one by one
+    var pairs=[['od1',D1,34],['od2',D2,48],['od3',D3,78],['od4',D4,93],['od5',D5,125]];
+    pairs.forEach(function(p,i){
+      T(1500+i*520,function(){
+        var el=g(p[0]);if(el){el.textContent=p[1];el.classList.add('vis','pop');}
+        // update days badges
+        var db=g('db'+(i+1));if(db){db.textContent=p[2]+' יום';db.className='days-badge '+(p[2]<30?'warn':'ok');}
+        // update stats
+        var pn=g('s1-pnd');if(pn)pn.textContent=i+1;
+      });
+    });
+    T(4100,function(){showToast('t1');});
+    T(1300,function(){var a=g('a1');if(a)a.classList.add('show');});
+    T(3000,function(){var a=g('a2');if(a)a.classList.add('show');});
+  }
+
+  if(idx===3){
+    T(500,function(){var e=g('ec1');if(e)e.classList.add('show');});
+    T(1800,function(){var e=g('ec2');if(e)e.classList.add('show');});
+    T(3200,function(){var e=g('ec3');if(e)e.classList.add('show');});
+  }
+
+  if(idx===4){
+    T(800,function(){var a=g('a3');if(a)a.classList.add('show');});
+    T(1800,function(){var a=g('a4');if(a)a.classList.add('show');});
+    // type judge extension
+    T(2400,function(){
+      var inp=g('ji3');if(!inp)return;
+      var typed=D1J;var i=0;
+      var iv=setInterval(function(){if(i>=typed.length){clearInterval(iv);return;}inp.value=typed.slice(0,i+1);i++;},80);
+      tmrs.push(iv);
+    });
+    // after typing done — red recalc notes cascade
+    T(3700,function(){
+      var r=g('r3');if(r){r.classList.add('on');T(700,function(){r.classList.remove('on');});}
+    });
+    T(4000,function(){var e=g('rc3-2'),v=g('rcv3-2');if(e&&v){v.textContent=D2J;e.classList.add('show');}var db=g('db3-2');if(db){db.textContent='13 יום';db.className='days-badge warn';}});
+    T(4550,function(){var e=g('rc3-3'),v=g('rcv3-3');if(e&&v){v.textContent=D3J;e.classList.add('show');}});
+    T(5100,function(){var e=g('rc3-4'),v=g('rcv3-4');if(e&&v){v.textContent=D4J;e.classList.add('show');}});
+    T(5500,function(){var a=g('a5');if(a)a.classList.add('show');showToast('t3');});
+  }
+
+  if(idx===5){
+    T(600,function(){var a=g('a6');if(a)a.classList.add('show');});
+    // auto-mark row 1 done
+    T(2800,function(){
+      var sel=g('ss4-1');if(sel){sel.value='d';sel.className='ss done';}
+      var af=g('af4-1');if(af){af.value='05.01.2026';af.className='date-fld teal-done';}
+      var row=g('r4-1');if(row){row.classList.remove('nxt');var b=row.querySelector('.nbadge');if(b)b.remove();}
+      var nb2=g('nb4-2');if(nb2){nb2.style.display='inline-flex';var r2=g('r4-2');if(r2)r2.classList.add('nxt');}
+      s4cnt++;updateS4();
+      showToast('t4');
+    });
+    T(5800,function(){
+      var sel=g('ss4-2');if(sel){sel.value='d';sel.className='ss done';}
+      var af=g('af4-2');if(af){af.value='19.01.2026';af.className='date-fld teal-done';}
+      var row=g('r4-2');if(row){row.classList.remove('nxt');var b=row.querySelector('.nbadge');if(b)b.style.display='none';}
+      var nb3=g('nb4-3');if(nb3){nb3.style.display='inline-flex';var r3=g('r4-3');if(r3)r3.classList.add('nxt');}
+      s4cnt++;updateS4();
+    });
+    T(9000,function(){
+      var sel=g('ss4-3');if(sel){sel.value='d';sel.className='ss done';}
+      var row=g('r4-3');if(row){row.classList.remove('nxt');var b=row.querySelector('.nbadge');if(b)b.style.display='none';}
+      var nb4=g('nb4-4');if(nb4){nb4.style.display='inline-flex';var r4=g('r4-4');if(r4)r4.classList.add('nxt');}
+      s4cnt++;updateS4();
+    });
+  }
+}
+
+var s4cnt=0;
+function updateS4(){
+  var done=g('s4dn');if(done)done.textContent=s4cnt;
+  var pnd=g('s4pn');if(pnd)pnd.textContent=5-s4cnt;
+  var pct=Math.round(s4cnt/5*100);
+  var pf=g('s4pf');if(pf)pf.style.width=pct+'%';
+  var pp=g('s4pp');if(pp)pp.textContent=pct+'%';
+  var cnt=g('s4cnt');if(cnt)cnt.textContent=s4cnt+'/5 בוצע';
+  var np=g('s4np');
+  var nl=g('s4nl');
+  var labels=['כתב הגנה','כתב תשובה','גילוי מסמכים','מינוי מגשר','פגישת מהו"ת'];
+  if(np){np.style.opacity='1';if(nl&&s4cnt<5)nl.textContent=labels[s4cnt];}
+}
+
+window.s4mark=function(n,sel){
+  if(sel.value==='d'){sel.className='ss done';}
+  else if(sel.value==='u'){sel.className='ss urgent';}
+  else sel.className='ss';
+};
+
+// S1 interactive mark
+var doneCount=0;
+window.doMark=function(n,sel){
+  if(sel.value==='d'){sel.className='ss done';doneCount++;}
+  else if(sel.value==='u'){sel.className='ss urgent';}
+  else sel.className='ss';
+};
+
+function resetAll(){
+  // sA reset
+  ['stg1','stg2','stg3','stg4','stg5','stg6'].forEach(function(id){var el=g(id);if(el){el.style.opacity='0';el.style.transform='translateY(8px)';}});
+  // sB reset
+  ['cc1','cc2','cc3','cc4','cc5','cc6'].forEach(function(id){var el=g(id);if(el){el.style.opacity='0';el.style.transform='translateY(10px)';}});
+  document.querySelectorAll('.ann').forEach(function(a){a.classList.remove('show');});
+  document.querySelectorAll('.toast').forEach(function(t){t.classList.remove('show');});
+  // s1
+  var si=g('si');if(si){si.textContent='\u200B';si.className='cmv inp cur';}
+  for(var i=1;i<=5;i++){
+    var od=g('od'+i);if(od){od.textContent='—';od.className='orig-date';}
+    var db=g('db'+i);if(db){db.textContent='—';db.className='days-badge na';}
+  }
+  var pnd=g('s1-pnd');if(pnd)pnd.textContent='0';
+  // s2
+  ['ec1','ec2','ec3'].forEach(function(id){var e=g(id);if(e)e.classList.remove('show');});
+  // s3
+  var ji=g('ji3');if(ji)ji.value='';
+  ['rc3-2','rc3-3','rc3-4'].forEach(function(id){var e=g(id);if(e)e.classList.remove('show');});
+  ['rcv3-2','rcv3-3','rcv3-4'].forEach(function(id){var e=g(id);if(e)e.textContent='';});
+  var db32=g('db3-2');if(db32){db32.textContent='—';db32.className='days-badge na';}
+  // s4 reset
+  s4cnt=0;
+  for(var n=1;n<=5;n++){
+    var row=g('r4-'+n);if(row){row.classList.remove('nxt','done-row');}
+    var nb=g('nb4-'+n);if(nb)nb.style.display='none';
+    var ss=g('ss4-'+n);if(ss){ss.value='p';ss.className='ss';}
+    var af=g('af4-'+n);if(af){af.value='';af.className='date-fld';}
+  }
+  // restore row 1 as next
+  var r41=g('r4-1');if(r41)r41.classList.add('nxt');
+  var nb41=g('nb4-1');if(nb41)nb41.style.display='inline-flex';
+  var pf=g('s4pf');if(pf)pf.style.width='0%';
+  var pp=g('s4pp');if(pp)pp.textContent='0%';
+  var ct=g('s4cnt');if(ct)ct.textContent='0/5 בוצע';
+  var dn=g('s4dn');if(dn)dn.textContent='0';
+  var pn=g('s4pn');if(pn)pn.textContent='5';
+  var np=g('s4np');if(np)np.style.opacity='0';
+}
+
+function showScene(idx){
+  SC.forEach(function(s,i){var el=g(s.id);if(el)el.classList.toggle('active',i===idx);});
+  cur=idx;g('sl').textContent=SC[idx].label;
+  document.querySelectorAll('.ch').forEach(function(b,i){b.classList.toggle('active',i===idx);});
+  resetAll();triggerAnim(idx);
+}
+
+function tick(){
+  if(!play)return;
+  var el=Date.now()-ss,dur=SC[cur].dur,sp=Math.min(el/dur,1);
+  var tb=SC.slice(0,cur).reduce(function(a,s){return a+s.dur;},0);
+  var tp=Math.min((tb+el)/TOT,1);
+  g('pf').style.width=(tp*100).toFixed(2)+'%';g('pd').style.right=(tp*100).toFixed(2)+'%';
+  var ts=Math.floor((tb+el)/1000),tm=Math.floor(ts/60),fs=Math.floor(TOT/1000),fm=Math.floor(fs/60);
+  g('tl').textContent=tm+':'+('0'+(ts%60)).slice(-2)+' / '+fm+':'+('0'+(fs%60)).slice(-2);
+  if(sp>=1){if(cur<SC.length-1){showScene(cur+1);ss=Date.now();}else{pauseP();return;}}
+  raf=requestAnimationFrame(tick);
+}
+function startP(){play=true;g('btnPlay').textContent='⏸';ss=Date.now()-se;tick();}
+function pauseP(){play=false;g('btnPlay').textContent='▶';se=Date.now()-ss;if(raf)cancelAnimationFrame(raf);}
+function togglePlay(){play?pauseP():startP();}
+function nextScene(){if(cur<SC.length-1){pauseP();showScene(cur+1);se=0;startP();}}
+function prevScene(){if(cur>0){pauseP();showScene(cur-1);se=0;startP();}}
+function goScene(idx){pauseP();showScene(idx);se=0;startP();}
+g('pw').addEventListener('click',function(e){var rect=g('pw').getBoundingClientRect();var pct=1-(e.clientX-rect.left)/rect.width;var ms=Math.floor(pct*TOT),acc=0;for(var i=0;i<SC.length;i++){if(acc+SC[i].dur>=ms){pauseP();showScene(i);se=ms-acc;startP();break;}acc+=SC[i].dur;}});
+document.addEventListener('keydown',function(e){if(e.key===' '||e.key==='k'){e.preventDefault();togglePlay();}if(e.key==='ArrowRight')prevScene();if(e.key==='ArrowLeft')nextScene();});
+showScene(0);startP();
+</script>
+</body>
+</html>
