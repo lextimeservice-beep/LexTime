@@ -469,6 +469,40 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
 #a11y-panel.open{display:flex}
 
 /* ─── REVIEW SECTION ─── */
+/* ─── VIDEOS SECTION ─── */
+.videos-section{padding:96px 0;background:var(--off)}
+.videos-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
+.vid-card{display:flex;flex-direction:column;background:var(--white);border:1px solid var(--border);border-radius:18px;overflow:hidden;text-decoration:none;color:inherit;transition:transform .22s,box-shadow .22s,border-color .22s;position:relative}
+.vid-card:hover{transform:translateY(-5px);box-shadow:0 16px 48px rgba(0,0,0,.12);border-color:var(--gold)}
+.vid-thumb{position:relative;aspect-ratio:16/9;overflow:hidden}
+.vid-thumb-bg{width:100%;height:100%;display:flex;align-items:center;justify-content:center;position:relative}
+.vid-play-wrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:2}
+.vid-play{width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.18);backdrop-filter:blur(6px);border:2px solid rgba(255,255,255,.5);display:flex;align-items:center;justify-content:center;font-size:18px;color:#fff;padding-right:3px;transition:transform .2s,background .2s}
+.vid-card:hover .vid-play{transform:scale(1.12);background:rgba(201,146,42,.7);border-color:var(--gold-l)}
+.vid-duration{position:absolute;bottom:8px;left:8px;z-index:3;background:rgba(0,0,0,.65);color:#fff;font-size:11px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:.3px}
+.vid-scene-preview{position:absolute;bottom:18px;right:10px;left:10px;z-index:1;display:flex;flex-direction:column;gap:4px}
+.vsp-bar{height:4px;border-radius:3px}
+.vsp-node{position:absolute;top:-28px;left:50%;transform:translateX(-50%);font-size:22px}
+.vsp-domino{display:flex;align-items:center;gap:4px;justify-content:center;font-size:18px;position:absolute;bottom:16px;left:0;right:0}
+.vsp-arrow{font-size:12px;color:rgba(255,255,255,.6)}
+.vsp-steps{display:flex;align-items:center;justify-content:center;gap:0;position:absolute;bottom:16px;left:0;right:0}
+.vsp-step{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+.vsp-done{background:#4ade80;color:#0a2010}
+.vsp-active{background:var(--gold);color:var(--ink)}
+.vsp-pending{background:rgba(255,255,255,.2);color:rgba(255,255,255,.6)}
+.vsp-line{width:28px;height:2px;background:rgba(255,255,255,.25)}
+.vsp-stars{font-size:20px;color:var(--gold-l);text-align:center;letter-spacing:2px;position:absolute;top:50%;left:0;right:0;transform:translateY(-60%)}
+.vsp-quote{font-size:10px;color:rgba(255,255,255,.75);text-align:center;line-height:1.4;position:absolute;bottom:12px;left:10px;right:10px;font-weight:500}
+.vid-body{padding:18px 20px 20px;flex:1;display:flex;flex-direction:column;gap:8px}
+.vid-tag{display:inline-flex;align-items:center;font-size:10px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;padding:3px 9px;border-radius:20px;width:fit-content}
+.vid-title{font-family:'Frank Ruhl Libre',serif;font-size:16px;font-weight:700;color:var(--ink);line-height:1.35;margin:2px 0}
+.vid-desc{font-size:12px;color:var(--gray);line-height:1.65;flex:1}
+.vid-cta{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:700;color:var(--gold-text);margin-top:4px;transition:.2s}
+.vid-arrow{transition:transform .2s;display:inline-block}
+.vid-card:hover .vid-arrow{transform:translateX(-4px)}
+@media(max-width:1024px){.videos-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.videos-grid{grid-template-columns:1fr}}
+
 .review-section{padding:96px 0;background:var(--white)}
 .review-inner{display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:start;max-width:960px;margin:0 auto}
 .review-info{padding-top:8px}
@@ -566,6 +600,7 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
       <div class="nav-links">
         <a href="#features">יתרונות</a>
         <a href="#how">איך זה עובד</a>
+        <a href="#videos">🎬 סרטונים</a>
         <a href="#regulations">תקנות</a>
         <a href="#faq">שאלות נפוצות</a>
         <a href="#review">💬 חוות דעת</a>
@@ -848,6 +883,110 @@ body.a11y-dyslexia #a11y-bar *{font-family:'Heebo',Arial,sans-serif !important;l
         <h3 class="step-title">עדכן בפועל — הכל עוקב</h3>
         <p class="step-text">כשמטלה מושלמת, הזן את התאריך בפועל — כל המועדים העתידיים מתעדכנים אוטומטית.</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══ VIDEOS ═══ -->
+<section class="videos-section" id="videos">
+  <div class="container">
+    <div class="section-header reveal">
+      <span class="tag tag-gold">🎬 &nbsp;סרטוני הדרכה</span>
+      <h2 class="section-title display">הכירו את LexTime<br><span style="color:var(--gold)">מכל זווית</span></h2>
+      <p class="section-desc">ארבעה סרטונים קצרים שיראו לכם בדיוק איך LexTime עובדת, כיצד להצטרף, ומה אומרים עורכי הדין שכבר משתמשים בה</p>
+    </div>
+    <div class="videos-grid">
+
+      <!-- כרטיס 1 -->
+      <a href="lextime_explainer.html" class="vid-card reveal" style="animation-delay:.05s">
+        <div class="vid-thumb">
+          <div class="vid-thumb-bg" style="background:linear-gradient(135deg,#0f2244 0%,#1a4a8a 100%)">
+            <div class="vid-play-wrap"><div class="vid-play">▶</div></div>
+            <div class="vid-scene-preview">
+              <div class="vsp-bar" style="width:65%;background:var(--gold);opacity:.8"></div>
+              <div class="vsp-bar" style="width:40%;background:rgba(255,255,255,.4)"></div>
+              <div class="vsp-bar" style="width:80%;background:rgba(255,255,255,.25)"></div>
+              <div class="vsp-node">⚖️</div>
+            </div>
+          </div>
+          <span class="vid-duration">3:20</span>
+        </div>
+        <div class="vid-body">
+          <span class="vid-tag" style="background:rgba(26,74,138,.12);color:#1a4a8a">הדגמה</span>
+          <h3 class="vid-title">איך המערכת עובדת</h3>
+          <p class="vid-desc">סיור מלא במסלול התיק — מפתיחה ועד פסק דין, כולל חישוב אוטומטי של כל המועדים</p>
+          <div class="vid-cta">צפה בהדגמה <span class="vid-arrow">←</span></div>
+        </div>
+      </a>
+
+      <!-- כרטיס 2 -->
+      <a href="lextime_cascade.html" class="vid-card reveal" style="animation-delay:.12s">
+        <div class="vid-thumb">
+          <div class="vid-thumb-bg" style="background:linear-gradient(135deg,#1a0a0a 0%,#7c1111 100%)">
+            <div class="vid-play-wrap"><div class="vid-play">▶</div></div>
+            <div class="vid-scene-preview">
+              <div class="vsp-domino">
+                <span>📋</span><span class="vsp-arrow">→</span>
+                <span>⚠️</span><span class="vsp-arrow">→</span>
+                <span>🚨</span>
+              </div>
+            </div>
+          </div>
+          <span class="vid-duration">2:45</span>
+        </div>
+        <div class="vid-body">
+          <span class="vid-tag" style="background:rgba(185,28,28,.1);color:var(--red)">סיכון</span>
+          <h3 class="vid-title">אפקט הדומינו של המועדים</h3>
+          <p class="vid-desc">מה קורה כשמועד אחד מחמיצים — וכיצד טעות קטנה יכולה להפיל שרשרת שלמה של הליכים</p>
+          <div class="vid-cta">צפה בסרטון <span class="vid-arrow">←</span></div>
+        </div>
+      </a>
+
+      <!-- כרטיס 3 -->
+      <a href="lextime_signup.html" class="vid-card reveal" style="animation-delay:.19s">
+        <div class="vid-thumb">
+          <div class="vid-thumb-bg" style="background:linear-gradient(135deg,#0a2010 0%,#1a7a4a 100%)">
+            <div class="vid-play-wrap"><div class="vid-play">▶</div></div>
+            <div class="vid-scene-preview">
+              <div class="vsp-steps">
+                <div class="vsp-step vsp-done">1</div>
+                <div class="vsp-line"></div>
+                <div class="vsp-step vsp-active">2</div>
+                <div class="vsp-line"></div>
+                <div class="vsp-step vsp-pending">3</div>
+              </div>
+            </div>
+          </div>
+          <span class="vid-duration">2:10</span>
+        </div>
+        <div class="vid-body">
+          <span class="vid-tag" style="background:rgba(26,122,74,.1);color:var(--green)">הרשמה</span>
+          <h3 class="vid-title">תהליך ההרשמה — צעד אחר צעד</h3>
+          <p class="vid-desc">מדריך ויזואלי להצטרפות למערכת — בחירת מסלול, מילוי פרטים ואישור תשלום תוך דקות</p>
+          <div class="vid-cta">צפה בסרטון <span class="vid-arrow">←</span></div>
+        </div>
+      </a>
+
+      <!-- כרטיס 4 -->
+      <a href="lextime_review_video.html" class="vid-card reveal" style="animation-delay:.26s">
+        <div class="vid-thumb">
+          <div class="vid-thumb-bg" style="background:linear-gradient(135deg,#1a1200 0%,#7a5500 100%)">
+            <div class="vid-play-wrap"><div class="vid-play">▶</div></div>
+            <div class="vid-scene-preview">
+              <div class="vsp-stars">★★★★★</div>
+              <div class="vsp-quote">"חסכנו שעות עבודה&nbsp;בכל&nbsp;שבוע"</div>
+            </div>
+          </div>
+          <span class="vid-duration">1:55</span>
+        </div>
+        <div class="vid-body">
+          <span class="vid-tag" style="background:var(--gold-pale);color:var(--gold-text)">חוות דעת</span>
+          <h3 class="vid-title">מה אומרים עורכי הדין</h3>
+          <p class="vid-desc">השאירו חוות דעת וראו כיצד המשוב שלכם מעצב את המערכת — כי הקול שלכם חשוב לנו</p>
+          <div class="vid-cta">צפה בסרטון <span class="vid-arrow">←</span></div>
+        </div>
+      </a>
+
     </div>
   </div>
 </section>
@@ -2768,6 +2907,13 @@ function submitTrial(){
   fetch(_RTDB+'/trials/'+key+'.json?auth='+_RTDB_S,{
     method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
   }).catch(function(){});
+
+  /* ── תיקון קריטי: שמירת credentials גם ב-/credentials/ ──
+     ללא זאת, אם עורך דין אחר ייכנס מאותו דפדפן, ה-localStorage יוחלף
+     ומשתמש הניסיון לא יוכל להתחבר שוב (שלב 2 ב-doLogin לא ימצא אותו) */
+  _rtdbPut('/credentials/'+_emailKey(email.toLowerCase()),{
+    email:email.toLowerCase(),passHash:hash,name:name,status:'trial',plan:'trial'
+  });
 
   /* שמירה ב-Firestore דרך הפונקציה הקיימת */
   try{saveToFirestore(name,email,'ניסיון','0','trial','trial');}catch(e){}
