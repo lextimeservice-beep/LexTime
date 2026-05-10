@@ -2214,6 +2214,30 @@ function renderAll(){renderHeader();renderStages();renderStats();}
 var _calView='month';
 var _calDate=new Date();
 
+/* regulation reference for each task/anchor */
+var _CAL_REG={
+  t1:'תקנה 9(ב)',t2:'תקנות 6, 18',t3:'תקנה 37(ב)',t4:'תקנות 35-34, 57, 56(א)',
+  t5:'תקנה 37(ד)',t6:'תקנות 40, 49, 87',t7:'תקנות 58, 56(א)',t8:'תקנה 37(ו)',
+  t10:'תקנה 49(ד)',t11:'תקנה 62',t12:'תקנה 49(ג)',t13:'תקנה 36',
+  t14:'תקנה 62',t15:'תקנה 49(ה)',t17:'תקנה 83(ב)',t18:'תקנה 83(ב)',
+  t19:'תקנה 71',t20:'—',t23:'תקנה 129',t25:'תקנה 131',
+  t26:'תקנות 137(א), 135(א)',t27:'תקנה 137(ב)',t29:'תקנה 140(א)(1)',
+  pretrial:'תקנה 63',pretrialExtra:'תקנה 63(א)',pretrialFinal:'תקנה 63(ד)',
+  decision:'תקנה 129',appealDec:'תקנה 140'
+};
+
+/* turn "תקנה 9(ב)" → clickable span in calendar chips */
+function _regLink(regStr,small){
+  if(!regStr||regStr==='—') return '';
+  var numM=regStr.match(/\d+/);
+  if(!numM) return '<span style="font-size:'+(small?'9':'10')+'px;opacity:.7">'+regStr+'</span>';
+  var num=parseInt(numM[0]);
+  var subM=regStr.match(/\(([א-ת]+)\)/);
+  var sub=subM?subM[1]:'';
+  var subArg=sub?',\'('+sub+')\'':'';
+  return '<span onclick="showRegModal('+num+subArg+')" style="cursor:pointer;font-size:'+(small?'9':'10')+'px;font-weight:700;color:inherit;opacity:.75;text-decoration:underline dotted;padding:0 2px;border-radius:3px" title="פתח תקנה '+num+'">'+regStr+'</span>';
+}
+
 function _calEvents(){
   var c=cur();
   if(!c) return [];
@@ -2221,13 +2245,13 @@ function _calEvents(){
   var evts=[];
   var TL={
     t1:'הגשת כתב הגנה',t2:'כתב הטענות האחרון / כתב תשובה',
-    t3:'מינוי מגשר מהו"ת',t4:'דיון מקדמי / גילוי מסמכים',
+    t3:'מינוי מגשר מהו"ת',t4:'גילוי מסמכים / דיון מקדמי',
     t5:'פגישת מהו"ת',t6:'בקשות לבית המשפט',
     t7:'השלמת עיון במסמכים',t8:'דיווח על העברה לגישור',
     t10:'פנייה לצד שכנגד',t11:'רשימת עדים — תובע',
     t12:'הגשת רשימת הבקשות',t13:'דיווח דיון מקדמי (טופס 4)',
     t14:'רשימת עדים — נתבע',t15:'תגובה לרשימת הבקשות',
-    t17:'בקשת הזמנת עדים (30 ימים)',t18:'בקשת הזמנת עדים (14 ימים)',
+    t17:'בקשת הזמנת עדים (−30 יום)',t18:'בקשת הזמנת עדים (−14 יום)',
     t19:'הודעה על ראיות אלקטרוניות',t20:'ישיבת הוכחות ראשונה',
     t23:'מועד אחרון למתן פסק דין',t25:'בקשת ביטול החלטה',
     t26:'הגשת ערעור / בר"ע',t27:'תשובת המשיב לערעור',t29:'תשובה לערעור'
@@ -2242,28 +2266,37 @@ function _calEvents(){
       var effDate=chain[t.id];
       var dateToShow=actualDate||effDate;
       if(!dateToShow) return;
-      evts.push({date:dateToShow,label:TL[t.id]||t.id,status:status,type:'task',isActual:!!actualDate,stageColor:stage.color||'#1a4fa0'});
+      evts.push({
+        id:t.id,
+        date:dateToShow,
+        label:TL[t.id]||t.id,
+        reg:_CAL_REG[t.id]||'',
+        status:status,type:'task',
+        isActual:!!actualDate,
+        stageColor:stage.color||'#1a4fa0',
+        stageName:stage.name||''
+      });
     });
   });
   var anchors=[
-    {key:'pretrial',label:'ישיבת קדם משפט ראשונה',color:'#0f6e56'},
-    {key:'pretrialActual',label:'קדם משפט ראשון — בפועל',color:'#0f6e56'},
-    {key:'pretrialExtra',label:'ישיבת קדם משפט נוספת',color:'#0f6e56'},
-    {key:'pretrialFinal',label:'ישיבת קדם משפט מסכמת',color:'#0f6e56'},
-    {key:'trial',label:'דיון הוכחות',color:'#854f0b'},
-    {key:'trialActual',label:'דיון הוכחות — בפועל',color:'#854f0b'},
-    {key:'decision',label:'מועד ההחלטה השיפוטית',color:'#7c2d8a'},
-    {key:'decisionActual',label:'החלטה שיפוטית — בפועל',color:'#7c2d8a'},
-    {key:'appealHr',label:'דיון בערעור',color:'#5b21b6'},
-    {key:'appealHrActual',label:'דיון בערעור — בפועל',color:'#5b21b6'}
+    {key:'pretrial',label:'ישיבת קדם משפט ראשונה',color:'#0f6e56',reg:'תקנה 63'},
+    {key:'pretrialActual',label:'קדם משפט ראשון — בפועל',color:'#0f6e56',reg:'תקנה 63'},
+    {key:'pretrialExtra',label:'ישיבת קדם משפט נוספת',color:'#0f6e56',reg:'תקנה 63(א)'},
+    {key:'pretrialFinal',label:'ישיבת קדם משפט מסכמת',color:'#0f6e56',reg:'תקנה 63(ד)'},
+    {key:'trial',label:'דיון הוכחות',color:'#854f0b',reg:''},
+    {key:'trialActual',label:'דיון הוכחות — בפועל',color:'#854f0b',reg:''},
+    {key:'decision',label:'מועד ההחלטה השיפוטית',color:'#7c2d8a',reg:'תקנה 129'},
+    {key:'decisionActual',label:'החלטה שיפוטית — בפועל',color:'#7c2d8a',reg:'תקנה 129'},
+    {key:'appealHr',label:'דיון בערעור',color:'#5b21b6',reg:''},
+    {key:'appealHrActual',label:'דיון בערעור — בפועל',color:'#5b21b6',reg:''}
   ];
   anchors.forEach(function(a){
     var d=c[a.key];
     if(!d) return;
-    evts.push({date:d,label:a.label,status:'anchor',type:'anchor',isActual:a.key.indexOf('Actual')>-1,stageColor:a.color});
+    evts.push({id:a.key,date:d,label:a.label,reg:a.reg||'',status:'anchor',type:'anchor',isActual:a.key.indexOf('Actual')>-1,stageColor:a.color,stageName:'מועד שיפוטי'});
   });
-  if(c.filing) evts.push({date:c.filing,label:'הגשת כתב תביעה',status:'done',type:'filing',stageColor:'#0d2347'});
-  if(c.service) evts.push({date:c.service,label:'המצאה לנתבע',status:'done',type:'filing',stageColor:'#0d2347'});
+  if(c.filing) evts.push({id:'filing',date:c.filing,label:'הגשת כתב תביעה',reg:'תקנה 9(א)',status:'done',type:'filing',isActual:true,stageColor:'#0d2347',stageName:''});
+  if(c.service) evts.push({id:'service',date:c.service,label:'המצאה לנתבע',reg:'תקנה 9(ב)',status:'done',type:'filing',isActual:true,stageColor:'#0d2347',stageName:''});
   evts.sort(function(a,b){return a.date<b.date?-1:a.date>b.date?1:0;});
   return evts;
 }
@@ -2289,6 +2322,7 @@ function _evtFg(evt){
   return '#0369a1';
 }
 
+/* ─── YEARLY VIEW ─── */
 function _calYearHtml(evts,year){
   var MN=['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
   var DH=['\u05d0','\u05d1','\u05d2','\u05d3','\u05d4','\u05d5','\u05e9'];
@@ -2315,54 +2349,95 @@ function _calYearHtml(evts,year){
         var isOvr=eArr.some(function(e){return ds<today&&e.status!=='done'&&!e.isActual;});
         dotColor=isDone?'#16a34a':isOvr?'#dc2626':'#d97706';
       }
-      var titleAttr=hasEvt?('title="'+eArr.map(function(e){return e.label;}).join(' | ')+'"'):'';
-      html+='<div style="text-align:center;padding:3px 1px;cursor:'+(hasEvt?'pointer':'default')+';border-radius:'+(isToday?'50%':'4px')+';'+(isToday?'background:var(--navy);color:#fff;font-weight:800;':'color:'+(hasEvt?'var(--navy-d)':'#cbd5e1')+';')+'" '+(hasEvt?'onclick="_calDayClick(\''+ds+'\')" '+titleAttr:'')+'>'+
-        day+(hasEvt&&!isToday?'<div style="width:5px;height:5px;border-radius:50%;background:'+dotColor+';margin:0 auto;margin-top:1px"></div>':'')+'</div>';
+      var titleAttr=hasEvt?('title="'+eArr.map(function(e){return e.label+(e.reg?' ('+e.reg+')':'');}).join(' | ')+'"'):'';
+      var numStyle=isToday?'background:var(--navy);color:#fff;font-weight:800;border-radius:50%;':('color:'+(hasEvt?'var(--navy-d)':'#cbd5e1')+';');
+      html+='<div style="text-align:center;padding:2px 1px;cursor:'+(hasEvt?'pointer':'default')+'" '+(hasEvt?'onclick="_calDayClick(\''+ds+'\')" '+titleAttr:'')+'>'+
+        '<span style="'+numStyle+'display:inline-block;width:18px;line-height:18px;text-align:center;border-radius:50%">'+day+'</span>'+
+        (hasEvt?'<div style="width:5px;height:5px;border-radius:50%;background:'+dotColor+';margin:0 auto;margin-top:1px"></div>':'')+'</div>';
     }
     html+='</div></div>';
   }
   html+='</div>';
   html+='<div style="margin-top:14px;display:flex;gap:16px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--gray);padding:10px 14px;background:#fff;border-radius:8px;border:1px solid var(--border)">';
-  html+='<span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#16a34a;margin-left:5px"></span>\u05d1\u05d5\u05e6\u05e2</span>';
-  html+='<span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#dc2626;margin-left:5px"></span>\u05d1\u05d0\u05d9\u05d7\u05d5\u05e8</span>';
-  html+='<span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#d97706;margin-left:5px"></span>\u05e2\u05ea\u05d9\u05d3\u05d9</span>';
-  html+='<span style="color:var(--gray-l)">\u2022 \u05dc\u05d7\u05e5 \u05e2\u05dc \u05d9\u05d5\u05dd \u05e2\u05dd \u05e0\u05e7\u05d5\u05d3\u05d4 \u05dc\u05e4\u05e8\u05d9\u05e1\u05d4 \u05e9\u05d1\u05d5\u05e2\u05d9\u05ea</span>';
+  html+='<span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#16a34a;margin-left:5px"></span>בוצע / בפועל</span>';
+  html+='<span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#dc2626;margin-left:5px"></span>באיחור</span>';
+  html+='<span><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#d97706;margin-left:5px"></span>עתידי</span>';
+  html+='<span style="color:var(--gray-l)">• לחץ על יום עם נקודה לפריסה שבועית</span>';
   html+='</div>';
   return html;
 }
 
+/* ─── MONTHLY VIEW — fixed with gap+background gridlines trick ─── */
 function _calMonthHtml(evts,year,month){
   var DH=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
   var today=todayStr();
   var daysInMonth=new Date(year,month+1,0).getDate();
-  var startDow=new Date(year,month,1).getDay();
+  var startDow=new Date(year,month,1).getDay(); /* 0=Sun */
   var byDate={};
   evts.forEach(function(e){byDate[e.date]=(byDate[e.date]||[]).concat(e);});
-  var html='<div style="background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--sh-lg)">';
-  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);background:linear-gradient(180deg,#f8fafc,#f1f5f9);border-bottom:2px solid var(--border)">';
-  DH.forEach(function(d,i){html+='<div style="text-align:center;padding:8px 4px;font-size:11px;font-weight:700;color:'+(i===6?'#dc2626':'var(--gray)')+'">'+d+'</div>';});
+
+  /* wrap with border-radius container */
+  var html='<div style="border:2px solid var(--border-d);border-radius:14px;overflow:hidden;box-shadow:var(--sh-lg)">';
+
+  /* day-of-week header row */
+  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);background:linear-gradient(180deg,var(--navy) 0%,var(--navy-l) 100%)">';
+  DH.forEach(function(d,i){
+    html+='<div style="text-align:center;padding:10px 4px;font-size:11px;font-weight:700;color:'+(i===6?'#fca5a5':'rgba(255,255,255,.85)')+'">'+d+'</div>';
+  });
   html+='</div>';
-  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr)">';
-  for(var b=0;b<startDow;b++) html+='<div style="min-height:100px;background:#fafbfd;border:1px solid #f1f5f9"></div>';
+
+  /* calendar grid: gap:1px + background creates visible gridlines */
+  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#d1d5db">';
+
+  /* blank leading cells */
+  for(var b=0;b<startDow;b++){
+    html+='<div style="min-height:110px;background:#f8fafc;padding:5px"></div>';
+  }
+
+  /* day cells */
   for(var day=1;day<=daysInMonth;day++){
     var ds=year+'-'+String(month+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
     var isToday=(ds===today);
     var dayEvts=byDate[ds]||[];
     var isSat=(new Date(ds+'T12:00:00').getDay()===6);
-    html+='<div style="min-height:100px;padding:5px 4px;border:1px solid #f1f5f9;background:'+(isToday?'#fdf8ef':isSat?'#fafbfd':'#fff')+'">';
-    html+='<div style="width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:'+(isToday?900:600)+';'+(isToday?'background:var(--navy);color:#fff;':'color:'+(isSat?'#dc2626':'var(--navy)')+';"')+'>'+day+'</div>';
+    var cellBg=isToday?'#fdf8ef':isSat?'#fafbfd':'#ffffff';
+
+    html+='<div style="min-height:110px;padding:6px 5px;background:'+cellBg+';vertical-align:top">';
+
+    /* day number badge */
+    var numBg=isToday?'var(--navy)':'transparent';
+    var numColor=isToday?'#fff':isSat?'#dc2626':'var(--navy)';
+    var numW=isToday?'26px':'auto';
+    html+='<div style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:'+numBg+';font-size:12px;font-weight:'+(isToday?'900':'600')+';color:'+numColor+';margin-bottom:3px">'+day+'</div>';
+
+    /* event chips */
     dayEvts.slice(0,3).forEach(function(e){
-      html+='<div style="margin-top:3px;padding:2px 4px;border-radius:4px;font-size:10px;font-weight:600;background:'+_evtBg(e)+';color:'+_evtFg(e)+';white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-right:2px solid '+e.stageColor+'" title="'+e.label+'">'+e.label+'</div>';
+      var bg=_evtBg(e);
+      var fg=_evtFg(e);
+      html+='<div style="margin-bottom:3px;padding:3px 5px;border-radius:4px;font-size:10px;font-weight:600;background:'+bg+';color:'+fg+';border-right:2px solid '+e.stageColor+';cursor:pointer;line-height:1.35" '+
+        'onclick="_calDayClick(\''+ds+'\')" title="'+e.label+(e.reg?' | '+e.reg:'')+'">';
+      html+='<div style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+e.label+'</div>';
+      if(e.reg&&e.reg!=='—') html+='<div style="font-size:9px;opacity:.7;margin-top:1px">'+_regLink(e.reg,true)+'</div>';
+      html+='</div>';
     });
-    if(dayEvts.length>3) html+='<div style="font-size:10px;color:var(--gray-l);margin-top:2px">+'+(dayEvts.length-3)+' נוספות</div>';
+    if(dayEvts.length>3){
+      html+='<div style="font-size:10px;color:var(--gray-l);margin-top:2px;cursor:pointer" onclick="_calDayClick(\''+ds+'\')" >+'+(dayEvts.length-3)+' נוספות</div>';
+    }
     html+='</div>';
   }
-  var trailing=(7-(startDow+daysInMonth)%7)%7;
-  for(var tr2=0;tr2<trailing;tr2++) html+='<div style="min-height:100px;background:#fafbfd;border:1px solid #f1f5f9"></div>';
+
+  /* trailing blank cells */
+  var total=startDow+daysInMonth;
+  var trailing=(total%7===0)?0:(7-total%7);
+  for(var tr2=0;tr2<trailing;tr2++){
+    html+='<div style="min-height:110px;background:#f8fafc;padding:5px"></div>';
+  }
+
   html+='</div></div>';
   return html;
 }
 
+/* ─── WEEKLY VIEW ─── */
 function _calWeekHtml(evts,anchorDs){
   var DH_FULL=['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
   var today=todayStr();
@@ -2372,26 +2447,51 @@ function _calWeekHtml(evts,anchorDs){
   for(var i=0;i<7;i++){var dd=new Date(sun);dd.setDate(sun.getDate()+i);days.push(dd.toISOString().slice(0,10));}
   var byDate={};
   evts.forEach(function(e){byDate[e.date]=(byDate[e.date]||[]).concat(e);});
-  var html='<div style="background:#fff;border:1px solid var(--border);border-radius:14px;overflow:hidden;box-shadow:var(--sh-lg)">';
-  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr)">';
+
+  var html='<div style="border:2px solid var(--border-d);border-radius:14px;overflow:hidden;box-shadow:var(--sh-lg)">';
+
+  /* headers */
+  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);background:linear-gradient(180deg,var(--navy) 0%,var(--navy-l) 100%)">';
   days.forEach(function(ds,i){
     var isToday=(ds===today);
     var isSat=(i===6);
-    html+='<div style="padding:10px 4px;background:'+(isToday?'var(--gold-ll)':isSat?'#fafbfd':'var(--gray-ll)')+';border-bottom:2px solid '+(isToday?'var(--gold)':'var(--border)')+';text-align:center">';
-    html+='<div style="font-size:10px;font-weight:700;color:'+(isSat?'#dc2626':(isToday?'var(--gold-dark)':'var(--gray)'))+'"">'+DH_FULL[i]+'</div>';
+    html+='<div style="padding:10px 4px;background:'+(isToday?'rgba(201,168,76,.25)':'transparent')+';border-bottom:3px solid '+(isToday?'var(--gold)':'transparent')+';text-align:center">';
+    html+='<div style="font-size:10px;font-weight:700;color:'+(isSat?'#fca5a5':'rgba(255,255,255,.7)')+'">'+DH_FULL[i]+'</div>';
     var dayNum=new Date(ds+'T12:00:00').getDate();
-    html+='<div style="font-size:18px;font-weight:900;color:'+(isToday?'var(--navy)':'var(--navy-d)')+'">'+dayNum+'</div>';
+    html+='<div style="font-size:20px;font-weight:900;color:'+(isToday?'var(--gold)':'#fff')+'">'+dayNum+'</div>';
     html+='</div>';
   });
-  days.forEach(function(ds){
+  html+='</div>';
+
+  /* event cells: gap+background trick for gridlines */
+  html+='<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:#d1d5db">';
+  days.forEach(function(ds,i){
+    var isToday=(ds===today);
+    var isSat=(i===6);
     var dayEvts=byDate[ds]||[];
-    html+='<div style="padding:8px 5px;min-height:200px;border-top:1px solid var(--border);border-right:1px solid #f1f5f9">';
-    if(!dayEvts.length) html+='<div style="font-size:10px;color:#e2e8f0;text-align:center;padding-top:30px">—</div>';
+    html+='<div style="padding:8px 6px;min-height:220px;background:'+(isToday?'#fdf8ef':isSat?'#fafbfd':'#fff')+'">';
+    if(!dayEvts.length){
+      html+='<div style="font-size:11px;color:#d1d5db;text-align:center;padding-top:40px;user-select:none">—</div>';
+    }
     dayEvts.forEach(function(e){
-      html+='<div style="margin-bottom:6px;padding:6px 7px;border-radius:8px;border-right:3px solid '+e.stageColor+';background:'+_evtBg(e)+'">';
-      html+='<div style="font-size:11px;font-weight:700;color:'+_evtFg(e)+';line-height:1.4">'+e.label+'</div>';
-      if(e.status==='done'||e.isActual) html+='<div style="font-size:9px;color:#16a34a;font-weight:800;margin-top:2px">✓ בוצע</div>';
-      else if(e.status==='anchor') html+='<div style="font-size:9px;color:var(--blue);font-weight:700;margin-top:2px">⚖ מועד שיפוטי</div>';
+      var bg=_evtBg(e);
+      var fg=_evtFg(e);
+      html+='<div style="margin-bottom:7px;padding:7px 8px;border-radius:8px;border-right:3px solid '+e.stageColor+';background:'+bg+'">';
+      html+='<div style="font-size:11px;font-weight:700;color:'+fg+';line-height:1.4">'+e.label+'</div>';
+      if(e.reg&&e.reg!=='—'){
+        html+='<div style="margin-top:4px">'+_regLink(e.reg,false)+'</div>';
+      }
+      if(e.status==='done'||e.isActual){
+        html+='<div style="font-size:9px;color:#16a34a;font-weight:800;margin-top:3px">✓ בוצע</div>';
+      } else if(e.status==='anchor'){
+        html+='<div style="font-size:9px;color:var(--blue);font-weight:700;margin-top:3px">⚖ מועד שיפוטי</div>';
+      } else {
+        var rem=daysFrom(e.date);
+        if(rem!==null){
+          var remStr=rem===0?'היום!':rem===1?'מחר':rem<0?Math.abs(rem)+' ימים באיחור':'עוד '+rem+' ימים';
+          html+='<div style="font-size:9px;font-weight:700;margin-top:3px;color:'+fg+'">'+remStr+'</div>';
+        }
+      }
       html+='</div>';
     });
     html+='</div>';
@@ -2400,48 +2500,88 @@ function _calWeekHtml(evts,anchorDs){
   return html;
 }
 
+/* ─── SIDEBAR ─── */
 function _calSidebarHtml(evts){
   var today=todayStr();
+  var c=cur();
   var upcoming=evts.filter(function(e){return e.date>=today&&e.status!=='done'&&!e.isActual;}).slice(0,8);
   var overdue=evts.filter(function(e){return e.date<today&&e.status!=='done'&&!e.isActual;}).slice(0,5);
+
   var html='<div style="display:flex;flex-direction:column;gap:12px">';
+
+  /* ── כתב הגנה quick card ── */
+  if(c){
+    var chain=getCascadedChain(c);
+    var t1Date=chain.t1||getOriginalDate('t1',c)||'';
+    var t1Actual=(c.actualDates||{}).t1||'';
+    var t1Status=(c.statuses||{}).t1||'pending';
+    var t1Disp=t1Actual||t1Date;
+    var t1IsDone=(t1Status==='done'||!!t1Actual);
+    var t1Rem=t1Disp?daysFrom(t1Disp):null;
+    var t1Color=t1IsDone?'#15803d':t1Rem!==null&&t1Rem<0?'#991b1b':t1Rem!==null&&t1Rem<=7?'#dc2626':'#1a4fa0';
+    html+='<div style="background:linear-gradient(135deg,var(--navy-d),var(--navy));border-radius:10px;padding:14px;color:#fff">';
+    html+='<div style="font-size:10px;font-weight:800;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px">📋 כתב הגנה</div>';
+    html+='<div style="font-size:12px;font-weight:700;color:var(--gold-l);margin-bottom:4px">תקנה 9(ב)</div>';
+    if(t1Disp){
+      html+='<div style="font-size:15px;font-weight:900;color:#fff;margin-bottom:4px">'+fmtDate(t1Disp)+'</div>';
+      if(t1IsDone){
+        html+='<div style="font-size:11px;font-weight:700;color:#4ade80">✓ הוגש בפועל</div>';
+      } else if(t1Rem!==null){
+        var t1RemStr=t1Rem===0?'היום!':t1Rem<0?'באיחור '+Math.abs(t1Rem)+' ימים':'עוד '+t1Rem+' ימים';
+        html+='<div style="font-size:11px;font-weight:700;color:'+(t1Rem<=7?'#fca5a5':'rgba(255,255,255,.8)')+'">'+t1RemStr+'</div>';
+      }
+    } else {
+      html+='<div style="font-size:12px;color:rgba(255,255,255,.5)">לא הוזן מועד</div>';
+    }
+    html+='<button onclick="showTab(\'timeline\')" style="margin-top:10px;width:100%;padding:7px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.25);border-radius:7px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;font-family:\'Rubik\',Arial,sans-serif">← עבור לציר הזמנים</button>';
+    html+='</div>';
+  }
+
+  /* ── overdue ── */
   if(overdue.length){
     html+='<div style="background:var(--red-ll);border:1.5px solid #fca5a5;border-radius:10px;padding:14px">';
     html+='<div style="font-size:11px;font-weight:800;color:var(--red);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">⚠ באיחור</div>';
     overdue.forEach(function(e){
-      html+='<div style="padding:6px 0;border-bottom:1px solid #fee2e2;display:flex;flex-direction:column;gap:2px">';
+      html+='<div style="padding:6px 0;border-bottom:1px solid #fee2e2">';
       html+='<div style="font-size:10px;font-weight:700;color:var(--red)">'+fmtDate(e.date)+'</div>';
-      html+='<div style="font-size:11px;color:#7f1d1d;font-weight:500;line-height:1.3">'+e.label+'</div>';
+      html+='<div style="font-size:11px;color:#7f1d1d;font-weight:600;line-height:1.3;margin-top:1px">'+e.label+'</div>';
+      if(e.reg&&e.reg!=='—') html+='<div style="margin-top:2px">'+_regLink(e.reg,true)+'</div>';
       html+='</div>';
     });
     html+='</div>';
   }
+
+  /* ── upcoming ── */
   if(upcoming.length){
     html+='<div style="background:var(--blue-ll);border:1.5px solid var(--blue-l);border-radius:10px;padding:14px">';
     html+='<div style="font-size:11px;font-weight:800;color:var(--blue);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">📅 מועדים קרובים</div>';
     upcoming.forEach(function(e){
       var rem=daysFrom(e.date);
       var remStr=rem===0?'היום!':rem===1?'מחר':'עוד '+rem+' ימים';
-      html+='<div style="padding:6px 0;border-bottom:1px solid #dbeafe;display:flex;flex-direction:column;gap:2px">';
+      html+='<div style="padding:6px 0;border-bottom:1px solid #dbeafe">';
       html+='<div style="display:flex;justify-content:space-between;align-items:center">';
       html+='<span style="font-size:10px;font-weight:700;color:var(--blue)">'+fmtDate(e.date)+'</span>';
       html+='<span style="font-size:10px;font-weight:700;color:'+(rem<=7?'var(--red)':rem<=14?'#92400e':'var(--teal)')+'">'+remStr+'</span>';
       html+='</div>';
-      html+='<div style="font-size:11px;color:var(--navy);font-weight:500;line-height:1.3">'+e.label+'</div>';
+      html+='<div style="font-size:11px;color:var(--navy);font-weight:600;line-height:1.3;margin-top:1px">'+e.label+'</div>';
+      if(e.reg&&e.reg!=='—') html+='<div style="margin-top:2px">'+_regLink(e.reg,true)+'</div>';
       html+='</div>';
     });
     html+='</div>';
   }
-  if(!upcoming.length&&!overdue.length){
+
+  if(!upcoming.length&&!overdue.length&&c){
     html+='<div style="background:var(--green-ll);border:1.5px solid var(--green-l);border-radius:10px;padding:18px;text-align:center">';
     html+='<div style="font-size:32px;margin-bottom:8px">✅</div>';
     html+='<div style="font-size:13px;font-weight:700;color:var(--green)">אין מועדים ממתינים</div>';
     html+='</div>';
   }
+
   html+='</div>';
   return html;
 }
 
+/* ─── MAIN RENDER ─── */
 function renderCalendar(){
   var wrap=g('viewCAL');
   if(!wrap) return;
@@ -2464,22 +2604,30 @@ function renderCalendar(){
   }
 
   var html='';
+  /* title + view toggle */
   html+='<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:12px">';
-  html+='<div><div style="font-family:\'Frank Ruhl Libre\',serif;font-size:20px;font-weight:700;color:var(--navy)">🗓 לוח שנה — '+c.parties+'</div><div style="font-size:12px;color:var(--gray-l);margin-top:2px">תיק '+c.casenum+' &nbsp;|&nbsp; '+evts.length+' מועדים ומטלות</div></div>';
+  html+='<div>';
+  html+='<div style="font-family:\'Frank Ruhl Libre\',serif;font-size:20px;font-weight:700;color:var(--navy)">🗓 לוח שנה — '+c.parties+'</div>';
+  html+='<div style="font-size:12px;color:var(--gray-l);margin-top:2px">תיק '+c.casenum+' &nbsp;|&nbsp; '+evts.length+' מועדים ומטלות</div>';
+  html+='</div>';
   html+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
-  [{v:'year',l:'שנתי'},{v:'month',l:'חודשי'},{v:'week',l:'שבועי'}].forEach(function(o){
+  [{v:'year',l:'שנתי 📆'},{v:'month',l:'חודשי 🗓'},{v:'week',l:'שבועי 📋'}].forEach(function(o){
     var ia=(_calView===o.v);
-    html+='<button onclick="_calSetView(\''+o.v+'\')" style="padding:6px 16px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Rubik\',Arial,sans-serif;border:2px solid '+(ia?'var(--navy)':'var(--border)')+';background:'+(ia?'var(--navy)':'#fff')+';color:'+(ia?'#fff':'var(--gray)')+';transition:.15s">'+o.l+'</button>';
+    html+='<button onclick="_calSetView(\''+o.v+'\')" style="padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;font-family:\'Rubik\',Arial,sans-serif;border:2px solid '+(ia?'var(--navy)':'var(--border)')+';background:'+(ia?'var(--navy)':'#fff')+';color:'+(ia?'#fff':'var(--gray)')+';transition:.15s">'+o.l+'</button>';
   });
   html+='</div>';
   html+='</div>';
+
+  /* nav bar */
   html+='<div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap">';
-  html+='<button onclick="_calNav(-1)" class="btn btn-gh">◄</button>';
-  html+='<div style="font-family:\'Frank Ruhl Libre\',serif;font-size:16px;font-weight:700;color:var(--navy);min-width:220px;text-align:center;padding:6px 12px;background:#fff;border:1px solid var(--border);border-radius:8px">'+navTitle()+'</div>';
-  html+='<button onclick="_calNav(1)" class="btn btn-gh">►</button>';
+  html+='<button onclick="_calNav(-1)" class="btn btn-gh" style="font-size:14px">◄</button>';
+  html+='<div style="font-family:\'Frank Ruhl Libre\',serif;font-size:16px;font-weight:700;color:var(--navy);min-width:220px;text-align:center;padding:6px 12px;background:#fff;border:1.5px solid var(--border-d);border-radius:8px">'+navTitle()+'</div>';
+  html+='<button onclick="_calNav(1)" class="btn btn-gh" style="font-size:14px">►</button>';
   html+='<button onclick="_calGoToday()" class="btn btn-gold" style="font-size:12px;padding:5px 14px">היום</button>';
   html+='</div>';
-  html+='<div style="display:grid;grid-template-columns:1fr 230px;gap:20px;align-items:start">';
+
+  /* two-column: calendar + sidebar */
+  html+='<div style="display:grid;grid-template-columns:1fr 240px;gap:20px;align-items:start">';
   html+='<div>';
   if(_calView==='year') html+=_calYearHtml(evts,year);
   else if(_calView==='month') html+=_calMonthHtml(evts,year,month);
