@@ -1505,7 +1505,7 @@ function toggleMenu(){
           </div>
           <div id="morningArea">
             <div id="morningBtnContainer">
-              <div id="morningBtnPlaceholder" onclick="openMorningSubscription()"
+              <div id="morningBtnPlaceholder" onclick="openYeshInvoicePayment()"
                 style="background:#003087;border-radius:10px;padding:14px;text-align:center;cursor:pointer;color:#fff;font-size:15px;font-weight:700;font-family:'Heebo',sans-serif">
                  💳 &nbsp;שלם מנוי חודשי עם  חשבונית ירוקה - Morning 
               </div>
@@ -1783,7 +1783,7 @@ function grantFullAccess(email,plan){
   }catch(e){}
 }
 
-function openMorningSubscription(){
+function openYeshInvoicePayment(){
   var  MORNING_PLANS={
     'מקצועי':'P-1T860757D49561026NHD4DFQ',
     'משרד':'P-2BT36473BJ884801MNHD5HGY',
@@ -3142,6 +3142,34 @@ document.addEventListener('keydown', function(e) {
     if (panel && panel.classList.contains('open')) a11yOpen();
   }
 });
+var YESH_URL='https://user.yeshinvoice.co.il/payment/827f5bb0-9f3e-4bd3-8269-68c93661c7eb';
+function openYeshInvoicePayment(){
+  var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
+  var email=document.getElementById('regEmail').value.trim();
+  savePendingCredentials(name,email);
+  localStorage.setItem('lextime_user',JSON.stringify({name:name,email:email,plan:_plan,method:'yeshinvoice',date:new Date().toISOString().slice(0,10)}));
+  saveToFirestore(name,email,_plan,_price,'yeshinvoice','pending');
+  saveSubToRTDB(name,email,_plan,'yeshinvoice','pending');
+  window.location.href=YESH_URL+'?customer_name='+encodeURIComponent(name)+'&customer_email='+encodeURIComponent(email);
+}
+function handlePaymentReturn(){
+  var params=new URLSearchParams(window.location.search);
+  if(params.get('payment')!=='success')return;
+  var email=(params.get('email')||'').toLowerCase().trim();
+  if(!email)return;
+  history.replaceState({},'',window.location.pathname);
+  var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
+  function tryActivate(){
+    fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+    .then(function(r){return r.json();})
+    .then(function(d){
+      if(d.active){grantFullAccess(email,d.plan||'מקצועי');window.location.href='platform.html';}
+      else{setTimeout(tryActivate,3000);}
+    }).catch(function(){setTimeout(tryActivate,3000);});
+  }
+  tryActivate();
+}
+document.addEventListener('DOMContentLoaded',handlePaymentReturn);
 </script>
 </div><!-- /#a11y-root -->
 <script defer src="https://static.cloudflareinsights.com/beacon.min.js/v8c78df7c7c0f484497ecbca7046644da1771523124516" integrity="sha512-8DS7rgIrAmghBFwoOTujcf6D9rXvH8xm8JQ1Ja01h9QX8EzXldiszufYa4IFfKdLUKTTrnSFXLDkUEOTrZQ8Qg==" data-cf-beacon='{"version":"2024.11.0","token":"f5712c3c09e94ab3ae431c7ff40dcb01","r":1,"server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}' crossorigin="anonymous"></script>
