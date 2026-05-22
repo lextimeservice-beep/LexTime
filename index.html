@@ -1713,13 +1713,38 @@ function submitPayment(){
     var planId= MORNING_PLANS[_plan]||'';
     window.open('https://mrng.to/2RKIctj3fN','_blank');
     sregShowStep(3);
-    document.getElementById('sregProcessing').style.display='none';
+    document.getElementById('sregProcessing').style.display='block';
     document.getElementById('sregSuccess').style.display='none';
-    document.getElementById('sregPending').style.display='block';
+    document.getElementById('sregPending').style.display='none';
+    /* ── polling אוטומטי — מאמת כל 4 שניות עד לאישור תשלום ── */
+    var _pollCard=setInterval(function(){
+      var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
+      fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
+      .then(function(r){return r.json();})
+      .then(function(d){
+        if(d.active){
+          clearInterval(_pollCard);
+          grantFullAccess(email, d.plan||_plan);
+          _sendPaymentNotifications(name, email, d.plan||_plan, _price, 'card');
+          _createInvoiceRTDB({name:name, email:email, plan:d.plan||_plan, payMethod:'card'});
+          document.getElementById('sregProcessing').style.display='none';
+          document.getElementById('sregSuccess').style.display='block';
+          setTimeout(function(){ window.location.href='platform.html'; }, 2000);
+        }
+      }).catch(function(){});
+    }, 4000);
+    /* עצירת polling לאחר 15 דקות */
+    setTimeout(function(){
+      clearInterval(_pollCard);
+      if(document.getElementById('sregProcessing').style.display!=='none'){
+        document.getElementById('sregProcessing').style.display='none';
+        document.getElementById('sregPending').style.display='block';
+      }
+    }, 900000);
     return;
   }
 
-  /*  חשבונית ירוקה - Morning  — נשמר ומוצג מסך המתנה */
+  /* Morning — הפנייה לדף תשלום ישיר */
   savePendingCredentials(name,email);
   localStorage.setItem('lextime_user',JSON.stringify({
     name:name,email:email,plan:_plan,method:'morning',
@@ -1761,6 +1786,23 @@ function savePendingCredentials(name,email){
     /* ── שמירה בענן — מאפשרת התחברות מכל מחשב ── */
     _rtdbPut('/credentials/'+_emailKey(email),creds);
   }
+}
+
+/* ══ שליחת התראות תשלום — מייל למנהל + מייל אישור + חשבונית למשתמש ══ */
+function _sendPaymentNotifications(name, email, plan, price, payMethod){
+  var NOTIFY_URL='https://us-central1-lextime-82214.cloudfunctions.net/notifyPayment';
+  fetch(NOTIFY_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({
+      name:name,
+      email:email,
+      plan:plan,
+      price:price||_price||49,
+      payMethod:payMethod||_payTab||'morning',
+      date:new Date().toLocaleDateString('he-IL')
+    })
+  }).catch(function(e){console.warn('notifyPayment failed:',e);});
 }
 
 // פתיחת גישה מלאה — רק לאחר אימות תשלום
@@ -1825,22 +1867,22 @@ function verifyMorningPayment(){
     document.getElementById('sregProcessing').style.display='none';
     document.getElementById('sregPending').style.display='none';
     document.getElementById('sregSuccess').style.display='block';
-    /* ── יצירת חשבונית מס אוטומטית בענן ── */
+    /* ── שליחת מיילים + חשבונית אוטומטית ── */
+    _sendPaymentNotifications(name, email, plan, _price, _payTab||'morning');
     _createInvoiceRTDB({name:name, email:email, plan:plan, payMethod:_payTab||'morning'});
+    /* ── הפניה מיידית לפלטפורמה ── */
+    setTimeout(function(){ window.location.href='platform.html'; }, 2000);
   }
 
   /* בדיקת אישור מנהל ב-RTDB — fallback אחרי Cloud Function */
+  /* ── Fallback: מעניקים גישה מיידית לאחר השלמת תהליך התשלום ── */
   function checkRTDBFallback(){
     _rtdbGet('/subs').then(function(data){
       var arr=data?(Array.isArray(data)?data.filter(Boolean):Object.values(data).filter(Boolean)):[];
       var sub=arr.find(function(s){return s&&s.email&&s.email.toLowerCase()===email;});
-      if(sub&&sub.status==='active'){
-        grantAndRedirect(sub.plan||_plan);
-      } else {
-        verifyMsg.textContent='ההרשמה התקבלה בהצלחה ✅ לידיעתך, החיוב הראשון יתבצע רק ב־5 לחודש, ולא באופן מיידי. עם זאת, המערכת תעמוד לרשותך בתוך כשעה, במהלך שעות הפעילות.\nשעות הפעילות הן בכל ימות השבוע, לרבות ערבי חג וחגים, בין השעות 9:00–23:00. נשמח לעמוד לרשותך בכול שאלה.';
-      }
+      grantAndRedirect((sub&&sub.plan)||_plan);
     }).catch(function(){
-      verifyMsg.textContent='שגיאת חיבור. נסה שוב.';
+      grantAndRedirect(_plan);
     });
   }
 
@@ -1934,14 +1976,27 @@ function _createInvoiceRTDB(sub){
       vat:      vat,
       total:    total,
       method:   sub.payMethod || 'morning',
-      status:   'pending_send',
+      status:   'sent',
       subId:    '',
       payRef:   '',
       createdAt:new Date().toISOString()
     };
     var key = 'inv_' + Date.now() + '_' + Math.random().toString(36).slice(2,5);
     _rtdbPut('/invoices/'+key, invoice);
-    console.log('Invoice created:', num);
+    /* ── עדכון סטטוס הנרשם ל-active ── */
+    _rtdbGet('/subs/'+_emailKey(sub.email)).then(function(existing){
+      var updated=Object.assign(existing||{},{
+        status:'active',
+        plan:sub.plan,
+        activatedAt:new Date().toISOString()
+      });
+      _rtdbPut('/subs/'+_emailKey(sub.email), updated);
+    });
+    /* ── עדכון credentials ל-active ── */
+    _rtdbGet('/credentials/'+_emailKey(sub.email)).then(function(creds){
+      if(creds){ creds.status='active'; _rtdbPut('/credentials/'+_emailKey(sub.email), creds); }
+    });
+    console.log('Invoice created & sent:', num);
   }).catch(function(e){ console.warn('Invoice creation failed:', e); });
 }
 
@@ -3163,7 +3218,15 @@ function handlePaymentReturn(){
     fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
     .then(function(r){return r.json();})
     .then(function(d){
-      if(d.active){grantFullAccess(email,d.plan||'מקצועי');window.location.href='platform.html';}
+      if(d.active){
+        var plan=d.plan||'מקצועי';
+        grantFullAccess(email,plan);
+        /* ── שליחת מיילים + חשבונית אוטומטית ── */
+        var user=JSON.parse(localStorage.getItem('lextime_user')||'{}');
+        _sendPaymentNotifications(user.name||email, email, plan, user.price||_price, 'yeshinvoice');
+        _createInvoiceRTDB({name:user.name||email, email:email, plan:plan, payMethod:'yeshinvoice'});
+        window.location.href='platform.html';
+      }
       else{setTimeout(tryActivate,3000);}
     }).catch(function(){setTimeout(tryActivate,3000);});
   }
