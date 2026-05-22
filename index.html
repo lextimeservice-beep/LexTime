@@ -3210,11 +3210,36 @@ function openYeshInvoicePayment(){
 function handlePaymentReturn(){
   var params=new URLSearchParams(window.location.search);
   if(params.get('payment')!=='success')return;
+
+  /* --- קבל אימייל: תחילה מה-URL, אחר כך מה-localStorage --- */
   var email=(params.get('email')||'').toLowerCase().trim();
-  if(!email)return;
+  if(!email){
+    try{
+      var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'{}');
+      email=(creds.email||'').toLowerCase().trim();
+    }catch(e){}
+  }
+  if(!email){
+    try{
+      var stored=JSON.parse(localStorage.getItem('lextime_user')||'{}');
+      email=(stored.email||'').toLowerCase().trim();
+    }catch(e){}
+  }
+  if(!email){console.error('LexTime: לא נמצא אימייל לאחר חזרה מתשלום');return;}
+
   history.replaceState({},'',window.location.pathname);
   var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
+  var attempts=0;
+  var MAX_ATTEMPTS=20; /* מקסימום ~60 שניות */
   function tryActivate(){
+    if(attempts>=MAX_ATTEMPTS){
+      var msg=document.createElement('div');
+      msg.style.cssText='position:fixed;inset:0;background:rgba(10,22,40,.92);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Heebo,sans-serif;direction:rtl';
+      msg.innerHTML='<div style="background:#fff;border-radius:16px;padding:40px;max-width:440px;text-align:center"><div style="font-size:40px;margin-bottom:16px">⚠️</div><h2 style="margin-bottom:12px">התשלום התקבל בהצלחה</h2><p style="color:#536070;margin-bottom:24px">אירעה עיכוב בהפעלת החשבון. אנא שלח מייל ל־<strong>support@lextime.co.il</strong> ונפתח לך גישה תוך שעה.</p><a href="mailto:support@lextime.co.il" style="display:inline-block;background:#c9922a;color:#0a1628;padding:12px 28px;border-radius:8px;font-weight:700;text-decoration:none">שלח מייל לתמיכה</a></div>';
+      document.body.appendChild(msg);
+      return;
+    }
+    attempts++;
     fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
     .then(function(r){return r.json();})
     .then(function(d){
