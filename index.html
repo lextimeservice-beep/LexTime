@@ -1505,8 +1505,8 @@ function toggleMenu(){
           </div>
           <div id="morningArea">
             <div id="morningBtnContainer">
-              <div id="morningBtnPlaceholder" onclick="openYeshInvoicePayment()"
-                style="background:#003087;border-radius:10px;padding:14px;text-align:center;cursor:pointer;color:#fff;font-size:15px;font-weight:700;font-family:'Heebo',sans-serif">
+              <div id="morningBtnPlaceholder" onclick="openGrowPayment()"
+                style="background:linear-gradient(135deg,#c9922a,#e8b84b);border-radius:10px;padding:14px;text-align:center;cursor:pointer;color:#0a1628;font-size:15px;font-weight:700;font-family:'Heebo',sans-serif">
                  💳 &nbsp;להפעלת המנוי וגישה מיידית 
               </div>
             </div>
@@ -1825,30 +1825,19 @@ function grantFullAccess(email,plan){
   }catch(e){}
 }
 
-function openYeshInvoicePayment(){
-  var  MORNING_PLANS={
-    'מקצועי':'P-1T860757D49561026NHD4DFQ',
-    'משרד':'P-2BT36473BJ884801MNHD5HGY',
-    'משרד גדול':'P-2F482632XU839435PNHD5PTA'
-  };
-  var planId= MORNING_PLANS[_plan]||'';
-  var url='https://mrng.to/2RKIctj3fN';
-  window.open(url,'_blank');
-  document.getElementById('morningPendingMsg').style.display='block';
-  var ph=document.getElementById('morningBtnPlaceholder');
-  ph.style.opacity='.4';
-  ph.style.pointerEvents='none';
+function openGrowPayment(){
+  var GROW_URL='https://pay.grow.link/OTk4MTQ~a8203f77c47657bd0e5743f39f32d26d-MzQ0NTE2Ng';
   var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
   var email=document.getElementById('regEmail').value.trim();
-  // שמירת פרטי רישום בלבד — ללא גישה!
+  if(!email){alert('אנא מלא את כתובת המייל שלך');return;}
   savePendingCredentials(name,email);
-  localStorage.setItem('lextime_user', JSON.stringify({
-    name: name, email: email, plan: _plan, method: 'morning',
-    date: new Date().toISOString().slice(0,10)
+  localStorage.setItem('lextime_user',JSON.stringify({
+    name:name, email:email, plan:_plan, price:_price, method:'grow',
+    date:new Date().toISOString().slice(0,10)
   }));
-  saveToFirestore(name,email,_plan,_price,'morning','pending');
-  /* ── שמירה ל-RTDB כדי שהמנהל יראה את הנרשם ── */
-  saveSubToRTDB(name,email,_plan,'morning','pending');
+  saveToFirestore(name,email,_plan,_price,'grow','pending');
+  saveSubToRTDB(name,email,_plan,'grow','pending');
+  window.location.href=GROW_URL;
 }
 
 function verifyMorningPayment(){
@@ -3197,65 +3186,85 @@ document.addEventListener('keydown', function(e) {
     if (panel && panel.classList.contains('open')) a11yOpen();
   }
 });
-var YESH_URL='https://user.yeshinvoice.co.il/payment/827f5bb0-9f3e-4bd3-8269-68c93661c7eb';
-function openYeshInvoicePayment(){
-  var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
-  var email=document.getElementById('regEmail').value.trim();
-  savePendingCredentials(name,email);
-  localStorage.setItem('lextime_user',JSON.stringify({name:name,email:email,plan:_plan,method:'yeshinvoice',date:new Date().toISOString().slice(0,10)}));
-  saveToFirestore(name,email,_plan,_price,'yeshinvoice','pending');
-  saveSubToRTDB(name,email,_plan,'yeshinvoice','pending');
-  window.location.href=YESH_URL+'?customer_name='+encodeURIComponent(name)+'&customer_email='+encodeURIComponent(email);
-}
+/* GROW payment — openGrowPayment מוגדרת למעלה */
 function handlePaymentReturn(){
   var params=new URLSearchParams(window.location.search);
   if(params.get('payment')!=='success')return;
 
-  /* --- קבל אימייל: תחילה מה-URL, אחר כך מה-localStorage --- */
-  var email=(params.get('email')||'').toLowerCase().trim();
-  if(!email){
-    try{
-      var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'{}');
-      email=(creds.email||'').toLowerCase().trim();
-    }catch(e){}
-  }
-  if(!email){
-    try{
-      var stored=JSON.parse(localStorage.getItem('lextime_user')||'{}');
-      email=(stored.email||'').toLowerCase().trim();
-    }catch(e){}
-  }
-  if(!email){console.error('LexTime: לא נמצא אימייל לאחר חזרה מתשלום');return;}
+  /* --- קבל אימייל מה-localStorage --- */
+  var email='';
+  try{var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'{}');email=(creds.email||'').toLowerCase().trim();}catch(e){}
+  if(!email){try{var stored=JSON.parse(localStorage.getItem('lextime_user')||'{}');email=(stored.email||'').toLowerCase().trim();}catch(e){}}
 
   history.replaceState({},'',window.location.pathname);
+
+  /* --- המתן עד שהחשבון פעיל, ואז הצג מסך כניסה --- */
   var CHECK_URL='https://us-central1-lextime-82214.cloudfunctions.net/checkUserStatus';
-  var attempts=0;
-  var MAX_ATTEMPTS=20; /* מקסימום ~60 שניות */
+  var attempts=0;var MAX_ATTEMPTS=20;
+
+  /* הצג overlay המתנה */
+  var overlay=document.createElement('div');
+  overlay.id='payReturnOverlay';
+  overlay.style.cssText='position:fixed;inset:0;background:rgba(10,22,40,.96);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Heebo,sans-serif;direction:rtl';
+  overlay.innerHTML='<div style="text-align:center;color:#fff"><div style="font-size:48px;margin-bottom:16px">⏳</div><div style="font-size:18px;font-weight:700">מאמת תשלום...</div><div style="font-size:14px;color:rgba(255,255,255,.5);margin-top:8px">אנא המתן מספר שניות</div></div>';
+  document.body.appendChild(overlay);
+
+  function showLoginModal(userEmail){
+    overlay.innerHTML='<div style="background:#0d1f3c;border:1px solid rgba(201,146,42,.3);border-radius:20px;padding:40px;max-width:420px;width:90%;text-align:center">'+
+      '<div style="font-size:48px;margin-bottom:12px">🎉</div>'+
+      '<h2 style="color:#e8b84b;margin-bottom:8px;font-size:22px">התשלום התקבל בהצלחה!</h2>'+
+      '<p style="color:rgba(255,255,255,.6);font-size:14px;margin-bottom:24px">כדי להיכנס לפלטפורמה, אנא אמת את פרטיך:</p>'+
+      '<input id="loginEmailRet" type="email" value="'+userEmail+'" readonly style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid rgba(201,146,42,.4);background:rgba(255,255,255,.05);color:#fff;font-size:14px;font-family:Heebo,sans-serif;margin-bottom:12px;box-sizing:border-box;text-align:right">'+
+      '<input id="loginPassRet" type="password" placeholder="הסיסמא שבחרת בהרשמה" style="width:100%;padding:12px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.05);color:#fff;font-size:14px;font-family:Heebo,sans-serif;margin-bottom:16px;box-sizing:border-box;text-align:right">'+
+      '<div id="loginRetErr" style="display:none;color:#f87171;font-size:13px;margin-bottom:12px"></div>'+
+      '<button onclick="doReturnLogin()" style="width:100%;padding:14px;background:linear-gradient(135deg,#c9922a,#e8b84b);color:#0a1628;border:none;border-radius:10px;font-size:16px;font-weight:700;font-family:Heebo,sans-serif;cursor:pointer">כניסה לפלטפורמה →</button>'+
+    '</div>';
+    setTimeout(function(){var p=document.getElementById('loginPassRet');if(p)p.focus();},100);
+  }
+
+  function showError(){
+    overlay.innerHTML='<div style="background:#fff;border-radius:16px;padding:40px;max-width:440px;text-align:center">'+
+      '<div style="font-size:40px;margin-bottom:16px">⚠️</div>'+
+      '<h2 style="margin-bottom:12px">התשלום התקבל בהצלחה</h2>'+
+      '<p style="color:#536070;margin-bottom:24px">אירעה עיכוב בהפעלת החשבון. אנא שלח מייל ל־<strong>support@lextime.co.il</strong></p>'+
+      '<a href="mailto:support@lextime.co.il" style="display:inline-block;background:#c9922a;color:#0a1628;padding:12px 28px;border-radius:8px;font-weight:700;text-decoration:none">שלח מייל לתמיכה</a></div>';
+  }
+
   function tryActivate(){
-    if(attempts>=MAX_ATTEMPTS){
-      var msg=document.createElement('div');
-      msg.style.cssText='position:fixed;inset:0;background:rgba(10,22,40,.92);z-index:9999;display:flex;align-items:center;justify-content:center;font-family:Heebo,sans-serif;direction:rtl';
-      msg.innerHTML='<div style="background:#fff;border-radius:16px;padding:40px;max-width:440px;text-align:center"><div style="font-size:40px;margin-bottom:16px">⚠️</div><h2 style="margin-bottom:12px">התשלום התקבל בהצלחה</h2><p style="color:#536070;margin-bottom:24px">אירעה עיכוב בהפעלת החשבון. אנא שלח מייל ל־<strong>support@lextime.co.il</strong> ונפתח לך גישה תוך שעה.</p><a href="mailto:support@lextime.co.il" style="display:inline-block;background:#c9922a;color:#0a1628;padding:12px 28px;border-radius:8px;font-weight:700;text-decoration:none">שלח מייל לתמיכה</a></div>';
-      document.body.appendChild(msg);
-      return;
-    }
+    if(attempts>=MAX_ATTEMPTS){showError();return;}
     attempts++;
     fetch(CHECK_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:email})})
     .then(function(r){return r.json();})
     .then(function(d){
       if(d.active){
-        var plan=d.plan||'מקצועי';
-        grantFullAccess(email,plan);
-        /* ── שליחת מיילים + חשבונית אוטומטית ── */
         var user=JSON.parse(localStorage.getItem('lextime_user')||'{}');
-        _sendPaymentNotifications(user.name||email, email, plan, user.price||_price, 'yeshinvoice');
-        _createInvoiceRTDB({name:user.name||email, email:email, plan:plan, payMethod:'yeshinvoice'});
-        window.location.href='platform.html';
-      }
-      else{setTimeout(tryActivate,3000);}
+        _sendPaymentNotifications(user.name||email,email,d.plan||'מקצועי',user.price||'49','grow');
+        _createInvoiceRTDB({name:user.name||email,email:email,plan:d.plan||'מקצועי',payMethod:'grow'});
+        showLoginModal(email);
+      } else {setTimeout(tryActivate,3000);}
     }).catch(function(){setTimeout(tryActivate,3000);});
   }
-  tryActivate();
+
+  if(email){tryActivate();}else{showLoginModal('');}
+}
+
+function doReturnLogin(){
+  var email=document.getElementById('loginEmailRet').value.trim().toLowerCase();
+  var pass=document.getElementById('loginPassRet').value;
+  var errEl=document.getElementById('loginRetErr');
+  if(!pass){errEl.style.display='block';errEl.textContent='אנא הכנס את הסיסמא שלך';return;}
+  /* בדוק סיסמא מול lextime_credentials */
+  try{
+    var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'{}');
+    var hash=simpleHash(pass);
+    if(creds.passHash && creds.passHash!==hash){
+      errEl.style.display='block';errEl.textContent='סיסמא שגויה, אנא נסה שנית';return;
+    }
+  }catch(e){}
+  /* כניסה מוצלחת */
+  var user=JSON.parse(localStorage.getItem('lextime_user')||'{}');
+  grantFullAccess(email,user.plan||'מקצועי');
+  window.location.href='platform.html';
 }
 document.addEventListener('DOMContentLoaded',handlePaymentReturn);
 </script>
