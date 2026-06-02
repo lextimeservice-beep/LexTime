@@ -3191,6 +3191,17 @@ function handlePaymentReturn(){
   var params=new URLSearchParams(window.location.search);
   if(params.get('payment')!=='success')return;
 
+  /* --- בדוק אם כבר טיפלנו בתשלום (מניעת כפילות) --- */
+  var paymentProcessed=false;
+  try{paymentProcessed=localStorage.getItem('lextime_payment_processed')==='true';}catch(e){}
+  if(paymentProcessed){
+    console.log('Payment already processed, skipping duplicate');
+    return;
+  }
+  
+  /* --- סמן שאנחנו מעבדים את התשלום --- */
+  try{localStorage.setItem('lextime_payment_processed','true');}catch(e){}
+
   /* --- קבל אימייל מה-localStorage --- */
   var email='';
   try{var creds=JSON.parse(localStorage.getItem('lextime_credentials')||'{}');email=(creds.email||'').toLowerCase().trim();}catch(e){}
@@ -3238,8 +3249,13 @@ function handlePaymentReturn(){
     .then(function(d){
       if(d.active){
         var user=JSON.parse(localStorage.getItem('lextime_user')||'{}');
-        _sendPaymentNotifications(user.name||email,email,d.plan||'מקצועי',user.price||'49','grow');
-        _createInvoiceRTDB({name:user.name||email,email:email,plan:d.plan||'מקצועי',payMethod:'grow'});
+        /* --- עיבוד תשלום סדור אחד: השלם שתי הפעולות ואז הצג מסך כניסה --- */
+        try {
+          _sendPaymentNotifications(user.name||email,email,d.plan||'מקצועי',user.price||'49','grow');
+          _createInvoiceRTDB({name:user.name||email,email:email,plan:d.plan||'מקצועי',payMethod:'grow'});
+        } catch(err) {
+          console.error('Payment processing error:',err);
+        }
         showLoginModal(email);
       } else {setTimeout(tryActivate,3000);}
     }).catch(function(){setTimeout(tryActivate,3000);});
