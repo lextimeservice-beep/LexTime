@@ -1791,6 +1791,21 @@ function savePendingCredentials(name,email){
 /* ══ שליחת התראות תשלום — מייל למנהל + מייל אישור + חשבונית למשתמש ══ */
 function _sendPaymentNotifications(name, email, plan, price, payMethod){
   var NOTIFY_URL='https://us-central1-lextime-82214.cloudfunctions.net/notifyPayment';
+  
+  /* יצור idempotency token ייחודי לתשלום זה */
+  var idempotencyToken = 'payment_' + email + '_' + Date.now();
+  
+  /* בדוק אם כבר שלחנו את ההודעה הזו */
+  try {
+    var sent = JSON.parse(localStorage.getItem('lextime_notifications_sent') || '{}');
+    if(sent[idempotencyToken]) {
+      console.log('Payment notification already sent, skipping duplicate');
+      return;
+    }
+    sent[idempotencyToken] = true;
+    localStorage.setItem('lextime_notifications_sent', JSON.stringify(sent));
+  } catch(e) {}
+  
   fetch(NOTIFY_URL,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
@@ -1800,7 +1815,8 @@ function _sendPaymentNotifications(name, email, plan, price, payMethod){
       plan:plan,
       price:price||_price||49,
       payMethod:payMethod||_payTab||'morning',
-      date:new Date().toLocaleDateString('he-IL')
+      date:new Date().toLocaleDateString('he-IL'),
+      idempotencyToken:idempotencyToken
     })
   }).catch(function(e){console.warn('notifyPayment failed:',e);});
 }
@@ -1825,11 +1841,32 @@ function grantFullAccess(email,plan){
   }catch(e){}
 }
 
+/* דגל גלובלי - מונע לחיצה כפולה על תשלום GROW */
+var growPaymentInProgress = false;
+
 function openGrowPayment(){
+  /* בדוק אם תשלום כבר בתהליך */
+  if(growPaymentInProgress){
+    console.log('Payment already in progress, ignoring duplicate click');
+    return;
+  }
+  
   var GROW_URL='https://user.yeshinvoice.co.il/payment/a0c606cb-fab9-4f72-9f68-9c0ffc454771';
   var name=document.getElementById('regFN').value.trim()+' '+document.getElementById('regLN').value.trim();
   var email=document.getElementById('regEmail').value.trim();
   if(!email){alert('אנא מלא את כתובת המייל שלך');return;}
+  
+  /* סמן שתשלום בתהליך */
+  growPaymentInProgress = true;
+  
+  /* אפשר כפתור להיות מנוטרל ויזואלית */
+  var payBtn = document.querySelector('button[onclick="openGrowPayment()"]');
+  if(payBtn){
+    payBtn.disabled = true;
+    payBtn.style.opacity = '0.6';
+    payBtn.textContent = 'מעבד תשלום...';
+  }
+  
   savePendingCredentials(name,email);
   localStorage.setItem('lextime_user',JSON.stringify({
     name:name, email:email, plan:_plan, price:_price, method:'grow',
@@ -1837,7 +1874,11 @@ function openGrowPayment(){
   }));
   saveToFirestore(name,email,_plan,_price,'grow','pending');
   saveSubToRTDB(name,email,_plan,'grow','pending');
-  window.location.href=GROW_URL;
+  
+  /* כפוז קצר — הנח ל-server לעבד */
+  setTimeout(function(){
+    window.location.href=GROW_URL;
+  }, 500);
 }
 
 function verifyMorningPayment(){
@@ -1941,6 +1982,21 @@ function simpleHashLogin(str){
 /* ── יוצר רשומת חשבונית ב-Firebase כאשר תשלום אומת בצד המשתמש ── */
 function _createInvoiceRTDB(sub){
   if(!sub || !sub.email || !sub.plan) return;
+  
+  /* יצור idempotency token ייחודי לתשלום זה */
+  var idempotencyToken = 'invoice_' + sub.email + '_' + Date.now();
+  
+  /* בדוק אם כבר יצרנו חשבונית לתשלום זה */
+  try {
+    var created = JSON.parse(localStorage.getItem('lextime_invoices_created') || '{}');
+    if(created[idempotencyToken]) {
+      console.log('Invoice already created, skipping duplicate');
+      return;
+    }
+    created[idempotencyToken] = true;
+    localStorage.setItem('lextime_invoices_created', JSON.stringify(created));
+  } catch(e) {}
+  
   var PRICES = {'מקצועי':49};
   var VAT = 0.18;
   var total = PRICES[sub.plan] || 0;
@@ -1968,7 +2024,8 @@ function _createInvoiceRTDB(sub){
       status:   'sent',
       subId:    '',
       payRef:   '',
-      createdAt:new Date().toISOString()
+      createdAt:new Date().toISOString(),
+      idempotencyToken:idempotencyToken
     };
     var key = 'inv_' + Date.now() + '_' + Math.random().toString(36).slice(2,5);
     _rtdbPut('/invoices/'+key, invoice);
@@ -3201,6 +3258,9 @@ function handlePaymentReturn(){
   
   /* --- סמן שאנחנו מעבדים את התשלום --- */
   try{localStorage.setItem('lextime_payment_processed','true');}catch(e){}
+  
+  /* --- אפס את הדגל של GROW כדי לאפשר תשלומים עתידיים --- */
+  growPaymentInProgress = false;
 
   /* --- קבל אימייל מה-localStorage --- */
   var email='';
@@ -3249,10 +3309,14 @@ function handlePaymentReturn(){
     .then(function(d){
       if(d.active){
         var user=JSON.parse(localStorage.getItem('lextime_user')||'{}');
-        /* --- עיבוד תשלום סדור אחד: השלם שתי הפעולות ואז הצג מסך כניסה --- */
+        /* --- עיבוד תשלום סדור אחד: בדוק שלא קראנו לפונקציות פעמיים --- */
         try {
-          _sendPaymentNotifications(user.name||email,email,d.plan||'מקצועי',user.price||'49','grow');
-          _createInvoiceRTDB({name:user.name||email,email:email,plan:d.plan||'מקצועי',payMethod:'grow'});
+          var paymentKey = 'payment_processed_' + email;
+          if(!localStorage.getItem(paymentKey + '_functions')) {
+            localStorage.setItem(paymentKey + '_functions', 'true');
+            _sendPaymentNotifications(user.name||email,email,d.plan||'מקצועי',user.price||'49','grow');
+            _createInvoiceRTDB({name:user.name||email,email:email,plan:d.plan||'מקצועי',payMethod:'grow'});
+          }
         } catch(err) {
           console.error('Payment processing error:',err);
         }
