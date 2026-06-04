@@ -806,7 +806,36 @@ function escapeHtml(text){
 // PLACEHOLDER FUNCTIONS (to be implemented)
 // ════════════════════════════════════════════════════════════════════════════
 
-function loginAdmin(){ toast('🔄 התחברות...'); }
+function loginAdmin(){
+  var email = document.getElementById('loginEmail').value;
+  var pass = document.getElementById('loginPass').value;
+  
+  // פרטי ההתחברות של המנהל
+  var correctEmail = 'lextimeinfo@gmail.com';
+  var correctPass = 'Bayazid100';
+  
+  if(!email || !pass){
+    document.getElementById('loginErr').style.display = 'block';
+    document.getElementById('loginErr').textContent = '❌ אנא מלא את כל השדות';
+    return;
+  }
+  
+  if(email === correctEmail && pass === correctPass){
+    // התחברות בהצלחה!
+    currentUser = {
+      email: email,
+      name: 'Admin'
+    };
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('adminApp').style.display = 'flex';
+    document.getElementById('adminName').textContent = 'Admin';
+    document.getElementById('adminAvatar').textContent = 'A';
+    toast('✅ התחברת בהצלחה!');
+  } else {
+    document.getElementById('loginErr').style.display = 'block';
+    document.getElementById('loginErr').textContent = '❌ דוא"ל או סיסמה שגויים';
+  }
+}
 function logoutAdmin(){ location.reload(); }
 function openAddSub(){ toast('💡 עוד לא הוטמע'); }
 function filterSubscribers(){ }
